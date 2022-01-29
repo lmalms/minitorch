@@ -51,3 +51,28 @@ def test_relu_back(x: float, y: float) -> None:
         assert relu_back(x, y) == 0.
 
 
+@given(small_floats)
+def test_id(x: float) -> None:
+    assert id(x) == x
+
+
+@given(small_floats)
+def test_lt(x: float) -> None:
+    assert lt(x - 1., x) == 1.
+    assert lt(x, x - 1.) == 0.
+
+
+@given(small_floats)
+def test_max(x: float) -> None:
+    assert max(x - 1., x) == x
+    assert max(x, x - 1.) == x
+    assert max(x + 1., x) == x + 1.
+    assert max(x, x + 1.) == x + 1.
+
+
+@given(small_floats)
+def eq(x: float) -> None:
+    assert eq(x, x) == 1.
+    assert eq(x, x - 1.) == 0.
+    assert eq(x, x + 1.) == 0.
+    assert eq(x + 1., x + 1.) == 1.
