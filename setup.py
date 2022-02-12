@@ -6,6 +6,7 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "hypothesis==4.38.0"
+        "hypothesis==4.38.0",
+        "pytest==6.0.1"
     ]
 )
