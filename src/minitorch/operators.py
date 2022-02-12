@@ -97,5 +97,3 @@ def inv_diff(x: float, d: float) -> float:
 def relu_diff(x: float, d: float) -> float:
     """d * f'(x) where f(x) = relu(x)"""
     return d if x > 0 else 0.
-
-

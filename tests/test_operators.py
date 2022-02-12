@@ -30,7 +30,6 @@ from tests.strategies import (
 )
 
 
-# Hypothesis tests for basic operators
 @given(small_floats, small_floats)
 def test_same_as_python(x: float, y: float) -> None:
     """Check that basic operators are the same as python implementation."""
@@ -191,4 +190,3 @@ def test_exp(x: float, y: float) -> None:
     assert is_close(mul(exp(x), exp(y)), exp(add(x, y)))
     assert is_close((exp(x) / exp(y)), exp(x - y))
     assert is_close(exp(x)**y, exp(mul(x, y)))
-
