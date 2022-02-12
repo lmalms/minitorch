@@ -157,4 +157,4 @@ def product(ls: List[float]) -> float:
     """
     Computes the product of all elements in a list.
     """
-    return reduce(mul, 1.)(ls)
+    return reduce(mul, x0=1.)(ls)
