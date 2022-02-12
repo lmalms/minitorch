@@ -4,21 +4,19 @@ import pytest
 
 from minitorch.operators import (
     mul,
-    id,
+    id_,
     add,
     neg,
     lt,
     gt,
     eq,
-    max,
+    max_,
     is_close,
     sigmoid,
     relu,
     log,
     exp,
-    log_diff,
     inv,
-    inv_diff,
     relu_diff,
 )
 from tests.strategies import (
@@ -36,14 +34,14 @@ def test_same_as_python(x: float, y: float) -> None:
     assert mul(x, y) == x * y
     assert add(x, y) == x + y
     assert neg(x) == -x
-    assert max(x, y) == (x if x > y else y)
+    assert max_(x, y) == (x if x > y else y)
     if x != 0.:
         assert_close(inv(x), 1./x)
 
 
 @given(small_floats)
 def test_id(x: float) -> None:
-    assert id(x) == x
+    assert id_(x) == x
 
 
 @given(small_floats)
@@ -65,10 +63,10 @@ def test_gt(x: float) -> None:
 
 @given(small_floats)
 def test_max(x: float) -> None:
-    assert max(x - 1., x) == x
-    assert max(x, x - 1.) == x
-    assert max(x + 1., x) == x + 1.
-    assert max(x, x + 1.) == x + 1.
+    assert max_(x - 1., x) == x
+    assert max_(x, x - 1.) == x
+    assert max_(x + 1., x) == x + 1.
+    assert max_(x, x + 1.) == x + 1.
 
 
 @given(small_floats)
@@ -190,3 +188,7 @@ def test_exp(x: float, y: float) -> None:
     assert is_close(mul(exp(x), exp(y)), exp(add(x, y)))
     assert is_close((exp(x) / exp(y)), exp(x - y))
     assert is_close(exp(x)**y, exp(mul(x, y)))
+
+### tests for task 0.3
+
+### Generic mathematical tests

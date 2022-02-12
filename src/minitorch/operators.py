@@ -2,8 +2,8 @@
 Collection of core mathematical operators used through the code base.
 """
 
+from typing import Optional, Callable, List
 import math
-from typing import Optional
 
 
 EPS = 1e-06
@@ -14,7 +14,7 @@ def mul(x: float, y: float) -> float:
     return x * y
 
 
-def id(x: float) -> float:
+def id_(x: float) -> float:
     """Identity function. f(x) = x"""
     return x
 
@@ -44,7 +44,7 @@ def eq(x: float, y: float) -> float:
     return 1. if x == y else 0.
 
 
-def max(x: float, y: float) -> float:
+def max_(x: float, y: float) -> float:
     """f(x, y) = x if x > y else y"""
     return x if x > y else y
 
@@ -97,3 +97,64 @@ def inv_diff(x: float, d: float) -> float:
 def relu_diff(x: float, d: float) -> float:
     """d * f'(x) where f(x) = relu(x)"""
     return d if x > 0 else 0.
+
+
+def map_single(func: Callable[[float], float]) -> Callable[[List[float]], List[float]]:
+    """
+    Higher order map. Returns mapping function that applies func to every element in a list and then returns that list.
+    """
+    def mapping_func(ls: List[float]) -> List[float]:
+        return [func(i) for i in ls]
+    return mapping_func
+
+
+def map_double(func: Callable[[float, float], float]) -> Callable[[List[float], List[float]], List[float]]:
+    """
+    Higher order map. Returns a mapping function that applies func to elements in two equally sized list and returns
+    result as new list.
+    """
+    def mapping_func(ls1: List[float], ls2: List[float]) -> List[float]:
+        assert len(ls1) == len(ls2), "lists ls1 and ls2 need to have the same length."
+        return [func(i, j) for (i, j) in zip(ls1, ls2)]
+    return mapping_func
+
+
+def neg_list(ls: List[float]) -> List[float]:
+    """
+    Negates each element in ls.
+    """
+    return map_single(neg)(ls)
+
+
+def add_lists(ls1: List[float], ls2: List[float]) -> List[float]:
+    """
+    Sums elements in lists ls1 and ls2 pairwise and returns result as new list.
+    """
+    return map_double(add)(ls1, ls2)
+
+
+def reduce(func: Callable[[float, float], float], x0: float) -> Callable[[List[float]], float]:
+    """
+    Returns function that applies reduction to each element in list.
+    """
+    def reduction(ls: List[float]) -> float:
+        x = x0
+        while ls:
+            x = func(x, ls[0])
+            ls.pop(0)
+        return x
+    return reduction
+
+
+def sum_(ls: List[float]) -> float:
+    """
+    Computes the sum for all elements in a list.
+    """
+    return reduce(add, x0=0.)(ls)
+
+
+def product(ls: List[float]) -> float:
+    """
+    Computes the product of all elements in a list.
+    """
+    return reduce(mul, 1.)(ls)
