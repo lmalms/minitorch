@@ -14,7 +14,7 @@ def mul(x: float, y: float) -> float:
     return x * y
 
 
-def id_(x: float) -> float:
+def identity(x: float) -> float:
     """Identity function. f(x) = x"""
     return x
 
@@ -44,7 +44,7 @@ def eq(x: float, y: float) -> float:
     return 1. if x == y else 0.
 
 
-def max_(x: float, y: float) -> float:
+def maximum(x: float, y: float) -> float:
     """f(x, y) = x if x > y else y"""
     return x if x > y else y
 
@@ -114,7 +114,6 @@ def map_double(func: Callable[[float, float], float]) -> Callable[[List[float], 
     result as new list.
     """
     def mapping_func(ls1: List[float], ls2: List[float]) -> List[float]:
-        assert len(ls1) == len(ls2), "lists ls1 and ls2 need to have the same length."
         return [func(i, j) for (i, j) in zip(ls1, ls2)]
     return mapping_func
 
@@ -138,15 +137,16 @@ def reduce(func: Callable[[float, float], float], x0: float) -> Callable[[List[f
     Returns function that applies reduction to each element in list.
     """
     def reduction(ls: List[float]) -> float:
+        ls_copy = ls.copy()  # changing to original list so make a copy.
         x = x0
-        while ls:
-            x = func(x, ls[0])
-            ls.pop(0)
+        while ls_copy:
+            x = func(x, ls_copy[0])
+            ls_copy.pop(0)
         return x
     return reduction
 
 
-def sum_(ls: List[float]) -> float:
+def summation(ls: List[float]) -> float:
     """
     Computes the sum for all elements in a list.
     """
@@ -158,3 +158,7 @@ def product(ls: List[float]) -> float:
     Computes the product of all elements in a list.
     """
     return reduce(mul, x0=1.)(ls)
+
+
+if __name__ == "__main__":
+    print(summation([1, 2, 3]))

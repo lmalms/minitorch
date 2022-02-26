@@ -1,16 +1,17 @@
+from typing import List
 from hypothesis import given
 from hypothesis.strategies import lists
 import pytest
 
 from minitorch.operators import (
     mul,
-    id_,
+    identity,
     add,
     neg,
     lt,
     gt,
     eq,
-    max_,
+    maximum,
     is_close,
     sigmoid,
     relu,
@@ -18,6 +19,10 @@ from minitorch.operators import (
     exp,
     inv,
     relu_diff,
+    add_lists,
+    neg_list,
+    product,
+    summation
 )
 from tests.strategies import (
     assert_close,
@@ -34,14 +39,14 @@ def test_same_as_python(x: float, y: float) -> None:
     assert mul(x, y) == x * y
     assert add(x, y) == x + y
     assert neg(x) == -x
-    assert max_(x, y) == (x if x > y else y)
+    assert maximum(x, y) == (x if x > y else y)
     if x != 0.:
         assert_close(inv(x), 1./x)
 
 
 @given(small_floats)
 def test_id(x: float) -> None:
-    assert id_(x) == x
+    assert identity(x) == x
 
 
 @given(small_floats)
@@ -63,10 +68,10 @@ def test_gt(x: float) -> None:
 
 @given(small_floats)
 def test_max(x: float) -> None:
-    assert max_(x - 1., x) == x
-    assert max_(x, x - 1.) == x
-    assert max_(x + 1., x) == x + 1.
-    assert max_(x, x + 1.) == x + 1.
+    assert maximum(x - 1., x) == x
+    assert maximum(x, x - 1.) == x
+    assert maximum(x + 1., x) == x + 1.
+    assert maximum(x, x + 1.) == x + 1.
 
 
 @given(small_floats)
@@ -189,6 +194,43 @@ def test_exp(x: float, y: float) -> None:
     assert is_close((exp(x) / exp(y)), exp(x - y))
     assert is_close(exp(x)**y, exp(mul(x, y)))
 
-### tests for task 0.3
+
+@given(small_floats, small_floats, small_floats, small_floats)
+def test_add_lists(x: float, y: float, v: float, w: float) -> None:
+    x1, x2 = add_lists([x, y], [v, w])
+    y1, y2 = x + v, y + w
+    assert is_close(x1, y1)
+    assert is_close(x2, y2)
+
+
+@given(lists(small_floats, min_size=5, max_size=5))
+def test_summation(x: List[float]) -> None:
+    assert is_close(summation(x), summation(x))
+
+
+@given(
+    lists(small_floats, min_size=5, max_size=5),
+    lists(small_floats, min_size=5, max_size=5)
+)
+def test_sum_distribute(x: List[float], y: List[float]) -> None:
+    """
+    Test for the distributive property of summation over lists.
+    -> sum(ls1) + sum(ls2) = sum(add_lists(ls1, ls2))
+    """
+    s1 = add(summation(x), summation(y))
+    s2 = summation(add_lists(x, y))
+    assert is_close(s1, s2)
+
+
+@given(small_floats, small_floats, small_floats)
+def test_product(x: float, y: float, z: float) -> None:
+    assert is_close(product([x, y, z]), x * y * z)
+
+
+@given(lists(small_floats, min_size=5, max_size=5))
+def test_neg_list(x: List[float]) -> None:
+    negative = neg_list(x)
+    assert all([is_close(i, -j) for (i, j) in zip(negative, x)])
+
 
 ### Generic mathematical tests
