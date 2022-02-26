@@ -19,6 +19,8 @@ from minitorch.operators import (
     exp,
     inv,
     relu_diff,
+    inv_diff,
+    log_diff,
     add_lists,
     neg_list,
     product,
@@ -91,7 +93,7 @@ def test_relu(x: float) -> None:
 
 
 @given(small_floats, small_floats)
-def test_relu_back(x: float, y: float) -> None:
+def test_relu_diff(x: float, y: float) -> None:
     if x > 0.0:
         assert relu_diff(x, y) == y
     else:
@@ -115,6 +117,13 @@ def test_sigmoid(x: float) -> None:
             [x + k * 0.01 for k in range(10000)][1:]
         )
     )
+
+
+@given(small_floats, small_floats)
+def test_diffs(a, b):
+    relu_diff(a, b)
+    inv_diff(a + 2.4, b)
+    log_diff(abs(a) + 4, b)
 
 
 @given(small_floats, small_floats, small_floats)
