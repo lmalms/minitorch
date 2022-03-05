@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple, Callable
 from hypothesis import given
 from hypothesis.strategies import lists
 import pytest
@@ -33,6 +33,7 @@ from tests.strategies import (
     tiny_floats,
     tiny_positive_floats
 )
+from minitorch.testing import MathTest
 
 
 @given(small_floats, small_floats)
@@ -242,4 +243,27 @@ def test_neg_list(x: List[float]) -> None:
     assert all([is_close(i, -j) for (i, j) in zip(negative, x)])
 
 
-### Generic mathematical tests
+# Generic mathematical tests
+one_arg_tests, two_arg_tests, _ = MathTest.generate_tests()
+
+
+@given(small_floats)
+@pytest.mark.parametrize("fn", one_arg_tests)
+def test_one_arg_funcs(fn: List[Tuple[str, Callable, Callable]], x: float) -> None:
+    name, base_fn, _ = fn
+    base_fn(x)
+
+
+@given(small_floats, small_floats)
+@pytest.mark.parametrize("fn", two_arg_tests)
+def test_two_arg_funcs(fn: List[Tuple[str, Callable, Callable]], x: float, y: float) -> None:
+    name, base_fn, _ = fn
+    base_fn(x, y)
+
+
+@given(small_floats, small_floats)
+def test_diffs(x: float, y: float) -> None:
+    relu_diff(x, y)
+    inv_diff(x + 2.4, y)
+    log_diff(abs(x) + 4., y)
+

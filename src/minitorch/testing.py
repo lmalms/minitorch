@@ -98,4 +98,3 @@ class MathTest:
 
         return one_arg_tests, two_arg_tests, reduction_tests
 
-
