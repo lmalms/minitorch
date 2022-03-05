@@ -1,25 +1,30 @@
+from typing import List, Tuple, Callable
 from hypothesis import given
 from hypothesis.strategies import lists
 import pytest
 
 from minitorch.operators import (
     mul,
-    id,
+    identity,
     add,
     neg,
     lt,
     gt,
     eq,
-    max,
+    maximum,
     is_close,
     sigmoid,
     relu,
     log,
     exp,
-    log_diff,
     inv,
-    inv_diff,
     relu_diff,
+    inv_diff,
+    log_diff,
+    add_lists,
+    neg_list,
+    product,
+    summation
 )
 from tests.strategies import (
     assert_close,
@@ -28,6 +33,7 @@ from tests.strategies import (
     tiny_floats,
     tiny_positive_floats
 )
+from minitorch.testing import MathTest
 
 
 @given(small_floats, small_floats)
@@ -36,14 +42,14 @@ def test_same_as_python(x: float, y: float) -> None:
     assert mul(x, y) == x * y
     assert add(x, y) == x + y
     assert neg(x) == -x
-    assert max(x, y) == (x if x > y else y)
+    assert maximum(x, y) == (x if x > y else y)
     if x != 0.:
         assert_close(inv(x), 1./x)
 
 
 @given(small_floats)
 def test_id(x: float) -> None:
-    assert id(x) == x
+    assert identity(x) == x
 
 
 @given(small_floats)
@@ -65,10 +71,10 @@ def test_gt(x: float) -> None:
 
 @given(small_floats)
 def test_max(x: float) -> None:
-    assert max(x - 1., x) == x
-    assert max(x, x - 1.) == x
-    assert max(x + 1., x) == x + 1.
-    assert max(x, x + 1.) == x + 1.
+    assert maximum(x - 1., x) == x
+    assert maximum(x, x - 1.) == x
+    assert maximum(x + 1., x) == x + 1.
+    assert maximum(x, x + 1.) == x + 1.
 
 
 @given(small_floats)
@@ -88,7 +94,7 @@ def test_relu(x: float) -> None:
 
 
 @given(small_floats, small_floats)
-def test_relu_back(x: float, y: float) -> None:
+def test_relu_diff(x: float, y: float) -> None:
     if x > 0.0:
         assert relu_diff(x, y) == y
     else:
@@ -112,6 +118,13 @@ def test_sigmoid(x: float) -> None:
             [x + k * 0.01 for k in range(10000)][1:]
         )
     )
+
+
+@given(small_floats, small_floats)
+def test_diffs(a, b):
+    relu_diff(a, b)
+    inv_diff(a + 2.4, b)
+    log_diff(abs(a) + 4, b)
 
 
 @given(small_floats, small_floats, small_floats)
@@ -190,3 +203,67 @@ def test_exp(x: float, y: float) -> None:
     assert is_close(mul(exp(x), exp(y)), exp(add(x, y)))
     assert is_close((exp(x) / exp(y)), exp(x - y))
     assert is_close(exp(x)**y, exp(mul(x, y)))
+
+
+@given(small_floats, small_floats, small_floats, small_floats)
+def test_add_lists(x: float, y: float, v: float, w: float) -> None:
+    x1, x2 = add_lists([x, y], [v, w])
+    y1, y2 = x + v, y + w
+    assert is_close(x1, y1)
+    assert is_close(x2, y2)
+
+
+@given(lists(small_floats, min_size=5, max_size=5))
+def test_summation(x: List[float]) -> None:
+    assert is_close(summation(x), summation(x))
+
+
+@given(
+    lists(small_floats, min_size=5, max_size=5),
+    lists(small_floats, min_size=5, max_size=5)
+)
+def test_sum_distribute(x: List[float], y: List[float]) -> None:
+    """
+    Test for the distributive property of summation over lists.
+    -> sum(ls1) + sum(ls2) = sum(add_lists(ls1, ls2))
+    """
+    s1 = add(summation(x), summation(y))
+    s2 = summation(add_lists(x, y))
+    assert is_close(s1, s2)
+
+
+@given(small_floats, small_floats, small_floats)
+def test_product(x: float, y: float, z: float) -> None:
+    assert is_close(product([x, y, z]), x * y * z)
+
+
+@given(lists(small_floats, min_size=5, max_size=5))
+def test_neg_list(x: List[float]) -> None:
+    negative = neg_list(x)
+    assert all([is_close(i, -j) for (i, j) in zip(negative, x)])
+
+
+# Generic mathematical tests
+one_arg_tests, two_arg_tests, _ = MathTest.generate_tests()
+
+
+@given(small_floats)
+@pytest.mark.parametrize("fn", one_arg_tests)
+def test_one_arg_funcs(fn: List[Tuple[str, Callable, Callable]], x: float) -> None:
+    name, base_fn, _ = fn
+    base_fn(x)
+
+
+@given(small_floats, small_floats)
+@pytest.mark.parametrize("fn", two_arg_tests)
+def test_two_arg_funcs(fn: List[Tuple[str, Callable, Callable]], x: float, y: float) -> None:
+    name, base_fn, _ = fn
+    base_fn(x, y)
+
+
+@given(small_floats, small_floats)
+def test_diffs(x: float, y: float) -> None:
+    relu_diff(x, y)
+    inv_diff(x + 2.4, y)
+    log_diff(abs(x) + 4., y)
+
