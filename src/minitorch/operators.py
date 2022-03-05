@@ -158,7 +158,3 @@ def product(ls: List[float]) -> float:
     Computes the product of all elements in a list.
     """
     return reduce(mul, x0=1.)(ls)
-
-
-if __name__ == "__main__":
-    print(summation([1, 2, 3]))
