@@ -3,7 +3,7 @@ from typing import Optional
 
 class Parameter:
 
-    def __init__(self, value=None, name: Optional[str] = None):  #TODO: add type info for value
+    def __init__(self, value=None, name: Optional[str] = None):  # TODO: add type info for value
         self.value = value
         self.name = name
         self.update(value=value)
