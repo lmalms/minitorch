@@ -32,8 +32,8 @@ class Module:
         def train_child_modules(module: Module) -> None:
             module.training = True
             for _, child_module in module._modules.items():
-                train_child_modules(module=child_module)
+                train_child_modules(child_module)
 
         self.training = True
         for _, child_module in self._modules.items():
-            train_child_modules(module=child_module)
+            train_child_modules(child_module)
