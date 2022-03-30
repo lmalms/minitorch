@@ -1,4 +1,5 @@
-from typing import Dict
+from __future__ import annotations
+from typing import Dict, List, Tuple
 from parameter import Parameter
 
 
@@ -17,36 +18,45 @@ class Module:
     def __init__(self):
         self._modules: Dict[str, Module] = {}
         self._parameters: Dict[str, Parameter] = {}
-        self.training = True
+        self.training: bool = True
 
-    def modules(self):
+    def modules(self) -> List[Module]:
         """
         Returns the module's direct child modules.
         """
         return self.__dict__["_modules"].values()
 
-    def train(self):
+    def train(self) -> None:
         """
         Conditions the module and all descendants to train (training = True).
         """
-        def train_child_modules(module: Module) -> None:
-            module.training = True
-            for _, child_module in module._modules.items():
-                train_child_modules(child_module)
-
         self.training = True
-        for _, child_module in self._modules.items():
-            train_child_modules(child_module)
+        for child_module in self.modules():
+            child_module.train()
 
-    def eval(self):
+    def eval(self) -> None:
         """
         Conditions the module and all descendant modules to eval (training = False).
         """
-        def eval_child_modules(module: Module) -> None:
-            module.training = False
-            for _, child_module in module._modules.items():
-                eval_child_modules(child_module)
-
         self.training = False
-        for _, child_module in self._modules.items():
-            eval_child_modules(child_module)
+        for child_module in self.modules():
+            child_module.eval()
+
+    def named_parameters(self) -> List[Tuple[str, Parameter]]:
+        """
+        Collects all the named parameters of the module and its descendants.
+        Returns: List[Tuple[str, Parameter]]
+        """
+        named_params = [(name, parameter) for name, parameter in self.__dict__["_parameters"].items()]
+        for child_modules in self.modules():
+            named_params.extend(child_modules.named_parameters())
+        return named_params
+
+    def parameters(self) -> List[Parameter]:
+        """
+        Enumerates over all parameters of this module and its descendants.
+        """
+        params = [param for (_, param) in self.__dict__["_parameters"].items()]
+        for child_module in self.modules():
+            params.extend(child_module.parameters())
+        return params
