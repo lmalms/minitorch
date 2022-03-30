@@ -27,7 +27,7 @@ class Module:
 
     def train(self):
         """
-        Conditions the module and all descendents to train.
+        Conditions the module and all descendants to train (training = True).
         """
         def train_child_modules(module: Module) -> None:
             module.training = True
@@ -37,3 +37,16 @@ class Module:
         self.training = True
         for _, child_module in self._modules.items():
             train_child_modules(child_module)
+
+    def eval(self):
+        """
+        Conditions the module and all descendant modules to eval (training = False).
+        """
+        def eval_child_modules(module: Module) -> None:
+            module.training = False
+            for _, child_module in module._modules.items():
+                eval_child_modules(child_module)
+
+        self.training = False
+        for _, child_module in self._modules.items():
+            eval_child_modules(child_module)
