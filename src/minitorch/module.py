@@ -89,17 +89,17 @@ class Module:
         """
         def add_child_parameters(
                 parent_parameters: List[Tuple[str, Parameter]],
-                child_module: Module,
+                module: Module,
                 prefix: str
         ) -> List[Tuple[str, Parameter]]:
             new_params = [
-                (prefix + name, param) for (name, param) in child_module.__dict__["_parameters"].items()
+                (f"{prefix}.{name}", param) for (name, param) in module.__dict__["_parameters"].items()
             ]
             parent_parameters.extend(new_params)
-            for child_module in child_module.modules():
+            for module_name, child_module in module.__dict__["_modules"].items():
                 parent_parameters = add_child_parameters(
                     parent_parameters=parent_parameters,
-                    child_module=child_module,
+                    module=child_module,
                     prefix=prefix + child_module.__name__
                 )
             return parent_parameters
@@ -108,7 +108,7 @@ class Module:
         for module_name, child_module in self.__dict__["_modules"].items():
             named_params = add_child_parameters(
                 parent_parameters=named_params,
-                child_module=child_module,
+                module=child_module,
                 prefix=module_name
             )
         return named_params
