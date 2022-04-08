@@ -104,12 +104,12 @@ class Module:
                 )
             return parent_parameters
 
-        named_params = [(self.__name__ + name, param) for name, param in self.__dict__["_parameters"].items()]
-        for child_module in self.modules():
+        named_params = [(name, param) for name, param in self.__dict__["_parameters"].items()]
+        for module_name, child_module in self.__dict__["_modules"].items():
             named_params = add_child_parameters(
                 parent_parameters=named_params,
                 child_module=child_module,
-                prefix=self.__name__ + child_module.__name__
+                prefix=module_name
             )
         return named_params
 
