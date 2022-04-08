@@ -32,3 +32,24 @@ class ModuleA4(Module):
         self.non_param = 7
         self.a = ModuleA1()
         self.b = ModuleA3()
+
+
+def test_stacked_module():
+    """
+    Check that each of the properties match.
+    """
+    module = ModuleA4()
+    named_parameters = dict(module.named_parameters())
+
+    print(str(module))
+    assert module.p4 == 5
+    assert module.non_param == 7
+    assert module.a.p1 == 15
+    assert module.b.p3 == 3.3
+    assert module.b.c.p2 == 10
+
+    # Checked named parameters
+    assert named_parameters["p4"] == 5
+    assert named_parameters["a.p1"] == 15
+    assert named_parameters["b.p3"] == 3.3
+    assert named_parameters["b.c.p2"] == 10
