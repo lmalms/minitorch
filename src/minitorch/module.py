@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Dict, List, Tuple, Union
-from parameter import Parameter
+from src.minitorch.parameter import Parameter
 
 
 class Module:
@@ -100,7 +100,7 @@ class Module:
                 parent_parameters = add_child_parameters(
                     parent_parameters=parent_parameters,
                     module=child_module,
-                    prefix=prefix + child_module.__name__
+                    prefix=f"{prefix}.{module_name}"
                 )
             return parent_parameters
 
@@ -117,13 +117,10 @@ class Module:
         """
         Enumerates over all parameters of this module and its descendants.
         """
-        params = [param for (_, param) in self.__dict__["_parameters"].items()]
-        for child_module in self.modules():
-            params.extend(child_module.parameters())
-        return params
+        return [param for (_, param) in self.named_parameters()]
 
     def add_parameter(self, parameter: Parameter) -> Parameter:
-        self.__dict__["_parameters"][parameter.name] = parameter.value
+        self.__dict__["_parameters"][parameter.name] = parameter
         return parameter
 
     def forward(self, *args, **kwargs):
