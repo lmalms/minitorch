@@ -30,7 +30,7 @@ class MathTest:
 
     @staticmethod
     def log(x: float) -> float:
-        return operators.log(x)
+        return operators.log(x + 101)  # To assure values are positive for tests.
 
     @staticmethod
     def relu(x: float) -> float:
