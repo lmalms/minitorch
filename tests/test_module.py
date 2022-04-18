@@ -151,6 +151,8 @@ def test_forward():
     module = Module()
     module()
 
+
+def test_moduleC():
     module = ModuleC1()
     assert module.forward() == 10.
     assert module() == 10.

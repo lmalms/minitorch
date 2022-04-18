@@ -1,14 +1,14 @@
-from typing import Optional
+from typing import Optional, Any
 
 
 class Parameter:
 
-    def __init__(self, value: Optional[float] = None, name: Optional[str] = None):
+    def __init__(self, value: Optional[Any] = None, name: Optional[str] = None):
         self.value = value
         self.name = name
         self.update(value=value)
 
-    def update(self, value: Optional[float] = None):
+    def update(self, value: Optional[Any] = None):
         """
         Updates the parameters value.
         """
