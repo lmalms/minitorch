@@ -51,7 +51,7 @@ class DiagonalDataset(Dataset):
 
     def _generate_ys(self) -> List[float]:
         return [
-            1 if (x1 + x2 < 0.5) else 0.
+            1 if (x1 + x2 < 1.) else 0.
             for (x1, x2) in self.xs
         ]
 
