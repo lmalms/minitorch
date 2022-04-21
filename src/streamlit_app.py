@@ -26,11 +26,43 @@ dataset = st.selectbox(
     ]
 )
 
+
+def split_binary_classes(dataset: str):
+
+    # Select features and labels from y == 1.
+    features_pos_class = [
+        (x1, x2) for ((x1, x2), y) in zip(datasets[dataset].xs, datasets[dataset].ys)
+        if y == 1.
+    ]
+    labels_pos_class = [y for y in datasets[dataset].ys if y == 1.]
+
+    # Select features and labels from y == 0.
+    features_neg_class = [
+        (x1, x2) for ((x1, x2), y) in zip(datasets[dataset].xs, datasets[dataset].ys)
+        if y == 0.
+    ]
+    labels_neg_class = [y for y in datasets[dataset].ys if y == 0.]
+
+    return (
+        features_pos_class,
+        features_neg_class,
+        labels_pos_class,
+        labels_neg_class
+    )
+
+
+def plot_dataset_split(features, labels):
+    # Plot a dataset split on a matplotlib axis object.
+    ...
+
+
 x1 = [x1 for (x1, _) in datasets[dataset.lower()].xs]
 x2 = [x2 for (_, x2) in datasets[dataset.lower()].xs]
 ys = [y for y in datasets[dataset.lower()].ys]
 
 fig, ax = plt.subplots(1, 1)
+
+
 ax.scatter(
     x1,
     x2,
