@@ -14,4 +14,3 @@ def test_central_difference():
 
     d = central_difference(operators.exp, 2, arg_idx=0)
     assert operators.is_close(d, operators.exp(2.))
-
