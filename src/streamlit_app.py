@@ -3,20 +3,22 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from minitorch.datasets import *
 
+# App configuration
+N = 200
+DATASETS = {
+    "simple": SimpleDataset(N),
+    "split": SplitDataset(N),
+    "diagonal": DiagonalDataset(N),
+    "xor": XORDataset(N)
+}
+
+
+# App
 """
 Module 0
 """
 
-n = 200
-
-datasets = {
-    "simple": SimpleDataset(n),
-    "split": SplitDataset(n),
-    "diagonal": DiagonalDataset(n),
-    "xor": XORDataset(n)
-}
-
-dataset = st.selectbox(
+selected_dataset = st.selectbox(
     "Choose dataset:",
     [
         "Simple",
@@ -27,21 +29,23 @@ dataset = st.selectbox(
 )
 
 
-def split_binary_classes(dataset: str):
+def split_binary_classes(
+        dataset: str
+) -> Tuple[List[Tuple[float, float]], List[Tuple[float, float]], List[float], List[float]]:
 
     # Select features and labels from y == 1.
     features_pos_class = [
-        (x1, x2) for ((x1, x2), y) in zip(datasets[dataset].xs, datasets[dataset].ys)
+        (x1, x2) for ((x1, x2), y) in zip(DATASETS[dataset].xs, DATASETS[dataset].ys)
         if y == 1.
     ]
-    labels_pos_class = [y for y in datasets[dataset].ys if y == 1.]
+    labels_pos_class = [y for y in DATASETS[dataset].ys if y == 1.]
 
     # Select features and labels from y == 0.
     features_neg_class = [
-        (x1, x2) for ((x1, x2), y) in zip(datasets[dataset].xs, datasets[dataset].ys)
+        (x1, x2) for ((x1, x2), y) in zip(DATASETS[dataset].xs, DATASETS[dataset].ys)
         if y == 0.
     ]
-    labels_neg_class = [y for y in datasets[dataset].ys if y == 0.]
+    labels_neg_class = [y for y in DATASETS[dataset].ys if y == 0.]
 
     return (
         features_pos_class,
@@ -51,29 +55,33 @@ def split_binary_classes(dataset: str):
     )
 
 
-def plot_dataset_split(features, labels):
+def plot_dataset_split(features: List[Tuple[float, float]], labels: List[float], axis, color, marker):
     # Plot a dataset split on a matplotlib axis object.
-    ...
+    x1, x2 = zip(*features)
+    axis.scatter(x1, x2, c=color, marker=marker, s=50,)
+    return axis
 
 
-x1 = [x1 for (x1, _) in datasets[dataset.lower()].xs]
-x2 = [x2 for (_, x2) in datasets[dataset.lower()].xs]
-ys = [y for y in datasets[dataset.lower()].ys]
+def format_axes(ax):
+    ax.set_xlim(0.0, 1.)
+    ax.set_ylim(0.0, 1.)
+    ax.set_xlabel("x1")
+    ax.set_ylabel("x2")
+    return ax
 
+
+# Split out features and labels by class
+pos_features, neg_features, pos_labels, neg_labels = split_binary_classes(dataset=selected_dataset.lower())
+
+# Plot
 fig, ax = plt.subplots(1, 1)
 
+plot_dataset_split(pos_features, pos_labels, ax, "tab:red", "o")
+plot_dataset_split(neg_features, neg_labels, ax, "tab:blue", "x")
 
-ax.scatter(
-    x1,
-    x2,
-    c=["tab:red" if y == 1. else "tab:blue" for y in ys]
-)
-ax.set_xlim(0.0, 1.)
-ax.set_ylim(0.0, 1.)
-ax.set_xlabel("x1")
-ax.set_ylabel("x2")
+format_axes(ax)
 
-if dataset.lower() == "simple":
+if selected_dataset.lower() == "simple":
     bottom_left = Rectangle(
         (0, 0), 0.5, 1.0, color="tab:red", alpha=0.3, lw=0.
     )
@@ -82,7 +90,7 @@ if dataset.lower() == "simple":
     )
     ax.add_patch(bottom_left)
     ax.add_patch(react2)
-elif dataset.lower() == "split":
+elif selected_dataset.lower() == "split":
     react1 = Rectangle(
         (0, 0), 0.2, 1.0, color="tab:red", alpha=0.3, lw=0.
     )
@@ -95,7 +103,7 @@ elif dataset.lower() == "split":
     ax.add_patch(react1)
     ax.add_patch(react2)
     ax.add_patch(react3)
-elif dataset.lower() == "xor":
+elif selected_dataset.lower() == "xor":
     bottom_left = Rectangle(
         (0, 0), 0.5, 0.5, color="tab:blue", alpha=0.3, lw=0.
     )
