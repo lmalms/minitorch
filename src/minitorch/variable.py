@@ -1,9 +1,47 @@
-from typing import Optional, List, Any
+from __future__ import annotations
+from typing import Optional, List, Any, Iterable
 
 
 # TODO: implement history class
 
 VARIABLE_COUNT = 1
+
+
+class Context:
+    """
+    The context class is used by Functions to store information during the forward pass.
+
+    Attributes:
+        no_grad - bool
+            Whether to save gradient information or not.
+        saved_values - Tuple[]
+            A tuple of values saved for backward pass.
+        saved_tensors - Tuple[]
+            A tuple of tensors saved for backward pass - alias for saved_values.
+
+    """
+
+    def __init__(self, no_grad: bool = False):
+        self._saved_values = None
+        self.no_grad = no_grad
+
+    @property
+    def saved_values(self):
+        assert not self.no_grad, "Doesn't require grad."
+        assert self._saved_values is not None, "Did you forget to save values?"
+        return unwrap_tuple(self._saved_values)
+
+    @property
+    def saved_tensors(self):
+        return self.saved_values
+
+    def save_for_backward(self, *values):
+        """
+        Stores the given values if they need to be used during back-propagation
+        """
+        if self.no_grad:
+            return None
+        self._saved_values = values
 
 
 class History:
@@ -45,6 +83,11 @@ class History:
         raise NotImplementedError
 
 
+class BaseFunction:
+    pass
+
+
+
 class Variable:
     """
     Class for tracking variable values and computation history for auto-differentiation.
@@ -75,6 +118,4 @@ class Variable:
         backpropagation.
         """
         self.history = History()
-
-    def
 
