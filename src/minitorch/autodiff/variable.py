@@ -1,8 +1,7 @@
 from __future__ import annotations
-from typing import Optional, List, Any, Iterable
+from typing import Optional, List
 
-
-# TODO: implement history class
+from minitorch.autodiff.utils import unwrap_tuple
 
 VARIABLE_COUNT = 1
 

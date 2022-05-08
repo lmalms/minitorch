@@ -31,4 +31,3 @@ def central_difference(func: Callable[..., Any], *values, arg_idx: int = 0, epsi
     print(lower_values)
 
     return (func(*upper_values) - func(*lower_values)) / (2 * epsilon)
-
