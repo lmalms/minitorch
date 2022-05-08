@@ -1,7 +1,9 @@
 from __future__ import annotations
-from typing import Optional, List
+from abc import abstractmethod
+from typing import Optional, List, Union
 
 from minitorch.autodiff.utils import unwrap_tuple
+
 
 VARIABLE_COUNT = 1
 
@@ -21,8 +23,8 @@ class Context:
     """
 
     def __init__(self, no_grad: bool = False):
-        self._saved_values = None
         self.no_grad = no_grad
+        self._saved_values = None
 
     @property
     def saved_values(self):
@@ -83,8 +85,75 @@ class History:
 
 
 class BaseFunction:
-    pass
+    """
+    Base class for functions that act on Variables to produce a new Variable output
+    whilst keeping track of the variable's history.
 
+    Called using apply() method.
+    """
+
+    @staticmethod
+    @abstractmethod
+    def variable(raw, history):
+        ...
+
+    @classmethod
+    def apply(cls, *variables: Union[Variable, float]) -> Variable:
+        """
+        Apply is used to run the function.
+        Internally it does three things:
+        a) Create context for the function call
+        b) Calls forward to run the function.
+        c) Attaches the context to the history of the new variable.
+
+        Args:
+            variables - List[Union[Variable, float]]
+                An iterable of variables or constants to call forward on.
+
+        Returns:
+            Variable
+                The new computed variable.
+        """
+        # Extract raw values
+        raw_values = []
+        need_grad = False
+        for v in variables:
+            if isinstance(v, Variable):
+                if v.history is not None:
+                    need_grad = True
+                v.used += 1
+                raw_values.append(v.get_data())
+            else:
+                raw_values.append(v)
+
+        # Create context
+        ctx = Context(no_grad=not need_grad)
+
+        # Call forward with variables
+        c = cls.forward(ctx, *raw_values)
+        assert isinstance(c, cls.data_type), f"Expected return type {cls.data_type}, got {type(c)}."
+
+        # Create new variable from result with new history.
+        back = None
+        if need_grad:
+            back = History(last_fn=cls, ctx=ctx, inputs=variables)
+
+        return cls.variable(cls.data(c), back)
+
+    @classmethod
+    @abstractmethod
+    def forward(cls, ctx: Context, *vals):
+        """
+        To be implemented by all inheriting Function classes.
+        """
+        ...
+
+    @classmethod
+    def chain_rule(cls, ctx: Context, inputs: List[Union[Variable, float]], d_output):
+        """
+        Implements the chain rule for differentiation.
+        """
+        raise NotImplementedError
 
 
 class Variable:
