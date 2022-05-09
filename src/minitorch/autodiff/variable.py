@@ -180,6 +180,14 @@ class Variable:
         self.name = name if name is not None else self.id
         self.used = 0
 
+    @property
+    def derivative(self):
+        return self._derivative
+
+    def is_leaf(self):
+        "True if this variable has no last_fn"
+        return self.history.last_fn is None
+
     def requires_grad_(self, val: bool):
         """
         Sets the requires_grad_ flag to 'val' on variable. This ensures that operations on this variable will trigger
@@ -187,3 +195,51 @@ class Variable:
         """
         self.history = History()
 
+    def backward(self, d_output: float = 1.0):
+        """
+        Calls auto-diff to fill in the derivatives for the history of this object.
+
+        Args:
+            d_output - float, default = 1.
+                Starting derivative to backpropagate through the model
+        """
+        backpropagate(self, d_output)
+
+    def accumulate_derivative(self, val: float):
+        """
+        Add val to the derivative accumulated on this variable.
+        Should only be called during auto-differentiation on leaf variables.
+
+        Args:
+            val - float
+                The value to be accumulated.
+        """
+        assert self.is_leaf(), "Only leaf variables can have derivatives."
+        if self.derivative is None:
+            self._derivative = self.zeros()
+        self._derivative += val
+
+    def zero_derivative_(self) -> None:
+        """
+        Reset derivative on this variable.
+        """
+        self._derivative = self.zeros()
+
+    def zero_grad_(self) -> None:
+        self.zero_derivative_()
+
+    def expand(self, x):
+        """
+        Placeholder for tensor variables.
+        """
+        return x
+
+    def __radd__(self, other):
+        return self + other
+
+    def __rmul__(self, other):
+        return self * other
+
+    @staticmethod
+    def zeros() -> float:
+        return 0.
