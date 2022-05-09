@@ -92,9 +92,14 @@ class BaseFunction:
     Called using apply() method.
     """
 
-    @staticmethod
+    @classmethod
     @abstractmethod
-    def variable(raw, history):
+    def variable(cls, raw, history):  # TODO: add type information here
+        ...
+
+    @classmethod
+    @abstractmethod
+    def data_type(cls):
         ...
 
     @classmethod
@@ -131,7 +136,7 @@ class BaseFunction:
 
         # Call forward with variables
         c = cls.forward(ctx, *raw_values)
-        assert isinstance(c, cls.data_type), f"Expected return type {cls.data_type}, got {type(c)}."
+        assert isinstance(c, cls.data_type()), f"Expected return type {cls.data_type()}, got {type(c)}."
 
         # Create new variable from result with new history.
         back = None
@@ -157,6 +162,8 @@ class BaseFunction:
 
 
 class Variable:
+
+    # TODO: implement an abstract get_data / data() method to return value of variable.
     """
     Class for tracking variable values and computation history for auto-differentiation.
 
@@ -168,15 +175,16 @@ class Variable:
 
     Attributes cannot be manipulated directly, only through the use of functions that act on the variable.
     """
-    def __init__(self, history: History, name: Optional[str] = None):
-        global VARIABLE_COUNT
+    def __init__(self, history: Optional[History] = None, name: Optional[str] = None):
         assert history is None or isinstance(history, History)
-
         self.history = history
+
         self._derivative = None
 
+        global VARIABLE_COUNT
         VARIABLE_COUNT += 1
         self.id = "Variable" + str(VARIABLE_COUNT)
+
         self.name = name if name is not None else self.id
         self.used = 0
 
@@ -185,7 +193,7 @@ class Variable:
         return self._derivative
 
     def is_leaf(self):
-        "True if this variable has no last_fn"
+        """True if this variable has no last_fn"""
         return self.history.last_fn is None
 
     def requires_grad_(self, val: bool):
