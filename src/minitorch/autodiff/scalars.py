@@ -1,5 +1,5 @@
-from typing import Optional, Union, Type
-from abc import abstractmethod, ABC
+from abc import abstractmethod
+from typing import Optional, Union, Type, Tuple
 
 from minitorch import operators
 from minitorch.autodiff.variable import History, Context, Variable, BaseFunction
@@ -95,7 +95,7 @@ class Add(ScalarFunction):
         return a + b
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float):
+    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
         return d_out, d_out
 
 
@@ -111,3 +111,18 @@ class Log(ScalarFunction):
     def backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return operators.log_diff(a, d_out)
+
+
+class Mul(ScalarFunction):
+    """Multiplication for Scalars: f(x, y) = x * y"""
+
+    @classmethod
+    def forward(cls, ctx: Context, a: float, b: float) -> float:
+        ctx.save_for_backward(a, b)
+        return operators.mul(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
+        a, b = ctx.saved_values
+        return operators.mul(b, d_out), operators.mul(a, d_out)
+
