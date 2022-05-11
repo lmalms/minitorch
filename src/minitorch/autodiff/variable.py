@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import abstractmethod
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Any
 
 from minitorch.autodiff.utils import unwrap_tuple
 
@@ -93,15 +93,13 @@ class BaseFunction:
     """
 
     @classmethod
-    @property
     @abstractmethod
-    def data_type(cls):
+    def data_type(cls, value: Optional = None):
         ...
 
     @classmethod
-    @property
     @abstractmethod
-    def variable(cls):  # TODO: add type information here
+    def variable(cls, value, history: History):
         ...
 
     @classmethod
@@ -161,7 +159,7 @@ class BaseFunction:
         if need_grad:
             back = History(last_fn=cls, ctx=ctx, inputs=variables)
 
-        return cls.variable(cls.data(c), back)
+        return cls.variable(cls.data_type(c), back)
 
 
 class Variable:
