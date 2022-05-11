@@ -39,7 +39,7 @@ class Context:
 
     def save_for_backward(self, *values) -> None:
         """
-        Stores the given values if they need to be used during back-propagation
+        Stores the given values if they need to be used during back-propagation.
         """
         if self.requires_grad_:
             self._saved_values = values
