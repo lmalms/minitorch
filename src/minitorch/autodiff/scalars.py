@@ -126,3 +126,28 @@ class Mul(ScalarFunction):
         a, b = ctx.saved_values
         return operators.mul(b, d_out), operators.mul(a, d_out)
 
+
+class Inv(ScalarFunction):
+    """Inverse function for Scalars: f(x) = 1(x)"""
+
+    @classmethod
+    def forward(cls, ctx: Context, a: float) -> float:
+        ctx.save_for_backward(a)
+        return operators.inv(a)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> float:
+        a = ctx.saved_values
+        return operators.inv_diff(a, d_out)
+
+
+class Neg(ScalarFunction):
+    """Negation function for Scalars: f(x) = -x"""
+
+    @classmethod
+    def forward(cls, ctx: Context, a: float) -> float:
+        return operators.neg(a)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> float:
+        return operators.mul(-1, d_out)
