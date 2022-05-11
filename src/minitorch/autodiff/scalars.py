@@ -22,7 +22,17 @@ class Scalar(Variable):
             name: Optional[str] = None
     ):
         super().__init__(history=history, name=name)
-        self.data = float(value)
+        self.data = value
+
+    @property
+    def data(self) -> float:
+        return self._data
+
+    @data.setter
+    def data(self, value: float) -> None:
+        if not isinstance(value, float):
+            raise TypeError(f"Scalar values have to be of type float - got {type(value)}.")
+        self._data = value
 
     def __repr__(self) -> str:
         return f"Scalar({self.data})"
@@ -48,3 +58,6 @@ class Add(ScalarFunction):
     @staticmethod
     def backward(ctx: Context, d_output):
         return d_output, d_output
+
+
+class Mul

@@ -93,14 +93,32 @@ class BaseFunction:
     """
 
     @classmethod
+    @property
     @abstractmethod
-    def variable(cls, raw, history):  # TODO: add type information here
+    def data_type(cls):
+        ...
+
+    @classmethod
+    @property
+    @abstractmethod
+    def variable(cls):  # TODO: add type information here
         ...
 
     @classmethod
     @abstractmethod
-    def data_type(cls):
+    def forward(cls, ctx: Context, *values):
+        """
+        To be implemented by all inheriting Function classes.
+        Returns a value of type cls.data_type
+        """
         ...
+
+    @classmethod
+    def chain_rule(cls, ctx: Context, inputs: List[Union[Variable, float]], d_output):
+        """
+        Implements the chain rule for differentiation.
+        """
+        raise NotImplementedError
 
     @classmethod
     def apply(cls, *variables: Union[Variable, float]) -> Variable:
@@ -127,7 +145,7 @@ class BaseFunction:
                 if v.history is not None:
                     need_grad = True
                 v.used += 1
-                raw_values.append(v.get_data())
+                raw_values.append(v.data)
             else:
                 raw_values.append(v)
 
@@ -136,7 +154,7 @@ class BaseFunction:
 
         # Call forward with variables
         c = cls.forward(ctx, *raw_values)
-        assert isinstance(c, cls.data_type()), f"Expected return type {cls.data_type()}, got {type(c)}."
+        assert isinstance(c, cls.data_type), f"Expected return type {cls.data_type}, got {type(c)}."
 
         # Create new variable from result with new history.
         back = None
@@ -145,25 +163,8 @@ class BaseFunction:
 
         return cls.variable(cls.data(c), back)
 
-    @classmethod
-    @abstractmethod
-    def forward(cls, ctx: Context, *vals):
-        """
-        To be implemented by all inheriting Function classes.
-        """
-        ...
-
-    @classmethod
-    def chain_rule(cls, ctx: Context, inputs: List[Union[Variable, float]], d_output):
-        """
-        Implements the chain rule for differentiation.
-        """
-        raise NotImplementedError
-
 
 class Variable:
-
-    # TODO: implement an abstract get_data / data() method to return value of variable.
     """
     Class for tracking variable values and computation history for auto-differentiation.
 
@@ -187,6 +188,11 @@ class Variable:
 
         self.name = name if name is not None else self.id
         self.used = 0
+
+    @property
+    @abstractmethod
+    def data(self):
+        ...
 
     @property
     def derivative(self):
