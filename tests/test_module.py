@@ -1,9 +1,10 @@
 import pytest
-
 from hypothesis import given
-from .strategies import med_ints, small_floats
+
 from src.minitorch.module import Module
 from src.minitorch.parameter import Parameter
+
+from .strategies import med_ints, small_floats
 
 
 class ModuleA1(Module):

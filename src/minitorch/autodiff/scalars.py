@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 from abc import abstractmethod
-from typing import Optional, Union, Type, Tuple
+from typing import Optional, Tuple, Type, Union
 
 from minitorch import operators
-from minitorch.autodiff.variable import History, Context, Variable, BaseFunction
+from minitorch.autodiff.variable import BaseFunction, Context, History, Variable
 
 
 class Scalar(Variable):
@@ -76,7 +77,6 @@ class Scalar(Variable):
 
     def relu(self) -> Scalar:
         return ReLU.apply(self)
-
 
 
 class ScalarFunction(BaseFunction):
@@ -241,7 +241,7 @@ class LT(ScalarFunction):
 
     @classmethod
     def backward(cls, ctx: Context, d_out: float) -> float:
-        return 0.
+        return 0.0
 
 
 class GT(ScalarFunction):
@@ -253,7 +253,7 @@ class GT(ScalarFunction):
 
     @classmethod
     def backward(cls, ctx: Context, d_out: float) -> float:
-        return 0.
+        return 0.0
 
 
 class EQ(ScalarFunction):
@@ -265,4 +265,4 @@ class EQ(ScalarFunction):
 
     @classmethod
     def backward(cls, ctx: Context, d_out: float) -> float:
-        return 0.
+        return 0.0

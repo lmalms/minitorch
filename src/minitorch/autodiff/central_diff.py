@@ -1,4 +1,4 @@
-from typing import Callable, Any
+from typing import Any, Callable
 
 
 def central_difference(

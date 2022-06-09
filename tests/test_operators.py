@@ -1,31 +1,33 @@
-from typing import List, Tuple, Callable
+from typing import Callable, List, Tuple
+
+import pytest
 from hypothesis import given
 from hypothesis.strategies import lists
-import pytest
 
 from minitorch.operators import (
-    mul,
-    identity,
     add,
-    neg,
-    lt,
-    gt,
-    eq,
-    maximum,
-    is_close,
-    sigmoid,
-    relu,
-    log,
-    exp,
-    inv,
-    relu_diff,
-    inv_diff,
-    log_diff,
     add_lists,
+    eq,
+    exp,
+    gt,
+    identity,
+    inv,
+    inv_diff,
+    is_close,
+    log,
+    log_diff,
+    lt,
+    maximum,
+    mul,
+    neg,
     neg_list,
     product,
+    relu,
+    relu_diff,
+    sigmoid,
     summation,
 )
+from minitorch.testing import MathTest
 from tests.strategies import (
     assert_close,
     small_floats,
@@ -33,7 +35,6 @@ from tests.strategies import (
     tiny_floats,
     tiny_positive_floats,
 )
-from minitorch.testing import MathTest
 
 
 @given(small_floats, small_floats)

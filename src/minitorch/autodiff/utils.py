@@ -1,4 +1,4 @@
-from typing import Union, Tuple, Any
+from typing import Any, Tuple, Union
 
 
 def wrap_tuple(x: Any) -> Tuple[Any]:

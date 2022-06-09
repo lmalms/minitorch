@@ -2,9 +2,8 @@
 Collection of core mathematical operators used through the code base.
 """
 
-from typing import Optional, Callable, List
 import math
-
+from typing import Callable, List, Optional
 
 EPS = 1e-06
 

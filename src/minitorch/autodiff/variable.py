@@ -1,9 +1,9 @@
 from __future__ import annotations
+
 from abc import abstractmethod
-from typing import Optional, List, Union, Any
+from typing import Any, List, Optional, Union
 
 from minitorch.autodiff.utils import unwrap_tuple
-
 
 VARIABLE_COUNT = 1
 
