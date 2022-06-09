@@ -178,3 +178,19 @@ class ReLU(ScalarFunction):
     def backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return operators.relu_diff(a, d_out)
+
+
+class Exp(ScalarFunction):
+    """exp function applied to Scalars: f(x) = exp(x)"""
+
+    @classmethod
+    def forward(cls, ctx: Context, a: float):
+        ctx.save_for_backward(a)
+        return operators.exp(a)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> float:
+        a = ctx.saved_values
+        return d_out * operators.exp(a)
+
+    
