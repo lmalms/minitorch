@@ -59,7 +59,7 @@ class ScalarFunction(BaseFunction):
 
     @classmethod
     @abstractmethod
-    def forward(cls, ctx: Context, *values):
+    def forward(cls, ctx: Context, *values) -> float:
         """
         Forward call.
         Args:
@@ -184,7 +184,7 @@ class Exp(ScalarFunction):
     """exp function applied to Scalars: f(x) = exp(x)"""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float):
+    def forward(cls, ctx: Context, a: float) -> float:
         ctx.save_for_backward(a)
         return operators.exp(a)
 
@@ -193,4 +193,26 @@ class Exp(ScalarFunction):
         a = ctx.saved_values
         return d_out * operators.exp(a)
 
-    
+
+class LT(ScalarFunction):
+    """Less than function on scalars: f(x, y) = 1.0 if x < y else 0."""
+
+    @classmethod
+    def forward(cls, ctx: Context, a: float, b: float) -> float:
+        return operators.lt(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> float:
+        return 0.
+
+
+class EQ(ScalarFunction):
+    """Equality function on scalars: f(x, y) = 1. if x == y else 0."""
+
+    @classmethod
+    def forward(cls, ctx: Context, a: float, b: float) -> float:
+        return operators.eq(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> float:
+        return 0.
