@@ -17,10 +17,7 @@ class Scalar(Variable):
     """
 
     def __init__(
-            self,
-            value: float,
-            history: History = History(),
-            name: Optional[str] = None
+        self, value: float, history: History = History(), name: Optional[str] = None
     ):
         super().__init__(history=history, name=name)
         self.data = value
@@ -32,7 +29,9 @@ class Scalar(Variable):
     @data.setter
     def data(self, value: float) -> None:
         if not isinstance(value, float):
-            raise TypeError(f"Scalar values have to be of type float - got {type(value)}.")
+            raise TypeError(
+                f"Scalar values have to be of type float - got {type(value)}."
+            )
         self._data = value
 
     def __repr__(self) -> str:
@@ -80,7 +79,7 @@ class ScalarFunction(BaseFunction):
 
         Args:
             ctx - Container
-                A container object that holds any information recorded duing the forward call.
+                A container object that holds any information recorded during the forward call.
             d_out - float
                 Derivative is multiplied by this value.
         """
@@ -92,7 +91,7 @@ class Add(ScalarFunction):
 
     @classmethod
     def forward(cls, ctx: Context, a: float, b: float) -> float:
-        return a + b
+        return operators.add(a, b)
 
     @classmethod
     def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
@@ -151,3 +150,17 @@ class Neg(ScalarFunction):
     @classmethod
     def backward(cls, ctx: Context, d_out: float) -> float:
         return operators.mul(-1, d_out)
+
+
+class Sigmoid(ScalarFunction):
+    """Sigmoid function applied to Scalars: f(x) = 1. / (1. + e^-x)"""
+
+    @classmethod
+    def forward(cls, ctx: Context, a: float):
+        ctx.save_for_backward(a)
+        return operators.sigmoid(a)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> float:
+        a = ctx.saved_values
+        return operators.sigmoid_diff(a, d_out)

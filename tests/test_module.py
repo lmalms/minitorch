@@ -9,13 +9,13 @@ from src.minitorch.parameter import Parameter
 class ModuleA1(Module):
     def __init__(self):
         super().__init__()
-        self.p1 = Parameter(value=15., name="p1")
+        self.p1 = Parameter(value=15.0, name="p1")
 
 
 class ModuleA2(Module):
     def __init__(self):
         super().__init__()
-        self.p2 = Parameter(value=10., name="p2")
+        self.p2 = Parameter(value=10.0, name="p2")
 
 
 class ModuleA3(Module):
@@ -28,7 +28,7 @@ class ModuleA3(Module):
 class ModuleA4(Module):
     def __init__(self):
         super().__init__()
-        self.p4 = Parameter(value=5., name="p4")
+        self.p4 = Parameter(value=5.0, name="p4")
         self.non_param = 7
         self.a = ModuleA1()
         self.b = ModuleA3()
@@ -44,17 +44,17 @@ def test_moduleA_stack():
     print(module.p4)
 
     print(str(module))
-    assert module.p4.value == 5.
-    assert module.non_param == 7.
+    assert module.p4.value == 5.0
+    assert module.non_param == 7.0
     assert module.a.p1.value == 15
     assert module.b.p3.value == 3.3
     assert module.b.c.p2.value == 10
 
     # Checked named parameters
-    assert named_parameters["p4"].value == 5.
-    assert named_parameters["a.p1"].value == 15.
+    assert named_parameters["p4"].value == 5.0
+    assert named_parameters["a.p1"].value == 15.0
     assert named_parameters["b.p3"].value == 3.3
-    assert named_parameters["b.c.p2"].value == 10.
+    assert named_parameters["b.c.p2"].value == 10.0
 
 
 VAL_A = 50
@@ -72,7 +72,7 @@ class ModuleB2(Module):
         super().__init__()
         self.parameter_a = Parameter(VAL_A)
         self.parameter_b = Parameter(VAL_B)
-        self.non_parameter = 10.
+        self.non_parameter = 10.0
         self.module_a = ModuleB1()
         for i in range(n_extra):
             self.add_parameter(Parameter(value=None, name=f"extra_parameter_{i}"))
@@ -143,7 +143,7 @@ class ModuleC1(Module):
         super().__init__()
 
     def forward(self, *args, **kwargs) -> float:
-        return 10.
+        return 10.0
 
 
 @pytest.mark.xfail
@@ -154,5 +154,5 @@ def test_forward():
 
 def test_moduleC():
     module = ModuleC1()
-    assert module.forward() == 10.
-    assert module() == 10.
+    assert module.forward() == 10.0
+    assert module() == 10.0

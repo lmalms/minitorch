@@ -5,7 +5,7 @@ def wrap_tuple(x: Any) -> Tuple[Any]:
     # TODO: validate types here.
     if isinstance(x, tuple):
         return x
-    return (x, )
+    return (x,)
 
 
 def unwrap_tuple(x: Union[Tuple[float], float]) -> float:

@@ -1,7 +1,9 @@
 from typing import Callable, Any
 
 
-def central_difference(func: Callable[..., Any], *values, arg_idx: int = 0, epsilon=1e-06) -> float:
+def central_difference(
+    func: Callable[..., Any], *values, arg_idx: int = 0, epsilon=1e-06
+) -> float:
     """
     Computes a numerical approximation of the derivative of f with respect to one arg.
 
@@ -16,16 +18,10 @@ def central_difference(func: Callable[..., Any], *values, arg_idx: int = 0, epsi
             A small constant.
     """
     upper_values = [
-        val
-        if i != arg_idx
-        else val + epsilon
-        for i, val in enumerate(values)
+        val if i != arg_idx else val + epsilon for i, val in enumerate(values)
     ]
     lower_values = [
-        val
-        if i != arg_idx
-        else val - epsilon
-        for i, val in enumerate(values)
+        val if i != arg_idx else val - epsilon for i, val in enumerate(values)
     ]
     print(upper_values)
     print(lower_values)

@@ -3,26 +3,25 @@ import minitorch.operators as operators
 
 
 class MathTest:
-
     @staticmethod
     def neg(x: float) -> float:
         return -x
 
     @staticmethod
     def add_constant(x: float) -> float:
-        return x + 5.
+        return x + 5.0
 
     @staticmethod
     def subtract_constant(x: float) -> float:
-        return x - 5.
+        return x - 5.0
 
     @staticmethod
     def multiply(x: float) -> float:
-        return 5. * x
+        return 5.0 * x
 
     @staticmethod
     def divide(x: float) -> float:
-        return x / 5.
+        return x / 5.0
 
     @staticmethod
     def sigmoid(x: float) -> float:
@@ -81,10 +80,8 @@ class MathTest:
         two_arg_tests = []
         reduction_tests = []
         for k in dir(MathTest):
-            if (
-                callable(getattr(MathTest, k))
-                and
-                not (k.startswith("generate") or k.startswith("_"))
+            if callable(getattr(MathTest, k)) and not (
+                k.startswith("generate") or k.startswith("_")
             ):
                 base_fn = getattr(MathTest, k)
                 scalar_fn = getattr(cls, k)
@@ -97,4 +94,3 @@ class MathTest:
                     one_arg_tests.append(tup)
 
         return one_arg_tests, two_arg_tests, reduction_tests
-

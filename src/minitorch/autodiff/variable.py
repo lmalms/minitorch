@@ -30,7 +30,9 @@ class Context:
     @property
     def saved_values(self):
         assert self.requires_grad_, "No gradients required - no values saved."
-        assert self._saved_values is not None, "No values saved - did you forget to save values?"
+        assert (
+            self._saved_values is not None
+        ), "No values saved - did you forget to save values?"
         return unwrap_tuple(self._saved_values)
 
     @property
@@ -58,11 +60,12 @@ class History:
         inputs - List
             The inputs that were given when last_fn.forward was called.
     """
+
     def __init__(
-            self,
-            last_fn: Optional[BaseFunction] = None,
-            ctx: Optional[Context] = None,
-            inputs: Optional[List[float]] = None
+        self,
+        last_fn: Optional[BaseFunction] = None,
+        ctx: Optional[Context] = None,
+        inputs: Optional[List[float]] = None,
     ):
         self.last_fn = last_fn
         self.ctx = ctx
@@ -152,7 +155,9 @@ class BaseFunction:
 
         # Call forward with variables
         c = cls.forward(ctx, *raw_values)
-        assert isinstance(c, cls.data_type), f"Expected return type {cls.data_type}, got {type(c)}."
+        assert isinstance(
+            c, cls.data_type
+        ), f"Expected return type {cls.data_type}, got {type(c)}."
 
         # Create new variable from result with new history.
         back = None
@@ -174,6 +179,7 @@ class Variable:
 
     Attributes cannot be manipulated directly, only through the use of functions that act on the variable.
     """
+
     def __init__(self, history: Optional[History] = None, name: Optional[str] = None):
         assert history is None or isinstance(history, History)
         self.history = history
@@ -254,4 +260,4 @@ class Variable:
 
     @staticmethod
     def zeros() -> float:
-        return 0.
+        return 0.0
