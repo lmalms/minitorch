@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import abstractmethod
 from typing import Optional, Union, Type, Tuple
 
@@ -37,8 +38,45 @@ class Scalar(Variable):
     def __repr__(self) -> str:
         return f"Scalar({self.data})"
 
-    def __mul__(self, other):
-        pass
+    def __bool__(self):
+        return bool(self._data)
+
+    def __add__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return Add.apply(self, other)
+
+    def __mul__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return Mul.apply(self, other)
+
+    def __truediv__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return Mul.apply(self, Inv.apply(other))
+
+    def __rtruediv__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return Mul.apply(other, Inv.apply(self))
+
+    def __lt__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return LT.apply(self, other)
+
+    def __gt__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return GT.apply(self, other)
+
+    def __eq__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return EQ.apply(self, other)
+
+    def __neg__(self) -> Scalar:
+        return Neg.apply(self)
+
+    def log(self) -> Scalar:
+        return Log.apply(self)
+
+    def exp(self) -> Scalar:
+        return Exp.apply(self)
+
+    def sigmoid(self) -> Scalar:
+        return Sigmoid.apply(self)
+
+    def relu(self) -> Scalar:
+        return ReLU.apply(self)
+
 
 
 class ScalarFunction(BaseFunction):
@@ -200,6 +238,18 @@ class LT(ScalarFunction):
     @classmethod
     def forward(cls, ctx: Context, a: float, b: float) -> float:
         return operators.lt(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> float:
+        return 0.
+
+
+class GT(ScalarFunction):
+    """Greater than function for scalars: f(x, y) = 1. if x > y else 0."""
+
+    @classmethod
+    def forward(cls, ctx: Context, a: float, b: float) -> float:
+        return operators.gt(a, b)
 
     @classmethod
     def backward(cls, ctx: Context, d_out: float) -> float:

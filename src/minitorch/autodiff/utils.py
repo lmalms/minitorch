@@ -14,3 +14,7 @@ def unwrap_tuple(x: Union[Tuple[float], float]) -> float:
     if (isinstance(x, tuple)) and (len(x) == 1):
         return x[0]
     return x
+
+
+def derivative_check():
+    pass
