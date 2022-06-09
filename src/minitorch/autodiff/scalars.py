@@ -156,7 +156,7 @@ class Sigmoid(ScalarFunction):
     """Sigmoid function applied to Scalars: f(x) = 1. / (1. + e^-x)"""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float):
+    def forward(cls, ctx: Context, a: float) -> float:
         ctx.save_for_backward(a)
         return operators.sigmoid(a)
 
@@ -164,3 +164,17 @@ class Sigmoid(ScalarFunction):
     def backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return operators.sigmoid_diff(a, d_out)
+
+
+class ReLU(ScalarFunction):
+    """ReLU function applied to Scalars: f(x) = relu(x)"""
+
+    @classmethod
+    def forward(cls, ctx: Context, a: float) -> float:
+        ctx.save_for_backward(a)
+        return operators.relu(a)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> float:
+        a = ctx.saved_values
+        return operators.relu_diff(a, d_out)
