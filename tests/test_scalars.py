@@ -58,10 +58,28 @@ def test_lt(x: float) -> None:
     assert Scalar(x - 1) < x == 1.0
     assert Scalar(x) < (x - 1) == 0.0
 
+    assert (x - 1) < Scalar(x) == 1.0
+    assert x < Scalar(x - 1) == 0.0
+
+    assert Scalar(x) < Scalar(x) == 0.0
+    assert x < Scalar(x) == 0.0
+    assert Scalar(x) < x == 0.0
+
 
 @given(small_floats, small_floats)
-def test_gt(x: float, y: float) -> None:
-    pass
+def test_gt(x: float) -> None:
+    assert Scalar(x) > Scalar(x - 1) == 1.0
+    assert Scalar(x - 1) > Scalar(x) == 0.0
+
+    assert Scalar(x) > (x - 1) == 1.0
+    assert Scalar(x - 1) > x == 0.0
+
+    assert x > Scalar(x - 1) == 1.0
+    assert (x - 1) > Scalar(x) == 0.0
+
+    assert Scalar(x) > Scalar(x) == 0.0
+    assert x > Scalar(x) == 0.0
+    assert Scalar(x) > x == 0.0
 
 
 @given(small_floats, small_floats)
