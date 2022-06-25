@@ -2,7 +2,7 @@ from hypothesis import given
 
 from strategies import small_floats, tiny_floats, small_positive_floats
 from minitorch.autodiff import Scalar
-from minitorch.operators import is_close, relu, add, log, exp
+from minitorch.operators import is_close, relu, add, log, exp, sigmoid
 
 
 EPS = 1e-09
@@ -119,10 +119,17 @@ def test_exp(x: float, y: float) -> None:
 
 @given(small_floats, small_floats)
 def test_sigmoid(x: float, y: float) -> None:
-    pass
+    sigmoid_scalar = Scalar(x).sigmoid()
+    assert is_close(sigmoid_scalar.data, sigmoid(x))
+
+    z = Scalar(x).sigmoid() + Scalar(y).sigmoid()
+    assert is_close(z.data, add(sigmoid(x), sigmoid(y)))
 
 
 @given(small_floats, small_floats)
 def test_relu(x: float, y: float) -> None:
+    relu_scalar = Scalar(x).relu()
+    assert is_close(relu_scalar.data, relu(x))
+
     z = Scalar(x).relu() + Scalar(y).relu()
     assert is_close(z.data, relu(x) + relu(y))
