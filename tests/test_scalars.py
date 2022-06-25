@@ -50,9 +50,13 @@ def test_div(x: float, y: float) -> None:
     assert is_close(z.data, x / (y + EPS))
 
 
-@given(small_floats, small_floats)
-def test_lt(x: float, y: float) -> None:
-    pass
+@given(small_floats)
+def test_lt(x: float) -> None:
+    assert Scalar(x - 1) < Scalar(x) == 1.0
+    assert Scalar(x) < Scalar(x - 1) == 0.0
+
+    assert Scalar(x - 1) < x == 1.0
+    assert Scalar(x) < (x - 1) == 0.0
 
 
 @given(small_floats, small_floats)

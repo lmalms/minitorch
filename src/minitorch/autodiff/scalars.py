@@ -54,13 +54,13 @@ class Scalar(Variable):
     def __rtruediv__(self, other: Union[int, float, Scalar]) -> Scalar:
         return Mul.apply(other, Inv.apply(self))
 
-    def __lt__(self, other: Union[int, float, Scalar]) -> Scalar:
+    def __lt__(self, other: Union[int, float, Scalar]) -> float:
         return LT.apply(self, other)
 
-    def __gt__(self, other: Union[int, float, Scalar]) -> Scalar:
+    def __gt__(self, other: Union[int, float, Scalar]) -> float:
         return GT.apply(self, other)
 
-    def __eq__(self, other: Union[int, float, Scalar]) -> Scalar:
+    def __eq__(self, other: Union[int, float, Scalar]) -> float:
         return EQ.apply(self, other)
 
     def __neg__(self) -> Scalar:
