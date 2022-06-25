@@ -5,6 +5,9 @@ from minitorch.autodiff import Scalar
 from minitorch.operators import is_close, relu
 
 
+EPS = 1e-09
+
+
 @given(small_floats, small_floats)
 def test_add(x: float, y: float) -> None:
     z = Scalar(x) + Scalar(y)
@@ -36,7 +39,53 @@ def test_mul(x: float, y: float) -> None:
 
 
 @given(small_floats, small_floats)
+def test_div(x: float, y: float) -> None:
+    z = Scalar(x) / (Scalar(y) + EPS)
+    assert is_close(z.data, x / (y + EPS))
+
+    z = x / (Scalar(y) + EPS)
+    assert is_close(z.data, x / (y + EPS))
+
+    z = Scalar(x) / (y + EPS)
+    assert is_close(z.data, x / (y + EPS))
+
+
+@given(small_floats, small_floats)
+def test_lt(x: float, y: float) -> None:
+    pass
+
+
+@given(small_floats, small_floats)
+def test_gt(x: float, y: float) -> None:
+    pass
+
+
+@given(small_floats, small_floats)
+def test_eq(x: float, y: float) -> None:
+    pass
+
+
+@given(small_floats, small_floats)
+def test_neg(x: float, y: float) -> None:
+    pass
+
+
+@given(small_floats, small_floats)
+def test_log(x: float, y: float) -> None:
+    pass
+
+
+@given(small_floats, small_floats)
+def test_exp(x: float, y: float) -> None:
+    pass
+
+
+@given(small_floats, small_floats)
+def test_sigmoid(x: float, y: float) -> None:
+    pass
+
+
+@given(small_floats, small_floats)
 def test_relu(x: float, y: float) -> None:
     z = Scalar(x).relu() + Scalar(y).relu()
     assert is_close(z.data, relu(x) + relu(y))
-
