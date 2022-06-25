@@ -92,7 +92,10 @@ def test_eq(x: float) -> None:
 
 @given(small_floats)
 def test_neg(x: float) -> None:
-    pass
+    neg_scalar = -Scalar(x)
+    assert neg_scalar.data == - x
+
+    assert -Scalar(x) == -x
 
 
 @given(small_floats, small_floats)
