@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from typing import Dict, List, Tuple, Union
+
 from src.minitorch.parameter import Parameter
 
 
@@ -38,7 +40,6 @@ class Module:
         return self.forward(*args, **kwargs)
 
     def __repr__(self):
-
         def _add_indent(s_: str, numSpaces: int):
             s = s_.split("\n")
             if len(s) == 1:
@@ -87,29 +88,29 @@ class Module:
         Collects all the named parameters of the module and its descendants.
         Returns: List[Tuple[str, Parameter]]
         """
+
         def add_child_parameters(
-                parent_parameters: List[Tuple[str, Parameter]],
-                module: Module,
-                prefix: str
+            parent_parameters: List[Tuple[str, Parameter]], module: Module, prefix: str
         ) -> List[Tuple[str, Parameter]]:
             new_params = [
-                (f"{prefix}.{name}", param) for (name, param) in module.__dict__["_parameters"].items()
+                (f"{prefix}.{name}", param)
+                for (name, param) in module.__dict__["_parameters"].items()
             ]
             parent_parameters.extend(new_params)
             for module_name, child_module in module.__dict__["_modules"].items():
                 parent_parameters = add_child_parameters(
                     parent_parameters=parent_parameters,
                     module=child_module,
-                    prefix=f"{prefix}.{module_name}"
+                    prefix=f"{prefix}.{module_name}",
                 )
             return parent_parameters
 
-        named_params = [(name, param) for name, param in self.__dict__["_parameters"].items()]
+        named_params = [
+            (name, param) for name, param in self.__dict__["_parameters"].items()
+        ]
         for module_name, child_module in self.__dict__["_modules"].items():
             named_params = add_child_parameters(
-                parent_parameters=named_params,
-                module=child_module,
-                prefix=module_name
+                parent_parameters=named_params, module=child_module, prefix=module_name
             )
         return named_params
 
@@ -125,7 +126,3 @@ class Module:
 
     def forward(self, *args, **kwargs):
         assert False, "Not implemented."
-
-
-
-

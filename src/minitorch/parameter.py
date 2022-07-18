@@ -1,8 +1,7 @@
-from typing import Optional, Any
+from typing import Any, Optional
 
 
 class Parameter:
-
     def __init__(self, value: Optional[Any] = None, name: Optional[str] = None):
         self.value = value
         self.name = name
