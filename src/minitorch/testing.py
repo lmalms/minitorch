@@ -1,6 +1,7 @@
 from typing import List, Tuple
 
 import minitorch.operators as operators
+from minitorch.constants import EPS
 
 
 class MathTest:
@@ -30,7 +31,7 @@ class MathTest:
 
     @staticmethod
     def log(x: float) -> float:
-        return operators.log(abs(x))  # To assure values are positive for tests.
+        return operators.log(abs(x) + EPS)  # To assure values are positive for tests.
 
     @staticmethod
     def relu(x: float) -> float:

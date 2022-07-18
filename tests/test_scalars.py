@@ -1,11 +1,9 @@
 from hypothesis import given
 
-from strategies import small_floats, tiny_floats, small_positive_floats
+from tests.strategies import small_floats, tiny_floats, small_positive_floats
 from minitorch.autodiff import Scalar
-from minitorch.operators import is_close, relu, add, log, exp, sigmoid
-
-
-EPS = 1e-09
+from minitorch.operators import is_close, relu, add, log, exp, sigmoid, inv, mul
+from minitorch.constants import EPS
 
 
 @given(small_floats, small_floats)
@@ -40,46 +38,46 @@ def test_mul(x: float, y: float) -> None:
 
 @given(small_floats, small_floats)
 def test_div(x: float, y: float) -> None:
-    z = Scalar(x) / (Scalar(y) + EPS)
-    assert is_close(z.data, x / (y + EPS))
+    z = Scalar(x) / Scalar(y)
+    assert is_close(z.data, mul(x, inv(y)))
 
-    z = x / (Scalar(y) + EPS)
-    assert is_close(z.data, x / (y + EPS))
+    z = x / Scalar(y)
+    assert is_close(z.data, mul(x, inv(y)))
 
-    z = Scalar(x) / (y + EPS)
-    assert is_close(z.data, x / (y + EPS))
+    z = Scalar(x) / y
+    assert is_close(z.data, mul(x, inv(y)))
 
 
 @given(small_floats)
 def test_lt(x: float) -> None:
-    assert Scalar(x - 1) < Scalar(x) == 1.0
-    assert Scalar(x) < Scalar(x - 1) == 0.0
+    assert (Scalar(x - 1) < Scalar(x)) == 1.0
+    assert (Scalar(x) < Scalar(x - 1)) == 0.0
 
-    assert Scalar(x - 1) < x == 1.0
-    assert Scalar(x) < (x - 1) == 0.0
+    assert (Scalar(x - 1) < x) == 1.0
+    assert (Scalar(x) < (x - 1)) == 0.0
 
-    assert (x - 1) < Scalar(x) == 1.0
-    assert x < Scalar(x - 1) == 0.0
+    assert ((x - 1) < Scalar(x)) == 1.0
+    assert (x < Scalar(x - 1)) == 0.0
 
-    assert Scalar(x) < Scalar(x) == 0.0
-    assert x < Scalar(x) == 0.0
-    assert Scalar(x) < x == 0.0
+    assert (Scalar(x) < Scalar(x)) == 0.0
+    assert (x < Scalar(x)) == 0.0
+    assert (Scalar(x) < x) == 0.0
 
 
-@given(small_floats, small_floats)
+@given(small_floats)
 def test_gt(x: float) -> None:
-    assert Scalar(x) > Scalar(x - 1) == 1.0
-    assert Scalar(x - 1) > Scalar(x) == 0.0
+    assert (Scalar(x) > Scalar(x - 1)) == 1.0
+    assert (Scalar(x - 1) > Scalar(x)) == 0.0
 
-    assert Scalar(x) > (x - 1) == 1.0
-    assert Scalar(x - 1) > x == 0.0
+    assert (Scalar(x) > (x - 1)) == 1.0
+    assert (Scalar(x - 1) > x) == 0.0
 
-    assert x > Scalar(x - 1) == 1.0
-    assert (x - 1) > Scalar(x) == 0.0
+    assert (x > Scalar(x - 1)) == 1.0
+    assert ((x - 1) > Scalar(x)) == 0.0
 
-    assert Scalar(x) > Scalar(x) == 0.0
-    assert x > Scalar(x) == 0.0
-    assert Scalar(x) > x == 0.0
+    assert (Scalar(x) > Scalar(x)) == 0.0
+    assert (x > Scalar(x)) == 0.0
+    assert (Scalar(x) > x) == 0.0
 
 
 @given(small_floats)

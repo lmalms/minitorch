@@ -85,11 +85,10 @@ class ScalarFunction(BaseFunction):
     """
 
     @classmethod
-    def data_type(cls, value: Optional = None) -> Union[Type[float], float]:
-        if value is None:
-            return float
-        else:
+    def data_type(cls, value: Optional = None) -> Union[type(float), float]:
+        if value is not None:
             return float(value)
+        return float
 
     @classmethod
     def variable(cls, value, history: History = History()) -> Scalar:

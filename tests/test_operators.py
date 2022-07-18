@@ -35,6 +35,7 @@ from tests.strategies import (
     tiny_floats,
     tiny_positive_floats,
 )
+from minitorch.constants import EPS
 
 
 @given(small_floats, small_floats)
@@ -45,7 +46,7 @@ def test_same_as_python(x: float, y: float) -> None:
     assert neg(x) == -x
     assert maximum(x, y) == (x if x > y else y)
     if x != 0.0:
-        assert_close(inv(x), 1.0 / x)
+        assert_close(inv(x), 1.0 / (x + EPS))
 
 
 @given(small_floats)

@@ -97,7 +97,7 @@ class BaseFunction:
 
     @classmethod
     @abstractmethod
-    def data_type(cls, value: Optional = None):
+    def data_type(cls):
         ...
 
     @classmethod
@@ -155,9 +155,8 @@ class BaseFunction:
 
         # Call forward with variables
         c = cls.forward(ctx, *raw_values)
-        assert isinstance(
-            c, cls.data_type
-        ), f"Expected return type {cls.data_type}, got {type(c)}."
+        if not isinstance(c, cls.data_type()):
+            raise TypeError(f"Expected return type {cls.data_type()}, got {type(c)}.")
 
         # Create new variable from result with new history.
         back = None

@@ -5,7 +5,7 @@ Collection of core mathematical operators used through the code base.
 import math
 from typing import Callable, List, Optional
 
-EPS = 1e-06
+from minitorch.constants import EPS
 
 
 def mul(x: float, y: float) -> float:
@@ -50,7 +50,7 @@ def maximum(x: float, y: float) -> float:
 
 def is_close(x: float, y: float) -> bool:
     """f(x, y) = |x - y| < 1e-02"""
-    return abs(x - y) < 1e-02
+    return abs(x - y) < 1e-03
 
 
 def sigmoid(x: float) -> float:
