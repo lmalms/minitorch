@@ -1,50 +1,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, List, Optional, Union
+from typing import List, Optional, Union, Type
 
-from minitorch.autodiff.utils import unwrap_tuple
-
-VARIABLE_COUNT = 1
-
-
-class Context:
-    """
-    The context class is used by Functions to store information during the forward pass, which in turn is needed
-    for computations during the backward pass.
-
-    Attributes:
-        requires_grad_ - bool
-            Whether to save gradient information or not.
-        saved_values - Tuple[]
-            A tuple of values saved for backward pass.
-        saved_tensors - Tuple[]
-            A tuple of tensors saved for backward pass - alias for saved_values.
-
-    """
-
-    def __init__(self, requires_grad_: bool = False):
-        self.requires_grad_ = requires_grad_
-        self._saved_values = None
-
-    @property
-    def saved_values(self):
-        assert self.requires_grad_, "No gradients required - no values saved."
-        assert (
-            self._saved_values is not None
-        ), "No values saved - did you forget to save values?"
-        return unwrap_tuple(self._saved_values)
-
-    @property
-    def saved_tensors(self):
-        return self.saved_values
-
-    def save_for_backward(self, *values) -> None:
-        """
-        Stores the given values if they need to be used during back-propagation.
-        """
-        if self.requires_grad_:
-            self._saved_values = values
+from minitorch.autodiff.context import Context
+from minitorch.autodiff.utils import wrap_tuple
 
 
 class History:
@@ -63,7 +23,7 @@ class History:
 
     def __init__(
         self,
-        last_fn: Optional[BaseFunction] = None,
+        last_fn: Optional[Type[BaseFunction]] = None,
         ctx: Optional[Context] = None,
         inputs: Optional[List[float]] = None,
     ):
@@ -115,11 +75,25 @@ class BaseFunction:
         ...
 
     @classmethod
-    def chain_rule(cls, ctx: Context, inputs: List[Union[Variable, float]], d_output):
+    @abstractmethod
+    def backward(cls, ctx: Context, d_out: float):
+        ...
+
+    @classmethod
+    def chain_rule(cls, ctx: Context, inputs: List[Union[Variable, float]], d_out):
         """
         Implements the chain rule for differentiation.
         """
-        raise NotImplementedError
+        derivatives = wrap_tuple(cls.backward(ctx, d_out))
+        var_dev_pairs = list(zip(inputs, list(derivatives)))
+
+        # If the input is a constant remove those derivatives
+        var_dev_pairs = [
+            (var, dev)
+            for (var, dev) in var_dev_pairs
+            if var.history is not None or not isinstance(var, float)
+        ]
+        return var_dev_pairs
 
     @classmethod
     def apply(cls, *variables: Union[Variable, float]) -> Variable:
