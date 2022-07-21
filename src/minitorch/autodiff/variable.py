@@ -65,6 +65,11 @@ class BaseFunction:
     def variable(cls, value, history: History):
         ...
 
+    @staticmethod
+    def is_constant(value: Union[Variable, float]) -> bool:
+        # TODO: is this the best place to put this?
+        return not isinstance(value, Variable) or value.history is None
+
     @classmethod
     @abstractmethod
     def forward(cls, ctx: Context, *values):
@@ -85,15 +90,13 @@ class BaseFunction:
         Implements the chain rule for differentiation.
         """
         derivatives = wrap_tuple(cls.backward(ctx, d_out))
-        var_dev_pairs = list(zip(inputs, list(derivatives)))
-
-        # If the input is a constant remove those derivatives
+        var_dev_pairs = list(zip(inputs, derivatives))
         var_dev_pairs = [
-            (var, dev)
-            for (var, dev) in var_dev_pairs
-            if var.history is not None or not isinstance(var, float)
+            pair for pair in var_dev_pairs
+            if not cls.is_constant(value=pair[0])
         ]
         return var_dev_pairs
+
 
     @classmethod
     def apply(cls, *variables: Union[Variable, float]) -> Variable:
