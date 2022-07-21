@@ -1,7 +1,9 @@
 from typing import Tuple
+
 import pytest
-from minitorch.autodiff import ScalarFunction, History, Context, Variable
+
 from minitorch import operators
+from minitorch.autodiff import Context, History, Scalar, ScalarFunction, Variable
 
 
 class Function1(ScalarFunction):
@@ -46,3 +48,17 @@ def test_chain_rule2():
     variable, derivative = back[0]
     assert variable.name == var.name
     assert derivative == 5.0
+
+
+def test_chain_rule3():
+    """Check that constants are ignored but variables get derivvatives."""
+    const = 10
+    var = Scalar(value=5)
+    ctx = Context()
+    _ = Function2.forward(ctx, const, var.data)
+
+    back = Function2.chain_rule(ctx=ctx, inputs=[const, var], d_out=5)
+    assert len(back) == 1
+    variable, derivative = back[0]
+    assert variable.name == var.name
+    assert derivative == operators.mul(5, 10)

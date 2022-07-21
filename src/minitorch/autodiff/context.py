@@ -1,7 +1,5 @@
 from minitorch.autodiff.utils import unwrap_tuple
 
-VARIABLE_COUNT = 1
-
 
 class Context:
     """

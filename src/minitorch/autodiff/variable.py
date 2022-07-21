@@ -6,6 +6,8 @@ from typing import List, Optional, Union, Type
 from minitorch.autodiff.context import Context
 from minitorch.autodiff.utils import wrap_tuple
 
+VARIABLE_COUNT = 1
+
 
 class History:
     """
