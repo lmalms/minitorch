@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import List, Optional, Union, Type
+from typing import List, Optional, Type, Union
 
 from minitorch.autodiff.context import Context
 from minitorch.autodiff.utils import wrap_tuple
@@ -94,11 +94,9 @@ class BaseFunction:
         derivatives = wrap_tuple(cls.backward(ctx, d_out))
         var_dev_pairs = list(zip(inputs, derivatives))
         var_dev_pairs = [
-            pair for pair in var_dev_pairs
-            if not cls.is_constant(value=pair[0])
+            pair for pair in var_dev_pairs if not cls.is_constant(value=pair[0])
         ]
         return var_dev_pairs
-
 
     @classmethod
     def apply(cls, *variables: Union[Variable, float]) -> Variable:
@@ -159,16 +157,10 @@ class Variable:
     """
 
     def __init__(self, history: Optional[History] = None, name: Optional[str] = None):
-        assert history is None or isinstance(history, History)
         self.history = history
-
-        self._derivative = None
-
-        global VARIABLE_COUNT
-        VARIABLE_COUNT += 1
-        self.id = "Variable" + str(VARIABLE_COUNT)
-
+        self.id = self._format_variable_id()
         self.name = name if name is not None else self.id
+        self._derivative = None
         self.used = 0
 
     @property
@@ -177,8 +169,26 @@ class Variable:
         ...
 
     @property
+    def history(self) -> Optional[History]:
+        return self._history
+
+    @history.setter
+    def history(self, history: Optional[History] = None):
+        if not ((history is None) or isinstance(history, History)):
+            raise TypeError(
+                f"History has to be None or of type history - got {type(history)}"
+            )
+        self._history = history
+
+    @property
     def derivative(self):
         return self._derivative
+
+    @staticmethod
+    def _format_variable_id() -> str:
+        global VARIABLE_COUNT
+        VARIABLE_COUNT += 1
+        return "Variable" + str(VARIABLE_COUNT)
 
     def is_leaf(self):
         """True if this variable has no last_fn"""
@@ -191,7 +201,7 @@ class Variable:
         """
         self.history = History()
 
-    def backward(self, d_output: float = 1.0):
+    def backward(self, d_out: float = 1.0):
         """
         Calls auto-diff to fill in the derivatives for the history of this object.
 
@@ -199,7 +209,7 @@ class Variable:
             d_output - float, default = 1.
                 Starting derivative to backpropagate through the model
         """
-        backpropagate(self, d_output)
+        backpropagate(self, d_out)
 
     def accumulate_derivative(self, val: float):
         """
@@ -229,12 +239,6 @@ class Variable:
         Placeholder for tensor variables.
         """
         return x
-
-    def __radd__(self, other):
-        return self + other
-
-    def __rmul__(self, other):
-        return self * other
 
     @staticmethod
     def zeros() -> float:

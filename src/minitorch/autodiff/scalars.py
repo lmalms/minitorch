@@ -30,12 +30,12 @@ class Scalar(Variable):
         return self._data
 
     @data.setter
-    def data(self, value: float) -> None:
-        if not isinstance(value, float):
+    def data(self, value: Union[int, float]) -> None:
+        if not isinstance(value, (float, int)):
             raise TypeError(
-                f"Scalar values have to be of type float - got {type(value)}."
+                f"Scalar values have to be of type int or float - got {type(value)}."
             )
-        self._data = value
+        self._data = float(value)
 
     def __repr__(self) -> str:
         return f"Scalar({self.data})"
@@ -46,7 +46,13 @@ class Scalar(Variable):
     def __add__(self, other: Union[int, float, Scalar]) -> Scalar:
         return Add.apply(self, other)
 
+    def __radd__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return Add.apply(self, other)
+
     def __mul__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return Mul.apply(self, other)
+
+    def __rmul__(self, other: Union[int, float, Scalar]) -> Scalar:
         return Mul.apply(self, other)
 
     def __truediv__(self, other: Union[int, float, Scalar]) -> Scalar:
