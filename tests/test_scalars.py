@@ -1,9 +1,9 @@
 from hypothesis import given
 
-from tests.strategies import small_floats, tiny_floats, small_positive_floats
 from minitorch.autodiff import Scalar
-from minitorch.operators import is_close, relu, add, log, exp, sigmoid, inv, mul
 from minitorch.constants import EPS
+from minitorch.operators import add, exp, inv, is_close, log, mul, relu, sigmoid
+from tests.strategies import small_floats, small_positive_floats, tiny_floats
 
 
 @given(small_floats, small_floats)
@@ -91,7 +91,7 @@ def test_eq(x: float) -> None:
 @given(small_floats)
 def test_neg(x: float) -> None:
     neg_scalar = -Scalar(x)
-    assert neg_scalar.data == - x
+    assert neg_scalar.data == -x
 
     assert -Scalar(x) == -x
 
