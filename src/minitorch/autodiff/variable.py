@@ -70,6 +70,7 @@ class BaseFunction:
     @staticmethod
     def is_constant(value: Union[Variable, float]) -> bool:
         # TODO: is this the best place to put this?
+        # TODO: also used in topological sort
         return not isinstance(value, Variable) or value.history is None
 
     @classmethod
@@ -193,6 +194,10 @@ class Variable:
     def is_leaf(self):
         """True if this variable has no last_fn"""
         return self.history.last_fn is None
+
+    def is_constant(self):
+        """True if this variable has no history."""
+        return self.history is None
 
     def requires_grad_(self, val: bool):
         """
