@@ -3,10 +3,53 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import List, Optional, Type, Union
 
-from minitorch.autodiff.context import Context
-from minitorch.autodiff.utils import wrap_tuple
+from minitorch.autodiff.utils import unwrap_tuple, wrap_tuple
 
 VARIABLE_COUNT = 1
+
+
+class Context:
+    """
+    The context class is used by Functions to store information during the forward pass,
+    which in turn is needed for computations during the backward pass.
+
+    Attributes:
+        requires_grad_ - bool
+            Whether to save gradient information or not.
+        saved_values - Tuple[]
+            A tuple of values saved for backward pass.
+        saved_tensors - Tuple[]
+            A tuple of tensors saved for backward pass - alias for saved_values.
+
+    """
+
+    def __init__(self, requires_grad_: bool = False):
+        self.requires_grad_ = requires_grad_
+        self._saved_values = None
+
+    @property
+    def saved_values(self):
+
+        if not self.requires_grad_:
+            raise ValueError("Context does not require gradients - no values saved.")
+
+        if self._saved_values is None:
+            raise ValueError("No values saved - forgot to run save values?")
+
+        # TODO: Do I need this wrapping and unwrapping here?
+        #  when accessing the context we should know how many values we need.
+        return unwrap_tuple(self._saved_values)
+
+    @property
+    def saved_tensors(self):
+        return self.saved_values
+
+    def save_for_backward(self, *values) -> None:
+        """
+        Stores the given values if they need to be used during back-propagation.
+        """
+        if self.requires_grad_:
+            self._saved_values = values
 
 
 class History:
@@ -37,6 +80,7 @@ class History:
         """
         Runs one step of back-propagation by calling the chain rule.
 
+        # TODO: tidy up docstings and make consistent.
         Args:
             d_output -
                 a derivative w.r.t. a given Variable
@@ -201,7 +245,8 @@ class Variable:
 
     def requires_grad_(self, val: bool):
         """
-        Sets the requires_grad_ flag to 'val' on variable. This ensures that operations on this variable will trigger
+        Sets the requires_grad_ flag to 'val' on variable.
+        This ensures that operations on this variable will trigger
         backpropagation.
         """
         self.history = History()
