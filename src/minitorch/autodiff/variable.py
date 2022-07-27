@@ -280,7 +280,7 @@ class BaseFunction:
                 raw_values.append(v)
 
         # Create context
-        ctx = Context(requires_grad_=not need_grad)
+        ctx = Context(need_grad)
 
         # Call forward with variables
         c = cls.forward(ctx, *raw_values)
