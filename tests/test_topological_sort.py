@@ -15,8 +15,9 @@ def test_topological_sort2():
     scalar3 = scalar1 + scalar2
 
     sorted_ = topological_sort(scalar3)
-    assert len(sorted_) == 1
-    assert sorted_[0].name == scalar2.name
+    assert len(sorted_) == 2
+    assert sorted_[0].name == scalar3.name
+    assert sorted_[1].name == scalar2.name
 
 
 def test_topological_sort3():
@@ -27,10 +28,11 @@ def test_topological_sort3():
     scalar5 = scalar3 + scalar4
 
     sorted_ = topological_sort(scalar5)
-    assert len(sorted_) == 3
-    assert sorted_[0].name == scalar3.name
-    assert sorted_[1].name == scalar2.name
-    assert sorted_[2].name == scalar4.name
+    assert len(sorted_) == 4
+    assert sorted_[0].name == scalar5.name
+    assert sorted_[1].name == scalar3.name
+    assert sorted_[2].name == scalar2.name
+    assert sorted_[3].name == scalar4.name
 
 
 def test_topological_sort4():
@@ -42,7 +44,8 @@ def test_topological_sort4():
     scalar6 = scalar4 + scalar5
 
     sorted_ = topological_sort(scalar6)
-    assert len(sorted_) == 5
-    assert sorted_[0].name == scalar4.name
-    assert sorted_[1].name == scalar3.name
-    assert sorted_[2].name == scalar1.name
+    assert len(sorted_) == 6
+    assert sorted_[0].name == scalar6.name
+    assert sorted_[1].name == scalar4.name
+    assert sorted_[2].name == scalar3.name
+    assert sorted_[-1].name == scalar5.name

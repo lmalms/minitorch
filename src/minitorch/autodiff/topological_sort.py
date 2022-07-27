@@ -4,37 +4,35 @@ from minitorch.autodiff.variable import Variable
 
 
 def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
-    sorted_ = []
+    diff_chain = []
 
     def dfs_visit(variable: Variable) -> None:
 
-        if variable.is_constant() or (variable.history.inputs is None):
+        if not isinstance(variable, Variable):
             return
 
-        for v in variable.history.inputs:
-            if not isinstance(v, Variable):
-                continue
+        if variable.is_constant():
+            return
 
-            if hasattr(v, "seen") and v.seen:
-                continue
+        if hasattr(variable, "seen") and variable.seen:
+            return
 
-            # Append variable to list
-            sorted_.append(v)
+        # Append variable to list
+        diff_chain.append(variable)
 
-            # Mark variable as visited
-            setattr(v, "seen", True)
+        # Mark variable as visited
+        setattr(variable, "seen", True)
 
-            # Iterate over variables descendants
-            dfs_visit(v)
+        # Iterate over variables descendants
+        if variable.history.inputs is not None:
+            for v in variable.history.inputs:
+                dfs_visit(v)
 
     def remove_seen(variables: List[Variable]) -> None:
         for variable in variables:
             if hasattr(variable, "seen"):
                 delattr(variable, "seen")
 
-    if not isinstance(variable, Variable):
-        return sorted_
-
     dfs_visit(variable)
-    remove_seen(sorted_)
-    return sorted_
+    remove_seen(diff_chain)
+    return diff_chain
