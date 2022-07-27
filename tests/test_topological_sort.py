@@ -1,5 +1,4 @@
-from minitorch.autodiff import topological_sort
-from minitorch.autodiff import Scalar
+from minitorch.autodiff import Scalar, topological_sort
 
 
 def test_topological_sort1():
@@ -47,6 +46,3 @@ def test_topological_sort4():
     assert sorted_[0].name == scalar4.name
     assert sorted_[1].name == scalar3.name
     assert sorted_[2].name == scalar1.name
-
-
-
