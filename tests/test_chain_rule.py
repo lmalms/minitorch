@@ -1,7 +1,5 @@
 from typing import Tuple
 
-import pytest
-
 from minitorch import operators
 from minitorch.autodiff import Context, History, Scalar, ScalarFunction, Variable
 
