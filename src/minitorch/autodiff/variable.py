@@ -93,101 +93,6 @@ class History:
         raise NotImplementedError
 
 
-class BaseFunction:
-    """
-    Base class for functions that act on Variables to produce a new Variable output
-    whilst keeping track of the variable's history.
-
-    Called using apply() method.
-    """
-
-    @classmethod
-    @abstractmethod
-    def data_type(cls):
-        ...
-
-    @classmethod
-    @abstractmethod
-    def variable(cls, value, history: History):
-        ...
-
-    @staticmethod
-    def is_constant(value: Union[Variable, float]) -> bool:
-        # TODO: is this the best place to put this?
-        # TODO: also used in topological sort
-        return not isinstance(value, Variable) or value.history is None
-
-    @classmethod
-    @abstractmethod
-    def forward(cls, ctx: Context, *values):
-        """
-        To be implemented by all inheriting Function classes.
-        Returns a value of type cls.data_type
-        """
-        ...
-
-    @classmethod
-    @abstractmethod
-    def backward(cls, ctx: Context, d_out: float):
-        ...
-
-    @classmethod
-    def chain_rule(cls, ctx: Context, inputs: List[Union[Variable, float]], d_out):
-        """
-        Implements the chain rule for differentiation.
-        """
-        derivatives = wrap_tuple(cls.backward(ctx, d_out))
-        var_dev_pairs = list(zip(inputs, derivatives))
-        var_dev_pairs = [
-            pair for pair in var_dev_pairs if not cls.is_constant(value=pair[0])
-        ]
-        return var_dev_pairs
-
-    @classmethod
-    def apply(cls, *variables: Union[Variable, float]) -> Variable:
-        """
-        Apply is used to run the function.
-        Internally it does three things:
-        a) Create context for the function call
-        b) Calls forward to run the function.
-        c) Attaches the context to the history of the new variable.
-
-        Args:
-            variables - List[Union[Variable, float]]
-                An iterable of variables or constants to call forward on.
-
-        Returns:
-            Variable
-                The new computed variable.
-        """
-        # Extract raw values
-        raw_values = []
-        need_grad = False
-        for v in variables:
-            if isinstance(v, Variable):
-                if v.history is not None:
-                    need_grad = True
-                v.used += 1
-                raw_values.append(v.data)
-            else:
-                raw_values.append(v)
-
-        # Create context
-        ctx = Context(requires_grad_=not need_grad)
-
-        # Call forward with variables
-        c = cls.forward(ctx, *raw_values)
-        if not isinstance(c, cls.data_type()):
-            raise TypeError(f"Expected return type {cls.data_type()}, got {type(c)}.")
-
-        # Create new variable from result with new history.
-        back = None
-        if need_grad:
-            back = History(last_fn=cls, ctx=ctx, inputs=variables)
-
-        return cls.variable(cls.data_type(c), back)
-
-
 class Variable:
     """
     Class for tracking variable values and computation history for auto-differentiation.
@@ -293,3 +198,98 @@ class Variable:
     @staticmethod
     def zeros() -> float:
         return 0.0
+
+
+class BaseFunction:
+    """
+    Base class for functions that act on Variables to produce a new Variable output
+    whilst keeping track of the variable's history.
+
+    Called using apply() method.
+    """
+
+    @classmethod
+    @abstractmethod
+    def data_type(cls):
+        ...
+
+    @classmethod
+    @abstractmethod
+    def variable(cls, value, history: History):
+        ...
+
+    @staticmethod
+    def is_constant(value: Union[Variable, float]) -> bool:
+        # TODO: is this the best place to put this?
+        # TODO: also used in topological sort
+        return not isinstance(value, Variable) or value.history is None
+
+    @classmethod
+    @abstractmethod
+    def forward(cls, ctx: Context, *values):
+        """
+        To be implemented by all inheriting Function classes.
+        Returns a value of type cls.data_type
+        """
+        ...
+
+    @classmethod
+    @abstractmethod
+    def backward(cls, ctx: Context, d_out: float):
+        ...
+
+    @classmethod
+    def chain_rule(cls, ctx: Context, inputs: List[Union[Variable, float]], d_out):
+        """
+        Implements the chain rule for differentiation.
+        """
+        derivatives = wrap_tuple(cls.backward(ctx, d_out))
+        var_dev_pairs = list(zip(inputs, derivatives))
+        var_dev_pairs = [
+            pair for pair in var_dev_pairs if not cls.is_constant(value=pair[0])
+        ]
+        return var_dev_pairs
+
+    @classmethod
+    def apply(cls, *variables: Union[Variable, float]) -> Variable:
+        """
+        Apply is used to run the function.
+        Internally it does three things:
+        a) Create context for the function call
+        b) Calls forward to run the function.
+        c) Attaches the context to the history of the new variable.
+
+        Args:
+            variables - List[Union[Variable, float]]
+                An iterable of variables or constants to call forward on.
+
+        Returns:
+            Variable
+                The new computed variable.
+        """
+        # Extract raw values
+        raw_values = []
+        need_grad = False
+        for v in variables:
+            if isinstance(v, Variable):
+                if v.history is not None:
+                    need_grad = True
+                v.used += 1
+                raw_values.append(v.data)
+            else:
+                raw_values.append(v)
+
+        # Create context
+        ctx = Context(requires_grad_=not need_grad)
+
+        # Call forward with variables
+        c = cls.forward(ctx, *raw_values)
+        if not isinstance(c, cls.data_type()):
+            raise TypeError(f"Expected return type {cls.data_type()}, got {type(c)}.")
+
+        # Create new variable from result with new history.
+        back = None
+        if need_grad:
+            back = History(last_fn=cls, ctx=ctx, inputs=variables)
+
+        return cls.variable(cls.data_type(c), back)
