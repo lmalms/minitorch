@@ -24,6 +24,9 @@ class Scalar(Variable):
         super().__init__(history=history, name=name)
         self.data = value
 
+    def __hash__(self):
+        return hash((self.data, self.name))
+
     @property
     def data(self) -> float:
         return self._data
