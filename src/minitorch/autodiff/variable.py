@@ -70,27 +70,23 @@ class History:
         self,
         last_fn: Optional[Type[BaseFunction]] = None,
         ctx: Optional[Context] = None,
-        inputs: Optional[List[float]] = None,
+        inputs: Optional[
+            List[float]
+        ] = None,  # TODO: this should probs be union of float and variable
     ):
         self.last_fn = last_fn
         self.ctx = ctx
         self.inputs = inputs
 
-    def backprop_step(self, d_output) -> List[float]:
+    def backprop_step(self, d_out: float) -> List[float]:
         """
         Runs one step of back-propagation by calling the chain rule.
-
-        # TODO: tidy up docstings and make consistent.
-        Args:
-            d_output -
-                a derivative w.r.t. a given Variable
-
-        Returns:
-            List[Any]
-                The derivatives w.r.t. inputs.
         """
-        # TODO: implement this.
-        raise NotImplementedError
+        var_derivative_pairs = self.last_fn.chain_rule(
+            self.ctx, self.inputs, d_out=d_out
+        )
+        derivatives = [derivative for (_, derivative) in var_derivative_pairs]
+        return derivatives
 
 
 class Variable:
@@ -239,7 +235,9 @@ class BaseFunction:
         ...
 
     @classmethod
-    def chain_rule(cls, ctx: Context, inputs: List[Union[Variable, float]], d_out):
+    def chain_rule(
+        cls, ctx: Context, inputs: List[Union[Variable, float]], d_out: float
+    ):
         """
         Implements the chain rule for differentiation.
         """

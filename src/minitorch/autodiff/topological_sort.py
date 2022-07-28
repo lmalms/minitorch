@@ -6,8 +6,7 @@ from minitorch.autodiff.variable import Variable
 def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
     diff_chain = []
 
-    def dfs_visit(variable: Variable) -> None:
-
+    def visit_variable_and_add(variable: Union[Variable, float]) -> None:
         if not isinstance(variable, Variable):
             return
 
@@ -23,28 +22,28 @@ def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
         # Mark variable as visited
         setattr(variable, "seen", True)
 
-        # Iterate over variables descendants
+    def dfs_visit(variable: Union[Variable, float]) -> None:
+        if not isinstance(variable, Variable):
+            return
+
+        if variable.is_constant():
+            return
+
+        visit_variable_and_add(variable)
+
+        # Iterate over children
         if variable.history.inputs is not None:
             for v in variable.history.inputs:
                 dfs_visit(v)
 
-    def visit_variable_and_add(variable):
+    def bfs_visit(variable: Union[Variable, float]) -> None:
         if not isinstance(variable, Variable):
             return
 
         if variable.is_constant():
             return
 
-        if hasattr(variable, "seen") and variable.seen:
-            return
-
-        # Append variable to list
-        diff_chain.append(variable)
-
-        # Mark variable as visited
-        setattr(variable, "seen", True)
-
-    def bfs_visit(variable: Variable) -> None:
+        visit_variable_and_add(variable)
 
         # Append all of its children to list
         if variable.history.inputs is not None:
@@ -60,7 +59,6 @@ def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
             if hasattr(variable, "seen"):
                 delattr(variable, "seen")
 
-    visit_variable_and_add(variable)
     bfs_visit(variable)
     remove_seen(diff_chain)
     return diff_chain
