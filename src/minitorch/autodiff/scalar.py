@@ -51,6 +51,12 @@ class Scalar(Variable):
     def __radd__(self, other: Union[int, float, Scalar]) -> Scalar:
         return Add.apply(self, other)
 
+    def __sub__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return Add.apply(self, Neg.apply(other))
+
+    def __rsub__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return Add.apply(Neg.apply(other), self)
+
     def __mul__(self, other: Union[int, float, Scalar]) -> Scalar:
         return Mul.apply(self, other)
 
@@ -104,7 +110,6 @@ class ScalarFunction(BaseFunction):
         return Scalar(value, history)
 
     @classmethod
-    @abstractmethod
     def forward(cls, ctx: Context, *values) -> float:
         """
         Forward call.
@@ -115,10 +120,14 @@ class ScalarFunction(BaseFunction):
             *values - List[float]
                 n floats to run forward call over.
         """
-        ...
+        return cls.data_type(cls._forward(ctx, *values))
 
     @classmethod
     @abstractmethod
+    def _forward(cls, ctx: Context, *values) -> float:
+        ...
+
+    @classmethod
     def backward(cls, ctx: Context, d_out: float) -> float:
         """
         Backward call.
@@ -129,6 +138,11 @@ class ScalarFunction(BaseFunction):
             d_out - float
                 Derivative is multiplied by this value.
         """
+        return cls.data_type(cls._backward(ctx, d_out))
+
+    @classmethod
+    @abstractmethod
+    def _backward(cls, ctx: Context, d_out: float) -> float:
         ...
 
 
@@ -136,11 +150,11 @@ class Add(ScalarFunction):
     """Addition function f(x, y) = x + y"""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float, b: float) -> float:
+    def _forward(cls, ctx: Context, a: float, b: float) -> float:
         return operators.add(a, b)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
+    def _backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
         return d_out, d_out
 
 
@@ -148,12 +162,12 @@ class Log(ScalarFunction):
     """Log function f(x) = log(x)"""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float) -> float:
+    def _forward(cls, ctx: Context, a: float) -> float:
         ctx.save_for_backward(a)
         return operators.log(a)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
+    def _backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return operators.log_diff(a, d_out)
 
@@ -162,12 +176,12 @@ class Mul(ScalarFunction):
     """Multiplication for Scalars: f(x, y) = x * y"""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float, b: float) -> float:
+    def _forward(cls, ctx: Context, a: float, b: float) -> float:
         ctx.save_for_backward(a, b)
         return operators.mul(a, b)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
+    def _backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
         a, b = ctx.saved_values
         return operators.mul(b, d_out), operators.mul(a, d_out)
 
@@ -176,12 +190,12 @@ class Inv(ScalarFunction):
     """Inverse function for Scalars: f(x) = 1(x)"""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float) -> float:
+    def _forward(cls, ctx: Context, a: float) -> float:
         ctx.save_for_backward(a)
         return operators.inv(a)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
+    def _backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return operators.inv_diff(a, d_out)
 
@@ -190,11 +204,11 @@ class Neg(ScalarFunction):
     """Negation function for Scalars: f(x) = -x"""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float) -> float:
+    def _forward(cls, ctx: Context, a: float) -> float:
         return operators.neg(a)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
+    def _backward(cls, ctx: Context, d_out: float) -> float:
         return operators.mul(-1, d_out)
 
 
@@ -202,12 +216,12 @@ class Sigmoid(ScalarFunction):
     """Sigmoid function applied to Scalars: f(x) = 1. / (1. + e^-x)"""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float) -> float:
+    def _forward(cls, ctx: Context, a: float) -> float:
         ctx.save_for_backward(a)
         return operators.sigmoid(a)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
+    def _backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return operators.sigmoid_diff(a, d_out)
 
@@ -216,12 +230,12 @@ class ReLU(ScalarFunction):
     """ReLU function applied to Scalars: f(x) = relu(x)"""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float) -> float:
+    def _forward(cls, ctx: Context, a: float) -> float:
         ctx.save_for_backward(a)
         return operators.relu(a)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
+    def _backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return operators.relu_diff(a, d_out)
 
@@ -230,12 +244,12 @@ class Exp(ScalarFunction):
     """exp function applied to Scalars: f(x) = exp(x)"""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float) -> float:
+    def _forward(cls, ctx: Context, a: float) -> float:
         ctx.save_for_backward(a)
         return operators.exp(a)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
+    def _backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return d_out * operators.exp(a)
 
@@ -244,11 +258,11 @@ class LT(ScalarFunction):
     """Less than function on scalars: f(x, y) = 1.0 if x < y else 0."""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float, b: float) -> float:
+    def _forward(cls, ctx: Context, a: float, b: float) -> float:
         return operators.lt(a, b)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
+    def _backward(cls, ctx: Context, d_out: float) -> float:
         return 0.0
 
 
@@ -256,11 +270,11 @@ class GT(ScalarFunction):
     """Greater than function for scalars: f(x, y) = 1. if x > y else 0."""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float, b: float) -> float:
+    def _forward(cls, ctx: Context, a: float, b: float) -> float:
         return operators.gt(a, b)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
+    def _backward(cls, ctx: Context, d_out: float) -> float:
         return 0.0
 
 
@@ -268,9 +282,9 @@ class EQ(ScalarFunction):
     """Equality function on scalars: f(x, y) = 1. if x == y else 0."""
 
     @classmethod
-    def forward(cls, ctx: Context, a: float, b: float) -> float:
+    def _forward(cls, ctx: Context, a: float, b: float) -> float:
         return operators.eq(a, b)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
+    def _backward(cls, ctx: Context, d_out: float) -> float:
         return 0.0

@@ -2,6 +2,7 @@ from typing import List, Tuple
 
 import minitorch.operators as operators
 from minitorch.constants import EPS
+from minitorch.autodiff import Scalar
 
 
 class MathTest:
@@ -96,3 +97,29 @@ class MathTest:
                     one_arg_tests.append(tup)
 
         return one_arg_tests, two_arg_tests, reduction_tests
+
+
+class MathTestVariable(MathTest):
+    @staticmethod
+    def inv(x: Scalar):
+        return 1.0 / (x + 3.5)
+
+    @staticmethod
+    def sigmoid(x: Scalar):
+        return x.sigmoid()
+
+    @staticmethod
+    def log(x: Scalar):
+        return (x + 1e06).log()
+
+    @staticmethod
+    def relu(x: Scalar):
+        return (x + 5.5).relu()
+
+    @staticmethod
+    def exp(x: Scalar):
+        return (x - 200.0).exp()
+
+    @staticmethod
+    def explog(x: Scalar):
+        return (a + 1e06).log() + (x - 200.0).exp()
