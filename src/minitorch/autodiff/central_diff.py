@@ -1,9 +1,13 @@
-from typing import Any, Callable
+from typing import Callable
+
+from minitorch.constants import EPS
+from minitorch.autodiff.scalar import Scalar
+from minitorch.operators import is_close
 
 
 def central_difference(
-    func: Callable[..., Any], *values, arg_idx: int = 0, epsilon=1e-06
-) -> float:
+    func: Callable[..., Scalar], *values, arg_idx: int = 0, epsilon=1e-03
+) -> Scalar:
     """
     Computes a numerical approximation of the derivative of f with respect to one arg.
 
@@ -13,17 +17,44 @@ def central_difference(
         *values - List[...]
             The parameters to pass to func.
         arg_idx - int, default = 0
-            The index of the variable in *values to compute the derivate with respect to.
+            The index of the variable in *values to compute the derivative with respect to.
         epsilon - float, default = 1e-06
             A small constant.
     """
     upper_values = [
-        val if i != arg_idx else val + epsilon for i, val in enumerate(values)
+        (val + epsilon) if i == arg_idx else val for (i, val) in enumerate(values)
     ]
     lower_values = [
-        val if i != arg_idx else val - epsilon for i, val in enumerate(values)
+        (val - epsilon) if i == arg_idx else val for (i, val) in enumerate(values)
     ]
-    print(upper_values)
-    print(lower_values)
 
     return (func(*upper_values) - func(*lower_values)) / (2 * epsilon)
+
+
+def derivative_check(func: Callable[..., Scalar], *scalars):
+    """
+    Checks that autodiff works on an arbitrary python function.
+    Asserts False if derivative is incorrect.
+    """
+    for scalar in scalars:
+        scalar.requires_grad_(True)
+    out_ = func(*scalars)
+    out_.backward()
+
+    # Run derivative check using central_difference
+    for (i, scalar) in enumerate(scalars):
+        check = central_difference(func, *scalars, arg_idx=i)
+        print(
+            f"checking derivative for function {func.__name__}",
+            f"inputs: {str([scalar.data for scalar in scalars])}",
+            f"calculated derivative for scalar {scalar} = {scalar.derivative}",
+            f"index of scalar {i}",
+            f"derivative check {check.data}",
+        )
+
+        if not is_close(scalar.derivative, check.data):
+            raise ValueError(
+                f"Derivative check failed for function {func.__name__} with arguments {scalars}. "
+                f"Derivative failed at position {i}. Calculated derivative is {scalar.derivative},"
+                f" should be {check.data}."
+            )

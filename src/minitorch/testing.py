@@ -1,8 +1,8 @@
 from typing import List, Tuple
 
 import minitorch.operators as operators
-from minitorch.constants import EPS
 from minitorch.autodiff import Scalar
+from minitorch.constants import EPS
 
 
 class MathTest:
@@ -122,4 +122,6 @@ class MathTestVariable(MathTest):
 
     @staticmethod
     def explog(x: Scalar):
-        return (a + 1e06).log() + (x - 200.0).exp()
+        return (x + 1e06).log() + (x - 200.0).exp()
+
+    # TODO: there are more scalar tests to run here.

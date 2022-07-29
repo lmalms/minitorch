@@ -144,13 +144,13 @@ class Variable:
         """True if this variable has no history."""
         return self.history is None
 
-    def requires_grad_(self, val: bool):
+    def requires_grad_(self, requires_grad: bool):
         """
         Sets the requires_grad_ flag to 'val' on variable.
         This ensures that operations on this variable will trigger
         backpropagation.
         """
-        self.history = History()
+        self.history = History() if requires_grad else None
 
     def backward(self, d_out: float = 1.0) -> None:
         """
@@ -368,7 +368,6 @@ def backpropagate(variable, d_out=1.0) -> None:
             for (input_, diff) in input_diff_pairs:
                 prev_diff = var_derivative_map.get(input_, 0.0)
                 var_derivative_map.update({input_: (prev_diff + diff)})
-                print(var_derivative_map)
 
     # Assign derivatives / accumulate derivatives
     for var, derivative in var_derivative_map.items():

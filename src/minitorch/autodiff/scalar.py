@@ -128,7 +128,7 @@ class ScalarFunction(BaseFunction):
         ...
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
+    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
         """
         Backward call.
 
@@ -138,11 +138,6 @@ class ScalarFunction(BaseFunction):
             d_out - float
                 Derivative is multiplied by this value.
         """
-        return cls.data_type(cls._backward(ctx, d_out))
-
-    @classmethod
-    @abstractmethod
-    def _backward(cls, ctx: Context, d_out: float) -> float:
         ...
 
 
@@ -154,7 +149,7 @@ class Add(ScalarFunction):
         return operators.add(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
+    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
         return d_out, d_out
 
 
@@ -167,7 +162,7 @@ class Log(ScalarFunction):
         return operators.log(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, d_out: float) -> float:
+    def backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return operators.log_diff(a, d_out)
 
@@ -181,7 +176,7 @@ class Mul(ScalarFunction):
         return operators.mul(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
+    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
         a, b = ctx.saved_values
         return operators.mul(b, d_out), operators.mul(a, d_out)
 
@@ -195,7 +190,7 @@ class Inv(ScalarFunction):
         return operators.inv(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, d_out: float) -> float:
+    def backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return operators.inv_diff(a, d_out)
 
@@ -208,7 +203,7 @@ class Neg(ScalarFunction):
         return operators.neg(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, d_out: float) -> float:
+    def backward(cls, ctx: Context, d_out: float) -> float:
         return operators.mul(-1, d_out)
 
 
@@ -221,7 +216,7 @@ class Sigmoid(ScalarFunction):
         return operators.sigmoid(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, d_out: float) -> float:
+    def backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return operators.sigmoid_diff(a, d_out)
 
@@ -235,7 +230,7 @@ class ReLU(ScalarFunction):
         return operators.relu(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, d_out: float) -> float:
+    def backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return operators.relu_diff(a, d_out)
 
@@ -249,7 +244,7 @@ class Exp(ScalarFunction):
         return operators.exp(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, d_out: float) -> float:
+    def backward(cls, ctx: Context, d_out: float) -> float:
         a = ctx.saved_values
         return d_out * operators.exp(a)
 
@@ -262,7 +257,7 @@ class LT(ScalarFunction):
         return operators.lt(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, d_out: float) -> float:
+    def backward(cls, ctx: Context, d_out: float) -> float:
         return 0.0
 
 
@@ -274,7 +269,7 @@ class GT(ScalarFunction):
         return operators.gt(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, d_out: float) -> float:
+    def backward(cls, ctx: Context, d_out: float) -> float:
         return 0.0
 
 
@@ -286,5 +281,5 @@ class EQ(ScalarFunction):
         return operators.eq(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, d_out: float) -> float:
+    def backward(cls, ctx: Context, d_out: float) -> float:
         return 0.0
