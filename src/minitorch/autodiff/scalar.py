@@ -40,7 +40,7 @@ class Scalar(Variable):
         self._data = float(value)
 
     def __repr__(self) -> str:
-        return f"Scalar({self.data})"
+        return f"Scalar({self.data:.3f}, name={self.name})"
 
     def __bool__(self):
         return bool(self._data)

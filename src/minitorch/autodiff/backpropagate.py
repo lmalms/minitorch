@@ -3,24 +3,25 @@ from typing import Union
 from minitorch.autodiff import Variable, topological_sort
 
 
-def backpropagate(variable: Variable, d_out: Union[float, Variable]) -> None:
+def backpropagate(variable: Variable, d_out: Union[Variable, float] = 1.0) -> None:
     derivative_chain = topological_sort(variable)
-    vars_to_derivatives = {}
+    var_derivative_map = {variable: d_out}
 
-    """
-    1. Call topological sort to get an ordered queue
+    for i, var in enumerate(derivative_chain):
+        if not var.is_leaf():
+            # Fetch any derivatives from previous backprop steps
+            d_out = var_derivative_map.get(var, 1.0)
+            input_diff_pairs = var.history.backprop_step(d_out=d_out)
 
-    2. Create a dictionary of Variables and current derivatives
+            # Update scalars with new derivatives
+            for (input_, diff) in input_diff_pairs:
+                prev_diff = var_derivative_map.get(input_, 0.0)
+                var_derivative_map.update({input_: (prev_diff + diff)})
+                print(var_derivative_map)
 
-    3. For each node in backward order, pull a completed Variable and derivative from the queue:
-
-        if the Variable is a leaf, add its final derivative (accumulate_derivative) and loop to (2)
-
-        if the Variable is not a leaf,
-
-        call .backprop_step on the last function that created it with derivative as 𝑑𝑜𝑢𝑡
-
-            loop through all the Variables+derivative produced by the chain rule
-
-            accumulate derivatives for the Variable in a dictionary (check .unique_id)
-"""
+    # Assign derivatives / accumulate derivatices
+    for var, derivative in var_derivative_map.items():
+        if var.is_leaf():
+            var.accumulate_derivative(derivative)
+        else:
+            var.derivative = derivative

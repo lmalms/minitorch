@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import List, Optional, Type, Union
+from typing import List, Optional, Type, Union, Tuple
 
 from minitorch.autodiff.utils import unwrap_tuple, wrap_tuple
 
@@ -78,15 +78,11 @@ class History:
         self.ctx = ctx
         self.inputs = inputs
 
-    def backprop_step(self, d_out: float) -> List[float]:
+    def backprop_step(self, d_out: float) -> List[Tuple[Variable, float]]:
         """
         Runs one step of back-propagation by calling the chain rule.
         """
-        var_derivative_pairs = self.last_fn.chain_rule(
-            self.ctx, self.inputs, d_out=d_out
-        )
-        derivatives = [derivative for (_, derivative) in var_derivative_pairs]
-        return derivatives
+        return self.last_fn.chain_rule(self.ctx, self.inputs, d_out=d_out)
 
 
 class Variable:
@@ -129,6 +125,10 @@ class Variable:
     @property
     def derivative(self):
         return self._derivative
+
+    @derivative.setter
+    def derivative(self, value: float) -> None:
+        self._derivative = value
 
     @staticmethod
     def _format_variable_id() -> str:
@@ -237,7 +237,7 @@ class BaseFunction:
     @classmethod
     def chain_rule(
         cls, ctx: Context, inputs: List[Union[Variable, float]], d_out: float
-    ):
+    ) -> List[Tuple[Variable, float]]:
         """
         Implements the chain rule for differentiation.
         """
