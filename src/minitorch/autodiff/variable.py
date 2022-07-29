@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import List, Optional, Type, Union, Tuple
+from typing import List, Optional, Tuple, Type, Union
 
 from minitorch.autodiff.utils import unwrap_tuple, wrap_tuple
 
@@ -152,7 +152,7 @@ class Variable:
         """
         self.history = History()
 
-    def backward(self, d_out: float = 1.0):
+    def backward(self, d_out: float = 1.0) -> None:
         """
         Calls auto-diff to fill in the derivatives for the history of this object.
 
@@ -291,3 +291,88 @@ class BaseFunction:
             back = History(last_fn=cls, ctx=ctx, inputs=variables)
 
         return cls.variable(cls.data_type(c), back)
+
+
+def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
+    diff_chain = []
+
+    def visit_variable_and_add(variable: Union[Variable, float]) -> None:
+        if not isinstance(variable, Variable):
+            return
+
+        if variable.is_constant():
+            return
+
+        if hasattr(variable, "seen") and variable.seen:
+            return
+
+        # Append variable to list
+        diff_chain.append(variable)
+
+        # Mark variable as visited
+        setattr(variable, "seen", True)
+
+    def dfs_visit(variable: Union[Variable, float]) -> None:
+        if not isinstance(variable, Variable):
+            return
+
+        if variable.is_constant():
+            return
+
+        visit_variable_and_add(variable)
+
+        # Iterate over children
+        if variable.history.inputs is not None:
+            for v in variable.history.inputs:
+                dfs_visit(v)
+
+    def bfs_visit(variable: Union[Variable, float]) -> None:
+        if not isinstance(variable, Variable):
+            return
+
+        if variable.is_constant():
+            return
+
+        visit_variable_and_add(variable)
+
+        # Append all of its children to list
+        if variable.history.inputs is not None:
+            for v in variable.history.inputs:
+                visit_variable_and_add(v)
+
+            # Run bfs_visit on children
+            for v in variable.history.inputs:
+                bfs_visit(v)
+
+    def remove_seen(variables: List[Variable]) -> None:
+        for variable in variables:
+            if hasattr(variable, "seen"):
+                delattr(variable, "seen")
+
+    bfs_visit(variable)
+    remove_seen(diff_chain)
+    return diff_chain
+
+
+def backpropagate(variable, d_out=1.0) -> None:
+    derivative_chain = topological_sort(variable)
+    var_derivative_map = {variable: d_out}
+
+    for i, var in enumerate(derivative_chain):
+        if not var.is_leaf():
+            # Fetch any derivatives from previous backprop steps
+            d_out = var_derivative_map.get(var, 1.0)
+            input_diff_pairs = var.history.backprop_step(d_out=d_out)
+
+            # Update scalars with new derivatives
+            for (input_, diff) in input_diff_pairs:
+                prev_diff = var_derivative_map.get(input_, 0.0)
+                var_derivative_map.update({input_: (prev_diff + diff)})
+                print(var_derivative_map)
+
+    # Assign derivatives / accumulate derivatives
+    for var, derivative in var_derivative_map.items():
+        if var.is_leaf():
+            var.accumulate_derivative(derivative)
+        else:
+            var.derivative = derivative
