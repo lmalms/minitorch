@@ -28,7 +28,7 @@ from minitorch.operators import (
     sigmoid,
     summation,
 )
-from minitorch.testing import MathTest
+from minitorch.testing import MathTestOperators
 from tests.strategies import (
     assert_close,
     small_floats,
@@ -248,7 +248,7 @@ def test_neg_list(x: List[float]) -> None:
 
 
 # Generic mathematical tests
-one_arg_tests, two_arg_tests, _ = MathTest.generate_tests()
+one_arg_tests, two_arg_tests, _ = MathTestOperators.generate_tests()
 
 
 @given(small_floats)

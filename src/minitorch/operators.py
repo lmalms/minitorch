@@ -90,7 +90,7 @@ def inv(x: float) -> float:
 
 def inv_diff(x: float, d: float) -> float:
     """d * f'(x) where f(x) = 1/x"""
-    return d / (x**2)
+    return -d / (x**2 + EPS)
 
 
 def relu_diff(x: float, d: float) -> float:

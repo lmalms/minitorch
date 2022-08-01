@@ -14,7 +14,7 @@ def assert_close(a: float, b: float) -> None:
 
 @composite
 def scalars(draw, min_value=-1e06, max_value=1e06):
-    value = draw(floats(min_value=min_value, max_value=max_value))
+    value = draw(floats(min_value=min_value, max_value=max_value, allow_nan=False))
     return Scalar(value)
 
 
