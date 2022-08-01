@@ -1,12 +1,11 @@
 from typing import Callable
 
-from minitorch.constants import EPS
 from minitorch.autodiff.scalar import Scalar
 from minitorch.operators import is_close
 
 
 def central_difference(
-    func: Callable[..., Scalar], *values, arg_idx: int = 0, epsilon=1e-04
+    func: Callable[..., Scalar], *values, arg_idx: int = 0, epsilon=1e-02
 ) -> Scalar:
     """
     Computes a numerical approximation of the derivative of f with respect to one arg.
@@ -44,7 +43,7 @@ def derivative_check(func: Callable[..., Scalar], *scalars):
     # Run derivative check using central_difference
     for (i, scalar) in enumerate(scalars):
         check = central_difference(func, *scalars, arg_idx=i)
-        print(f"now testing scalar {scalar}, {scalar.derivative}")
+
         if not is_close(scalar.derivative, check.data):
             raise ValueError(
                 f"Derivative check failed for function {func.__name__} with arguments {scalars}. "

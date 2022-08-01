@@ -257,8 +257,8 @@ class LT(ScalarFunction):
         return operators.lt(a, b)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
-        return 0.0
+    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
+        return 0.0, 0.0
 
 
 class GT(ScalarFunction):
@@ -269,8 +269,8 @@ class GT(ScalarFunction):
         return operators.gt(a, b)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
-        return 0.0
+    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
+        return 0.0, 0.0
 
 
 class EQ(ScalarFunction):
@@ -281,5 +281,5 @@ class EQ(ScalarFunction):
         return operators.eq(a, b)
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> float:
-        return 0.0
+    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
+        return 0.0, 0.0

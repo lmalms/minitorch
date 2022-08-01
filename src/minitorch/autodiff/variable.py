@@ -372,7 +372,6 @@ def backpropagate(variable, d_out: float = 1.0) -> None:
     # Assign derivatives / accumulate derivatives
     for var, derivative in var_derivative_map.items():
         if var.is_leaf():
-
             var.accumulate_derivative(derivative)
         else:
             var.derivative = derivative
