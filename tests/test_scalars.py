@@ -97,6 +97,24 @@ def test_eq(x: float) -> None:
 
 
 @given(small_floats)
+def test_square(x: float) -> None:
+    square_scalar = Scalar(x).square()
+    assert is_close(square_scalar.data, x**2)
+
+    z = Scalar(x).square() + Scalar(x).square()
+    assert is_close(z.data, x**2 + x**2)
+
+
+@given(tiny_floats)
+def test_cube(x: float) -> None:
+    cube_scalar = Scalar(x).cube()
+    assert is_close(cube_scalar.data, x**3)
+
+    z = Scalar(x).cube() + Scalar(x).cube()
+    assert is_close(z.data, x**3 + x**3)
+
+
+@given(small_floats)
 def test_neg(x: float) -> None:
     neg_scalar = -Scalar(x)
     assert neg_scalar.data == -x
@@ -106,7 +124,6 @@ def test_neg(x: float) -> None:
 
 @given(small_positive_floats, small_positive_floats)
 def test_log(x: float, y: float) -> None:
-
     log_scalar = Scalar(x).log()
     assert is_close(log_scalar.data, log(x))
 
