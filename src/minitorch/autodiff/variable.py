@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import List, Optional, Tuple, Type, Union
+from typing import Any, List, Optional, Tuple, Type, Union
 
 from minitorch.autodiff.utils import unwrap_tuple, wrap_tuple
 
@@ -36,8 +36,6 @@ class Context:
         if self._saved_values is None:
             raise ValueError("No values saved - forgot to run save values?")
 
-        # TODO: Do I need this wrapping and unwrapping here?
-        #  when accessing the context we should know how many values we need.
         return unwrap_tuple(self._saved_values)
 
     @property
@@ -70,9 +68,7 @@ class History:
         self,
         last_fn: Optional[Type[BaseFunction]] = None,
         ctx: Optional[Context] = None,
-        inputs: Optional[
-            List[float]
-        ] = None,  # TODO: this should probs be union of float and variable
+        inputs: Optional[List[Union[Variable, float]]] = None,
     ):
         self.last_fn = last_fn
         self.ctx = ctx
@@ -110,12 +106,20 @@ class Variable:
     def data(self):
         ...
 
+    @data.setter
+    @abstractmethod
+    def data(self, value: Any) -> None:
+        ...
+
     @property
     def history(self) -> Optional[History]:
         return self._history
 
     @history.setter
     def history(self, history: Optional[History] = None):
+        """
+        Validates history type before setting history attribute.
+        """
         if not ((history is None) or isinstance(history, History)):
             raise TypeError(
                 f"History has to be None or of type history - got {type(history)}"
@@ -127,8 +131,15 @@ class Variable:
         return self._derivative
 
     @derivative.setter
-    def derivative(self, value: float) -> None:
-        self._derivative = value
+    def derivative(self, value: Union[int, float]) -> None:
+        """
+        Validates derivative type before setting attribute.
+        """
+        if not isinstance(value, (int, float)):
+            raise TypeError(
+                f"Derivatives have to be of type int or float - got {type(value)}."
+            )
+        self._derivative = float(value)
 
     @staticmethod
     def _format_variable_id() -> str:
@@ -206,19 +217,13 @@ class BaseFunction:
 
     @classmethod
     @abstractmethod
-    def data_type(cls):
+    def to_data_type(cls):
         ...
 
     @classmethod
     @abstractmethod
     def variable(cls, value, history: History):
         ...
-
-    @staticmethod
-    def is_constant(value: Union[Variable, float]) -> bool:
-        # TODO: is this the best place to put this?
-        # TODO: also used in topological sort
-        return not isinstance(value, Variable) or value.history is None
 
     @classmethod
     @abstractmethod
@@ -227,6 +232,11 @@ class BaseFunction:
         To be implemented by all inheriting Function classes.
         Returns a value of type cls.data_type
         """
+        return cls.to_data_type(cls._forward(ctx, *values))
+
+    @classmethod
+    @abstractmethod
+    def _forward(cls, ctx: Context, *values) -> float:
         ...
 
     @classmethod
@@ -244,21 +254,16 @@ class BaseFunction:
         derivatives = wrap_tuple(cls.backward(ctx, d_out))
         var_dev_pairs = list(zip(inputs, derivatives))
         var_dev_pairs = [
-            pair for pair in var_dev_pairs if not cls.is_constant(value=pair[0])
+            pair for pair in var_dev_pairs if not is_constant(value=pair[0])
         ]
         return var_dev_pairs
 
     @classmethod
     def apply(cls, *variables: Union[Variable, float]) -> Variable:
         """
-        Apply is used to run the function.
-        Internally it does three things:
-        a) Create context for the function call
-        b) Calls forward to run the function.
-        c) Attaches the context to the history of the new variable.
-
+        Apply is used to run the forward pass of a function.
         Args:
-            variables - List[Union[Variable, float]]
+            variables - Iterable[Union[Variable, float]]
                 An iterable of variables or constants to call forward on.
 
         Returns:
@@ -267,30 +272,31 @@ class BaseFunction:
         """
         # Extract raw values
         raw_values = []
-        need_grad = False
+        requires_grad = False
         for v in variables:
             if isinstance(v, Variable):
                 if v.history is not None:
-                    need_grad = True
+                    requires_grad = True
                 v.used += 1
                 raw_values.append(v.data)
             else:
                 raw_values.append(v)
 
         # Create context
-        ctx = Context(need_grad)
+        ctx = Context(requires_grad)
 
         # Call forward with variables
         c = cls.forward(ctx, *raw_values)
-        if not isinstance(c, cls.data_type()):
-            raise TypeError(f"Expected return type {cls.data_type()}, got {type(c)}.")
 
         # Create new variable from result with new history.
-        back = None
-        if need_grad:
-            back = History(last_fn=cls, ctx=ctx, inputs=variables)
+        back = (
+            History(last_fn=cls, ctx=ctx, inputs=variables) if requires_grad else None
+        )
+        return cls.variable(c, back)
 
-        return cls.variable(cls.data_type(c), back)
+
+def is_constant(value: Union[Variable, float]) -> bool:
+    return (not isinstance(value, Variable)) or (value.history is None)
 
 
 def topological_sort(variable: Union[Variable, float]) -> List[Variable]:

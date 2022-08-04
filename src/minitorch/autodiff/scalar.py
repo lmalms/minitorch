@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union, Callable
 
 from minitorch import operators
 from minitorch.autodiff.variable import BaseFunction, Context, History, Variable
+from minitorch.operators import is_close
 
 
 class Scalar(Variable):
@@ -33,6 +34,9 @@ class Scalar(Variable):
 
     @data.setter
     def data(self, value: Union[int, float]) -> None:
+        """
+        Validates data type before setting data attribute.
+        """
         if not isinstance(value, (float, int)):
             raise TypeError(
                 f"Scalar values have to be of type int or float - got {type(value)}."
@@ -100,13 +104,11 @@ class ScalarFunction(BaseFunction):
     """
 
     @classmethod
-    def data_type(cls, value: Optional = None) -> Union[type(float), float]:
-        if value is not None:
-            return float(value)
-        return float
+    def to_data_type(cls, value: Any) -> float:
+        return float(value)
 
     @classmethod
-    def variable(cls, value, history: History = History()) -> Scalar:
+    def variable(cls, value: Union[int, float], history: History = History()) -> Scalar:
         return Scalar(value, history)
 
     @classmethod
@@ -120,7 +122,7 @@ class ScalarFunction(BaseFunction):
             *values - List[float]
                 n floats to run forward call over.
         """
-        return cls.data_type(cls._forward(ctx, *values))
+        return cls.to_data_type(cls._forward(ctx, *values))
 
     @classmethod
     @abstractmethod
@@ -283,3 +285,51 @@ class EQ(ScalarFunction):
     @classmethod
     def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
         return 0.0, 0.0
+
+
+def central_difference(
+    func: Callable[..., Scalar], *values, arg_idx: int = 0, epsilon=1e-02
+) -> Scalar:
+    """
+    Computes a numerical approximation of the derivative of f with respect to one arg.
+
+    Args:
+        func - Callable[..., Any]
+            The function to differentiate.
+        *values - List[...]
+            The parameters to pass to func.
+        arg_idx - int, default = 0
+            The index of the variable in *values to compute the derivative with respect to.
+        epsilon - float, default = 1e-06
+            A small constant.
+    """
+    upper_values = [
+        (val + epsilon) if i == arg_idx else val for (i, val) in enumerate(values)
+    ]
+    lower_values = [
+        (val - epsilon) if i == arg_idx else val for (i, val) in enumerate(values)
+    ]
+
+    return (func(*upper_values) - func(*lower_values)) / (2 * epsilon)
+
+
+def derivative_check(func: Callable[..., Scalar], *scalars):
+    """
+    Checks that autodiff works on an arbitrary python function.
+    Asserts False if derivative is incorrect.
+    """
+    for scalar in scalars:
+        scalar.requires_grad_(True)
+    out_ = func(*scalars)
+    out_.backward()
+
+    # Run derivative check using central_difference
+    for (i, scalar) in enumerate(scalars):
+        check = central_difference(func, *scalars, arg_idx=i)
+
+        if not is_close(scalar.derivative, check.data):
+            raise ValueError(
+                f"Derivative check failed for function {func.__name__} with arguments {scalars}. "
+                f"Derivative failed at position {i}. Calculated derivative is {scalar.derivative},"
+                f" should be {check.data}."
+            )
