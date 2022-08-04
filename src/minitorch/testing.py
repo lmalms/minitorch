@@ -132,6 +132,14 @@ class MathTestVariable(MathTestOperators):
         return 1.0 / (x + 3.5)
 
     @staticmethod
+    def square(x: Scalar):
+        return x.square()
+
+    @staticmethod
+    def cube(x: Scalar):
+        return x.cube()
+
+    @staticmethod
     def sigmoid(x: Scalar):
         return x.sigmoid()
 

@@ -85,6 +85,12 @@ class Scalar(Variable):
     def __neg__(self) -> Scalar:
         return Neg.apply(self)
 
+    def square(self) -> Scalar:
+        return Square.apply(self)
+
+    def cube(self) -> Scalar:
+        return Cube.apply(self)
+
     def log(self) -> Scalar:
         return Log.apply(self)
 
@@ -130,7 +136,7 @@ class ScalarFunction(BaseFunction):
         ...
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
+    def backward(cls, ctx: Context, d_out: float) -> Union[Tuple[..., float], float]:
         """
         Backward call.
 
@@ -207,6 +213,34 @@ class Neg(ScalarFunction):
     @classmethod
     def backward(cls, ctx: Context, d_out: float) -> float:
         return operators.mul(-1, d_out)
+
+
+class Square(ScalarFunction):
+    """Squaring function to sclars f(x) = x ** 2"""
+
+    @classmethod
+    def _forward(cls, ctx: Context, a: float) -> float:
+        ctx.save_for_backward(a)
+        return operators.mul(a, a)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> float:
+        a = ctx.saved_values
+        return operators.mul(d_out, operators.mul(2, a))
+
+
+class Cube(ScalarFunction):
+    """Cube function to scalars f(x) = x ** 3"""
+
+    @classmethod
+    def _forward(cls, ctx: Context, a: float) -> float:
+        ctx.save_for_backward(a)
+        return operators.mul(a, operators.mul(a, a))
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> float:
+        a = ctx.saved_values
+        return operators.mul(d_out, operators.mul(3, a))
 
 
 class Sigmoid(ScalarFunction):
