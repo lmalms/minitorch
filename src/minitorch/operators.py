@@ -50,7 +50,7 @@ def maximum(x: float, y: float) -> float:
 
 def is_close(x: float, y: float) -> bool:
     """f(x, y) = |x - y| < 1e-02"""
-    return abs(x - y) < 1e-03
+    return abs(x - y) < 1e-02
 
 
 def sigmoid(x: float) -> float:
@@ -90,7 +90,7 @@ def inv(x: float) -> float:
 
 def inv_diff(x: float, d: float) -> float:
     """d * f'(x) where f(x) = 1/x"""
-    return d / (x**2)
+    return -d / (x**2 + EPS)
 
 
 def relu_diff(x: float, d: float) -> float:
