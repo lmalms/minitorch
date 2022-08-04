@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Optional, Tuple, Union, Callable
+from typing import Any, Callable, Optional, Tuple, Union
 
 from minitorch import operators
 from minitorch.autodiff.variable import BaseFunction, Context, History, Variable
