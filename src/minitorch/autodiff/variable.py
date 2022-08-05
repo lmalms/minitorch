@@ -194,6 +194,9 @@ class Variable:
         self._derivative = self.zeros()
 
     def zero_grad_(self) -> None:
+        """
+        Alias for zero_derivative_
+        """
         self.zero_derivative_()
 
     def expand(self, x):

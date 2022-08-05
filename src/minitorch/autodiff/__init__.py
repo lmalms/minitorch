@@ -11,3 +11,4 @@ from minitorch.autodiff.variable import (
     backpropagate,
     topological_sort,
 )
+from minitorch.autodiff.functional import add, mul, summation, product
