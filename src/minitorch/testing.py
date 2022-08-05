@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 import minitorch.operators as operators
-from minitorch.autodiff import Scalar
+from minitorch.autodiff import Scalar, summation
 from minitorch.constants import EPS
 
 
@@ -160,6 +160,18 @@ class MathTestVariable(MathTestOperators):
         return (x + 1e06).log() + (x - 200.0).exp()
 
     @staticmethod
+    def add2(x: Scalar, y: Scalar) -> Scalar:
+        return x + y
+
+    @staticmethod
+    def multiply2(x: Scalar, y: Scalar) -> Scalar:
+        return x * y
+
+    @staticmethod
+    def divide2(x: Scalar, y: Scalar) -> Scalar:
+        return x / (y + 5.5)
+
+    @staticmethod
     def gt2(x: Scalar, y: Scalar) -> Scalar:
         return (x + 1.2) > y
 
@@ -172,7 +184,13 @@ class MathTestVariable(MathTestOperators):
         return x == (y + 5.5)
 
     @staticmethod
+    def summation_reduction(x: List[Scalar]) -> Scalar:
+        return summation(x)
+
+    @staticmethod
+    def mean_reduction(x: List[Scalar]) -> Scalar:
+        return summation(x) / float(len(x))
+
+    @staticmethod
     def complex(x: Scalar) -> Scalar:
         return (((x * 10 + 7).relu() * 6 + 5).relu() * 10).sigmoid().log() / 50
-
-    # TODO: tests for mean and summation on variables
