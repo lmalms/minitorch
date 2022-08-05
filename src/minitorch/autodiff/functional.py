@@ -1,19 +1,22 @@
 from typing import Callable, List
+
 from minitorch.autodiff.scalar import Scalar
 
 
 # TODO: refactor this to actually use operators where possible!
 def add(x: Scalar, y: Scalar) -> Scalar:
-    """ f(x, y) = x + y """
+    """f(x, y) = x + y"""
     return x + y
 
 
 def mul(x: Scalar, y: Scalar) -> Scalar:
-    """ f(x, y) = x * y"""
+    """f(x, y) = x * y"""
     return x * y
 
 
-def reduce(func: Callable[[Scalar, Scalar], Scalar], x0: Scalar) -> Callable[[List[Scalar]], Scalar]:
+def reduce(
+    func: Callable[[Scalar, Scalar], Scalar], x0: Scalar
+) -> Callable[[List[Scalar]], Scalar]:
     """
     Returns a callable that applies func to each element in a list.
     """
@@ -31,10 +34,10 @@ def reduce(func: Callable[[Scalar, Scalar], Scalar], x0: Scalar) -> Callable[[Li
 
 
 def summation(ls: List[Scalar]) -> Scalar:
-    """ Sums all scalars in a list. """
+    """Sums all scalars in a list."""
     return reduce(add, x0=Scalar(0))(ls)
 
 
 def product(ls: List[Scalar]) -> Scalar:
-    """ Multiplies all scalars in a list. """
+    """Multiplies all scalars in a list."""
     return reduce(mul, x0=Scalar(1.0))(ls)
