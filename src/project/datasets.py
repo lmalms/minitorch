@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 import random
 from abc import abstractmethod
-from typing import List, Tuple
 from dataclasses import dataclass
 from enum import Enum
+from typing import List, Tuple
 
 
 class Dataset:
@@ -71,6 +72,7 @@ class Datasets:
     """
     Container for storing all datasets.
     """
+
     simple: SimpleDataset
     split: SplitDataset
     diagonal: DiagonalDataset
@@ -82,7 +84,7 @@ class Datasets:
             simple=SimpleDataset(n_samples),
             split=SplitDataset(n_samples),
             diagonal=DiagonalDataset(n_samples),
-            xor=XORDataset(n_samples)
+            xor=XORDataset(n_samples),
         )
 
 

@@ -1,16 +1,13 @@
-from typing import List, Tuple, Any
 from dataclasses import asdict
+from typing import Any, List, Tuple
+
 import matplotlib.pyplot as plt
 import streamlit as st
-from datasets import Dataset, Datasets, DatasetTypes, DatasetSplit, Features, Labels
-from matplotlib.patches import Rectangle, Polygon
-
+from datasets import Dataset, Datasets, DatasetSplit, DatasetTypes, Features, Labels
+from matplotlib.patches import Polygon, Rectangle
 
 # Configure page
-st.set_page_config(
-    page_title="Datasets",
-    page_icon=":chart_with_upwards_trend:"
-)
+st.set_page_config(page_title="Datasets", page_icon=":chart_with_upwards_trend:")
 st.title("Module 0: Datasets")
 
 # Configure side bar
@@ -24,11 +21,9 @@ dataset_size = st.sidebar.slider(
 dataset_type = st.sidebar.radio(
     "Dataset type:",
     [
-        name.capitalize()
-        if value != DatasetTypes.xor else name.upper()
+        name.capitalize() if value != DatasetTypes.xor else name.upper()
         for (name, value) in DatasetTypes.__members__.items()
-
-    ]
+    ],
 )
 
 # Initialise dataset
@@ -38,13 +33,8 @@ datasets = Datasets.generate_datasets(dataset_size)
 
 
 def select_samples_by_label(dataset: Dataset, label: float):
-    features = [
-        (x1, x2)
-        for ((x1, x2), y) in zip(dataset.xs, dataset.ys)
-        if y == label
-    ]
+    features = [(x1, x2) for ((x1, x2), y) in zip(dataset.xs, dataset.ys) if y == label]
     labels = [y for y in dataset.ys if y == label]
-
     return features, labels
 
 
