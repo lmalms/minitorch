@@ -91,3 +91,9 @@ class DatasetTypes(str, Enum):
     split = "split"
     diagonal = "diagonal"
     xor = "xor"
+
+
+# Type hints
+Features = List[Tuple[float, float]]
+Labels = List[float]
+DatasetSplit = Tuple[Features, Features, Labels, Labels]
