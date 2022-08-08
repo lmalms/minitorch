@@ -3,11 +3,13 @@ import random
 from abc import abstractmethod
 from typing import List, Tuple
 from dataclasses import dataclass
-
-random.seed(0)
+from enum import Enum
 
 
 class Dataset:
+
+    random.seed(0)
+
     def __init__(self, n: int):
         self.n = n
         self._xs = self._generate_xs()
@@ -82,3 +84,10 @@ class Datasets:
             diagonal=DiagonalDataset(n_samples),
             xor=XORDataset(n_samples)
         )
+
+
+class DatasetTypes(str, Enum):
+    simple = "simple"
+    split = "split"
+    diagonal = "diagonal"
+    xor = "xor"
