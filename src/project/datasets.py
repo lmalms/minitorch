@@ -1,6 +1,8 @@
+from __future__ import annotations
 import random
 from abc import abstractmethod
 from typing import List, Tuple
+from dataclasses import dataclass
 
 random.seed(0)
 
@@ -60,3 +62,23 @@ class XORDataset(Dataset):
             1 if ((x1 < 0.5) and (x2 > 0.5)) or ((x1 > 0.5) and (x2 < 0.5)) else 0.0
             for (x1, x2) in self.xs
         ]
+
+
+@dataclass
+class Datasets:
+    """
+    Container for storing all datasets.
+    """
+    simple: SimpleDataset
+    split: SplitDataset
+    diagonal: DiagonalDataset
+    xor: XORDataset
+
+    @classmethod
+    def generate_datasets(cls, n_samples: int = 200) -> Datasets:
+        return Datasets(
+            simple=SimpleDataset(n_samples),
+            split=SplitDataset(n_samples),
+            diagonal=DiagonalDataset(n_samples),
+            xor=XORDataset(n_samples)
+        )
