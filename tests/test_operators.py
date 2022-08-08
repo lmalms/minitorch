@@ -1,39 +1,41 @@
-from typing import List, Tuple, Callable
+from typing import Callable, List, Tuple
+
+import pytest
 from hypothesis import given
 from hypothesis.strategies import lists
-import pytest
 
+from minitorch.constants import EPS
 from minitorch.operators import (
-    mul,
-    identity,
     add,
-    neg,
-    lt,
-    gt,
-    eq,
-    maximum,
-    is_close,
-    sigmoid,
-    relu,
-    log,
-    exp,
-    inv,
-    relu_diff,
-    inv_diff,
-    log_diff,
     add_lists,
+    eq,
+    exp,
+    gt,
+    identity,
+    inv,
+    inv_diff,
+    is_close,
+    log,
+    log_diff,
+    lt,
+    maximum,
+    mul,
+    neg,
     neg_list,
     product,
-    summation
+    relu,
+    relu_diff,
+    sigmoid,
+    summation,
 )
+from minitorch.testing import MathTestOperators
 from tests.strategies import (
     assert_close,
     small_floats,
     small_positive_floats,
     tiny_floats,
-    tiny_positive_floats
+    tiny_positive_floats,
 )
-from minitorch.testing import MathTest
 
 
 @given(small_floats, small_floats)
@@ -43,8 +45,8 @@ def test_same_as_python(x: float, y: float) -> None:
     assert add(x, y) == x + y
     assert neg(x) == -x
     assert maximum(x, y) == (x if x > y else y)
-    if x != 0.:
-        assert_close(inv(x), 1./x)
+    if x != 0.0:
+        assert_close(inv(x), 1.0 / (x + EPS))
 
 
 @given(small_floats)
@@ -59,38 +61,38 @@ def test_neg(x: float) -> None:
 
 @given(small_floats)
 def test_lt(x: float) -> None:
-    assert lt(x - 1., x) == 1.
-    assert lt(x, x - 1.) == 0.
+    assert lt(x - 1.0, x) == 1.0
+    assert lt(x, x - 1.0) == 0.0
 
 
 @given(small_floats)
 def test_gt(x: float) -> None:
-    assert gt(x + 1., x) == 1.
-    assert gt(x, x + 1.) == 0.
+    assert gt(x + 1.0, x) == 1.0
+    assert gt(x, x + 1.0) == 0.0
 
 
 @given(small_floats)
 def test_max(x: float) -> None:
-    assert maximum(x - 1., x) == x
-    assert maximum(x, x - 1.) == x
-    assert maximum(x + 1., x) == x + 1.
-    assert maximum(x, x + 1.) == x + 1.
+    assert maximum(x - 1.0, x) == x
+    assert maximum(x, x - 1.0) == x
+    assert maximum(x + 1.0, x) == x + 1.0
+    assert maximum(x, x + 1.0) == x + 1.0
 
 
 @given(small_floats)
 def test_eq(x: float) -> None:
-    assert eq(x, x) == 1.
-    assert eq(x, x - 1.) == 0.
-    assert eq(x, x + 1.) == 0.
-    assert eq(x + 1., x + 1.) == 1.
+    assert eq(x, x) == 1.0
+    assert eq(x, x - 1.0) == 0.0
+    assert eq(x, x + 1.0) == 0.0
+    assert eq(x + 1.0, x + 1.0) == 1.0
 
 
 @given(small_floats)
 def test_relu(x: float) -> None:
-    if x > 0.:
+    if x > 0.0:
         assert relu(x) == x
     else:
-        assert relu(x) == 0.
+        assert relu(x) == 0.0
 
 
 @given(small_floats, small_floats)
@@ -98,7 +100,7 @@ def test_relu_diff(x: float, y: float) -> None:
     if x > 0.0:
         assert relu_diff(x, y) == y
     else:
-        assert relu_diff(x, y) == 0.
+        assert relu_diff(x, y) == 0.0
 
 
 @given(small_floats)
@@ -109,13 +111,14 @@ def test_sigmoid(x: float) -> None:
     sigmoid(0) = 0.5
     strictly increasing
     """
-    assert (sigmoid(x) >= 0.) and (sigmoid(x) <= 1.)
+    assert (sigmoid(x) >= 0.0) and (sigmoid(x) <= 1.0)
     assert is_close(1 - sigmoid(x), sigmoid(-x))
-    assert is_close(sigmoid(0.), 0.5)
+    assert is_close(sigmoid(0.0), 0.5)
     assert all(
-        sigmoid(j) >= sigmoid(i) for (i, j) in zip(
+        sigmoid(j) >= sigmoid(i)
+        for (i, j) in zip(
             [x + k * 0.01 for k in range(10000)],
-            [x + k * 0.01 for k in range(10000)][1:]
+            [x + k * 0.01 for k in range(10000)][1:],
         )
     )
 
@@ -176,13 +179,14 @@ def test_log(x: float, y: float) -> None:
     Exponentiation -> log_a(x)^y = y * log_a(x)
     Monotonically increasing
     """
-    assert log(1.) == 0.
+    assert log(1.0) == 0.0
     assert is_close(log(x, y), (log(x) / log(y)))
     assert is_close(log(mul(x, y)), add(log(x), log(y)))
     assert is_close(log(x / y), log(x) - log(y))
     assert is_close(log(x**y), mul(y, log(x)))
     assert all(
-        log(j) >= log(i) for (i, j) in zip(
+        log(j) >= log(i)
+        for (i, j) in zip(
             [x + k * 0.01 for k in range(1000)],
             [x + k * 0.01 for k in range(1000)][1:],
         )
@@ -198,11 +202,11 @@ def test_exp(x: float, y: float) -> None:
     Quotient property -> exp(x) / exp(y) = exp(x - y)
     Power property -> exp(x)y = exp(x*y)
     """
-    assert exp(0) == 1.
+    assert exp(0) == 1.0
     assert is_close(exp(-x), (1 / exp(x)))
     assert is_close(mul(exp(x), exp(y)), exp(add(x, y)))
     assert is_close((exp(x) / exp(y)), exp(x - y))
-    assert is_close(exp(x)**y, exp(mul(x, y)))
+    assert is_close(exp(x) ** y, exp(mul(x, y)))
 
 
 @given(small_floats, small_floats, small_floats, small_floats)
@@ -220,7 +224,7 @@ def test_summation(x: List[float]) -> None:
 
 @given(
     lists(small_floats, min_size=5, max_size=5),
-    lists(small_floats, min_size=5, max_size=5)
+    lists(small_floats, min_size=5, max_size=5),
 )
 def test_sum_distribute(x: List[float], y: List[float]) -> None:
     """
@@ -244,7 +248,7 @@ def test_neg_list(x: List[float]) -> None:
 
 
 # Generic mathematical tests
-one_arg_tests, two_arg_tests, _ = MathTest.generate_tests()
+one_arg_tests, two_arg_tests, _ = MathTestOperators.generate_tests()
 
 
 @given(small_floats)
@@ -256,7 +260,9 @@ def test_one_arg_funcs(fn: List[Tuple[str, Callable, Callable]], x: float) -> No
 
 @given(small_floats, small_floats)
 @pytest.mark.parametrize("fn", two_arg_tests)
-def test_two_arg_funcs(fn: List[Tuple[str, Callable, Callable]], x: float, y: float) -> None:
+def test_two_arg_funcs(
+    fn: List[Tuple[str, Callable, Callable]], x: float, y: float
+) -> None:
     name, base_fn, _ = fn
     base_fn(x, y)
 
@@ -265,5 +271,4 @@ def test_two_arg_funcs(fn: List[Tuple[str, Callable, Callable]], x: float, y: fl
 def test_diffs(x: float, y: float) -> None:
     relu_diff(x, y)
     inv_diff(x + 2.4, y)
-    log_diff(abs(x) + 4., y)
-
+    log_diff(abs(x) + 4.0, y)
