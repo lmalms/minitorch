@@ -2,7 +2,7 @@ from dataclasses import asdict
 
 import matplotlib.pyplot as plt
 import streamlit as st
-from datasets import Dataset, Datasets, DatasetSplit, DatasetTypes, Features, Labels
+from minitorch.datasets import Dataset, Datasets, DatasetSplit, DatasetTypes, Features, Labels
 from matplotlib.patches import Polygon, Rectangle
 
 # Configure page
