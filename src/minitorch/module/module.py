@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple, Union
 
-from minitorch.parameter import Parameter
+from minitorch.module.parameter import Parameter
 from minitorch.autodiff import Variable
 
 

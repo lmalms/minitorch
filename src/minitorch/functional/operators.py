@@ -5,7 +5,9 @@ Collection of core mathematical operators used through the code base.
 import math
 from typing import Callable, List, Optional
 
-from minitorch.constants import EPS
+from minitorch.functional.constants import EPS
+
+# TODO: We will want to change the type hints to work for both floats a well as Scalars!
 
 
 def mul(x: float, y: float) -> float:

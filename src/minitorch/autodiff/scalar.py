@@ -3,9 +3,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Callable, Optional, Tuple, Union
 
-from minitorch import operators
+from minitorch.functional import operators
 from minitorch.autodiff.variable import BaseFunction, Context, History, Variable
-from minitorch.operators import is_close
 
 
 class Scalar(Variable):
@@ -361,7 +360,7 @@ def derivative_check(func: Callable[..., Scalar], *scalars):
     for (i, scalar) in enumerate(scalars):
         check = central_difference(func, *scalars, arg_idx=i)
 
-        if not is_close(scalar.derivative, check.data):
+        if not operators.is_close(scalar.derivative, check.data):
             raise ValueError(
                 f"Derivative check failed for function {func.__name__} with arguments {scalars}. "
                 f"Derivative failed at position {i}. Calculated derivative is {scalar.derivative},"

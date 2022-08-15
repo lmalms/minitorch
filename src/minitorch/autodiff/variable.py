@@ -220,7 +220,7 @@ class BaseFunction:
 
     @classmethod
     @abstractmethod
-    def to_data_type(cls):
+    def to_data_type(cls, value: Any):
         ...
 
     @classmethod
