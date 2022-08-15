@@ -1,12 +1,12 @@
 from typing import Tuple
 
-from minitorch import operators
+from minitorch.functional import operators
 from minitorch.autodiff import Context, History, Scalar, ScalarFunction, Variable
 
 
 class Function1(ScalarFunction):
     @classmethod
-    def forward(cls, ctx: Context, x: float, y: float) -> float:
+    def _forward(cls, ctx: Context, x: float, y: float) -> float:
         """f(x, y) = x + y + 10"""
         return operators.add(x, operators.add(y, 10))
 
@@ -18,7 +18,7 @@ class Function1(ScalarFunction):
 
 class Function2(ScalarFunction):
     @classmethod
-    def forward(cls, ctx: Context, x: float, y: float) -> float:
+    def _forward(cls, ctx: Context, x: float, y: float) -> float:
         """f(x, y) = x * y + x"""
         ctx.save_for_backward(x, y)
         return operators.add(operators.mul(x, y), x)

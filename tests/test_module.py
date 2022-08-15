@@ -1,8 +1,7 @@
 import pytest
 from hypothesis import given
 
-from src.minitorch.module import Module
-from src.minitorch.parameter import Parameter
+from minitorch.module import Module, Parameter
 
 from .strategies import med_ints, small_floats
 
@@ -76,7 +75,7 @@ class ModuleB2(Module):
         self.non_parameter = 10.0
         self.module_a = ModuleB1()
         for i in range(n_extra):
-            self.add_parameter(Parameter(value=None, name=f"extra_parameter_{i}"))
+            self.add_parameter(value=None, name=f"extra_parameter_{i}")
 
 
 class ModuleB3(Module):

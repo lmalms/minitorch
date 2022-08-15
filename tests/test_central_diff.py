@@ -1,4 +1,4 @@
-from minitorch import operators
+from minitorch.functional import operators
 from minitorch.autodiff import central_difference
 
 

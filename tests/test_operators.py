@@ -4,8 +4,8 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import lists
 
-from minitorch.constants import EPS
-from minitorch.operators import (
+from minitorch.functional import EPS
+from minitorch.functional import (
     add,
     add_lists,
     eq,
@@ -32,7 +32,6 @@ from minitorch.testing import MathTestOperators
 from tests.strategies import (
     assert_close,
     small_floats,
-    small_positive_floats,
     tiny_floats,
     tiny_positive_floats,
 )
