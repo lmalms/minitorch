@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple, Union
 
-from src.minitorch.parameter import Parameter
+from minitorch.parameter import Parameter
+from minitorch.autodiff import Variable
 
 
 class Module:
@@ -120,8 +121,12 @@ class Module:
         """
         return [param for (_, param) in self.named_parameters()]
 
-    def add_parameter(self, parameter: Parameter) -> Parameter:
-        self.__dict__["_parameters"][parameter.name] = parameter
+    def add_parameter(self, value: Union[float, Variable], name: str) -> Parameter:
+        """
+        Utils function for manually adding a parameter to module.
+        """
+        parameter = Parameter(value=value, name=name)
+        self.__dict__["_parameters"][name] = parameter
         return parameter
 
     def forward(self, *args, **kwargs):
