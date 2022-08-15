@@ -1,5 +1,4 @@
 from dataclasses import asdict
-from typing import Any, List, Tuple
 
 import matplotlib.pyplot as plt
 import streamlit as st
@@ -8,7 +7,7 @@ from matplotlib.patches import Polygon, Rectangle
 
 # Configure page
 st.set_page_config(page_title="Datasets", page_icon=":chart_with_upwards_trend:")
-st.title("Module 0: Datasets")
+st.title("Datasets")
 
 # Configure side bar
 # TODO: How can change the settings (font, size) in the sidebar?
