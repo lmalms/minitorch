@@ -4,8 +4,8 @@ from minitorch.autodiff import Scalar, topological_sort
 
 SKIP_DFS_TESTS = True
 SKIP_DFS_TESTS_REASON = (
-        "Test assumes a depth first search but "
-        "topological sort uses breadth first search."
+    "Test assumes a depth first search but "
+    "topological sort uses breadth first search."
 )
 
 
