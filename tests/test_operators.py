@@ -4,8 +4,8 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import lists
 
-from minitorch.functional import EPS
 from minitorch.functional import (
+    EPS,
     add,
     add_lists,
     eq,

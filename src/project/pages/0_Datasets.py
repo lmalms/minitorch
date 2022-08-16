@@ -2,8 +2,16 @@ from dataclasses import asdict
 
 import matplotlib.pyplot as plt
 import streamlit as st
-from minitorch.datasets import Dataset, Datasets, DatasetSplit, DatasetTypes, Features, Labels
 from matplotlib.patches import Polygon, Rectangle
+
+from minitorch.datasets import (
+    Dataset,
+    Datasets,
+    DatasetSplit,
+    DatasetTypes,
+    Features,
+    Labels,
+)
 
 # Configure page
 st.set_page_config(page_title="Datasets", page_icon=":chart_with_upwards_trend:")

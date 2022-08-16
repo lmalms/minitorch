@@ -1,8 +1,8 @@
 from typing import List, Union
 
-from minitorch.module.module import Module
-from minitorch.module.layer import Linear
 from minitorch.autodiff import Scalar
+from minitorch.module.layer import Linear
+from minitorch.module.module import Module
 
 
 class Network(Module):
@@ -12,18 +12,16 @@ class Network(Module):
     """
 
     def __init__(
-            self,
-            input_dim: int,
-            hidden_dim: int,
-            output_dim: int,
-            n_hidden_layers: int
+        self, input_dim: int, hidden_dim: int, output_dim: int, n_hidden_layers: int
     ):
         super().__init__()
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.n_hidden_layers = n_hidden_layers
         self._input_layer = Linear(input_dim, hidden_dim)
-        self._hidden_layers = [Linear(input_dim, hidden_dim) for _ in range(n_hidden_layers)]
+        self._hidden_layers = [
+            Linear(input_dim, hidden_dim) for _ in range(n_hidden_layers)
+        ]
         self._output_layer = Linear(hidden_dim, output_dim)
 
     def forward(self, inputs: List[List[Union[float, Scalar]]]) -> List[List[Scalar]]:

@@ -3,8 +3,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Callable, Optional, Tuple, Union
 
-from minitorch.functional import operators
 from minitorch.autodiff.variable import BaseFunction, Context, History, Variable
+from minitorch.functional import operators
 
 
 class Scalar(Variable):

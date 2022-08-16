@@ -3,7 +3,7 @@ from hypothesis import given
 
 from minitorch.module import Module, Parameter
 
-from .strategies import med_ints, small_floats
+from .strategies import medium_ints, small_floats
 
 
 class ModuleA1(Module):
@@ -86,7 +86,7 @@ class ModuleB3(Module):
         self.parameter_val = Parameter(param_value)
 
 
-@given(med_ints, med_ints)
+@given(medium_ints, medium_ints)
 def test_moduleB(size_a: int, size_b: int):
     """Verify properties of single modules."""
     module = ModuleB2()
@@ -107,7 +107,7 @@ def test_moduleB(size_a: int, size_b: int):
     assert named_parameters["module_a.parameter_a"].value == VAL_A
 
 
-@given(med_ints, med_ints, small_floats)
+@given(medium_ints, medium_ints, small_floats)
 def test_moduleB_stack(size_a: int, size_b: int, val: float):
     """Verify properties of a stacked module"""
     module = ModuleB3(size_a, size_b, param_value=val)

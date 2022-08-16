@@ -1,5 +1,5 @@
-from minitorch.functional import operators
 from minitorch.autodiff import central_difference
+from minitorch.functional import operators
 
 
 def test_central_difference():

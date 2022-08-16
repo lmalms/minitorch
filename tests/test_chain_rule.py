@@ -1,7 +1,7 @@
 from typing import Tuple
 
-from minitorch.functional import operators
 from minitorch.autodiff import Context, History, Scalar, ScalarFunction, Variable
+from minitorch.functional import operators
 
 
 class Function1(ScalarFunction):

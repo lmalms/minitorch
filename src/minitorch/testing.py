@@ -1,8 +1,7 @@
 from typing import List, Tuple
 
-from minitorch.functional import operators
 from minitorch.autodiff import Scalar, summation
-from minitorch.functional import EPS
+from minitorch.functional import EPS, operators
 
 
 class MathTestOperators:
@@ -93,12 +92,12 @@ class MathTestOperators:
     @staticmethod
     def complex(x: float):
         return (
-                operators.log(
+            operators.log(
                 operators.sigmoid(
                     operators.relu(operators.relu(x * 10 + 7) * 6 + 5) * 10
                 )
             )
-                / 50
+            / 50
         )
 
     @classmethod

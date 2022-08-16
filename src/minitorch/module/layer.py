@@ -1,9 +1,9 @@
-from typing import List, Union
 import random
+from typing import List, Union
 
+from minitorch.autodiff import Scalar
 from minitorch.module.module import Module
 from minitorch.module.parameter import Parameter
-from minitorch.autodiff import Scalar
 
 
 class Linear(Module):
@@ -19,7 +19,9 @@ class Linear(Module):
         self._weights = self._initialise_weights(input_dim, output_dim)
         self._bias = self._initialise_bias(output_dim)
 
-    def _initialise_weights(self, input_dim: int, output_dim: int) -> List[List[Parameter]]:
+    def _initialise_weights(
+        self, input_dim: int, output_dim: int
+    ) -> List[List[Parameter]]:
         # Construct the trainable weight matrix using minitorch.Scalars
         weights = []
         for i in range(input_dim):
@@ -27,8 +29,7 @@ class Linear(Module):
             weights.append([])
             for j in range(output_dim):
                 weight = self.add_parameter(
-                    value=Scalar(2 * (random.random() - 0.5)),
-                    name=f"weight_{i}_{j}"
+                    value=Scalar(2 * (random.random() - 0.5)), name=f"weight_{i}_{j}"
                 )
                 weights[i].append(weight)
 
@@ -40,8 +41,7 @@ class Linear(Module):
         for j in range(output_dim):
             # Need a bias term for every output dim
             bias = self.add_parameter(
-                value=Scalar(2 * (random.random() - 0.5)),
-                name=f"bias_{j}"
+                value=Scalar(2 * (random.random() - 0.5)), name=f"bias_{j}"
             )
             biases.append(bias)
 
@@ -65,10 +65,10 @@ class Linear(Module):
                 # Multiply input features by weights
                 weights = [self._weights[i][j] for i in range(self.input_dim)]
                 for (feature, weight) in zip(sample, weights):
-                    out_ += feature * weight
+                    out_ += feature * weight.value
 
                 # Add bias term
-                out_ += self._bias[j]
+                out_ += self._bias[j].value
 
                 # Append to outputs
                 outputs[s].append(out_)
