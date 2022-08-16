@@ -2,8 +2,14 @@ import pytest
 
 from minitorch.autodiff import Scalar, topological_sort
 
+SKIP_DFS_TESTS = True
+SKIP_DFS_TESTS_REASON = (
+        "Test assumes a depth first search but "
+        "topological sort uses breadth first search."
+)
 
-@pytest.mark.skip(reason="topological search uses bfs instead of dfs")
+
+@pytest.mark.skipif(SKIP_DFS_TESTS, reason=SKIP_DFS_TESTS_REASON)
 def test_dfs_topological_sort1():
     scalar1, scalar2 = 1.5, 2.5
     scalar3 = scalar1 + scalar2
@@ -12,7 +18,7 @@ def test_dfs_topological_sort1():
     assert len(sorted_) == 0
 
 
-@pytest.mark.skip(reason="topological search uses bfs instead of dfs")
+@pytest.mark.skipif(SKIP_DFS_TESTS, reason=SKIP_DFS_TESTS_REASON)
 def test_dfs_topological_sort2():
     scalar1 = 1.5
     scalar2 = Scalar(2.5)
@@ -24,7 +30,7 @@ def test_dfs_topological_sort2():
     assert sorted_[1].name == scalar2.name
 
 
-@pytest.mark.skip(reason="topological search uses bfs instead of dfs")
+@pytest.mark.skipif(SKIP_DFS_TESTS, reason=SKIP_DFS_TESTS_REASON)
 def test_dfs_topological_sort3():
     scalar1 = 1.5
     scalar2 = Scalar(2.5)
@@ -40,7 +46,7 @@ def test_dfs_topological_sort3():
     assert sorted_[3].name == scalar4.name
 
 
-@pytest.mark.skip(reason="topological search uses bfs instead of dfs")
+@pytest.mark.skipif(SKIP_DFS_TESTS, reason=SKIP_DFS_TESTS_REASON)
 def test_dfs_topological_sort4():
     scalar1 = Scalar(1.5)
     scalar2 = Scalar(2.5)
