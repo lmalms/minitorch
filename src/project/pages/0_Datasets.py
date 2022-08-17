@@ -90,10 +90,10 @@ plot_dataset_split(neg_features, neg_labels, ax, "tab:blue", "x")
 format_axes(ax)
 
 if dataset_type.lower() == DatasetTypes.simple:
-    bottom_left = Rectangle((0, 0), 0.5, 1.0, color="tab:red", alpha=0.2, lw=0.0)
-    react2 = Rectangle((0.5, 0), 0.5, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
-    ax.add_patch(bottom_left)
-    ax.add_patch(react2)
+    left = Rectangle((0, 0), 0.5, 1.0, color="tab:red", alpha=0.2, lw=0.0)
+    right = Rectangle((0.5, 0), 0.5, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
+    ax.add_patch(left)
+    ax.add_patch(right)
 elif dataset_type.lower() == DatasetTypes.split:
     react1 = Rectangle((0, 0), 0.2, 1.0, color="tab:red", alpha=0.2, lw=0.0)
     react2 = Rectangle((0.2, 0), 0.6, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
