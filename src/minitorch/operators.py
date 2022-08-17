@@ -3,11 +3,9 @@ Collection of core mathematical operators used through the code base.
 """
 
 import math
-from typing import Callable, List, Optional
+from typing import Optional
 
-from minitorch.functional.constants import EPS
-
-# TODO: We will want to change the type hints to work for both floats a well as Scalars!
+from minitorch.constants import EPS
 
 
 def mul(x: float, y: float) -> float:
@@ -103,74 +101,3 @@ def relu_diff(x: float, d: float) -> float:
 def sigmoid_diff(x: float, d: float) -> float:
     """d * f'(x) where f(x) = sigmoid(x)"""
     return d * sigmoid(x) * (1.0 - sigmoid(x))
-
-
-def map_single(func: Callable[[float], float]) -> Callable[[List[float]], List[float]]:
-    """
-    Higher order map. Returns mapping function that applies func to every element in a list and then returns that list.
-    """
-
-    def mapping_func(ls: List[float]) -> List[float]:
-        return [func(i) for i in ls]
-
-    return mapping_func
-
-
-def map_double(
-    func: Callable[[float, float], float]
-) -> Callable[[List[float], List[float]], List[float]]:
-    """
-    Higher order map. Returns a mapping function that applies func to elements in two equally sized list and returns
-    result as new list.
-    """
-
-    def mapping_func(ls1: List[float], ls2: List[float]) -> List[float]:
-        return [func(i, j) for (i, j) in zip(ls1, ls2)]
-
-    return mapping_func
-
-
-def neg_list(ls: List[float]) -> List[float]:
-    """
-    Negates each element in ls.
-    """
-    return map_single(neg)(ls)
-
-
-def add_lists(ls1: List[float], ls2: List[float]) -> List[float]:
-    """
-    Sums elements in lists ls1 and ls2 pairwise and returns result as new list.
-    """
-    return map_double(add)(ls1, ls2)
-
-
-def reduce(
-    func: Callable[[float, float], float], x0: float
-) -> Callable[[List[float]], float]:
-    """
-    Returns function that applies reduction to each element in list.
-    """
-
-    def reduction(ls: List[float]) -> float:
-        ls_copy = ls.copy()  # changing to original list so make a copy.
-        x = x0
-        while ls_copy:
-            x = func(x, ls_copy[0])
-            ls_copy.pop(0)
-        return x
-
-    return reduction
-
-
-def summation(ls: List[float]) -> float:
-    """
-    Computes the sum for all elements in a list.
-    """
-    return reduce(add, x0=0.0)(ls)
-
-
-def product(ls: List[float]) -> float:
-    """
-    Computes the product of all elements in a list.
-    """
-    return reduce(mul, x0=1.0)(ls)

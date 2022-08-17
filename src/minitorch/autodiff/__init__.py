@@ -1,4 +1,3 @@
-from minitorch.autodiff.functional import add, mul, product, summation
 from minitorch.autodiff.scalar import (
     Scalar,
     ScalarFunction,
