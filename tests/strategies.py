@@ -1,8 +1,8 @@
 from hypothesis import settings
 from hypothesis.strategies import composite, floats, integers
 
+from minitorch import operators
 from minitorch.autodiff import Scalar
-from minitorch.functional import operators
 
 settings.register_profile("ci", deadline=None)
 settings.load_profile("ci")

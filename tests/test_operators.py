@@ -4,10 +4,10 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import lists
 
-from minitorch.functional import (
-    EPS,
+from minitorch.constants import EPS
+from minitorch.functional import add_lists, neg_list, product, summation
+from minitorch.operators import (
     add,
-    add_lists,
     eq,
     exp,
     gt,
@@ -21,12 +21,9 @@ from minitorch.functional import (
     maximum,
     mul,
     neg,
-    neg_list,
-    product,
     relu,
     relu_diff,
     sigmoid,
-    summation,
 )
 from minitorch.testing import MathTestOperators
 from tests.strategies import (

@@ -2,7 +2,7 @@ import pytest
 from hypothesis import given
 
 from minitorch.autodiff import Scalar, derivative_check
-from minitorch.functional import add, exp, inv, is_close, log, mul, relu, sigmoid
+from minitorch.operators import add, exp, inv, is_close, log, mul, relu, sigmoid
 from minitorch.testing import MathTestVariable
 from tests.strategies import (
     small_floats,
