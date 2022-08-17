@@ -30,5 +30,5 @@ def binary_cross_entropy(y_true: List[Scalar], y_hat: List[Scalar]) -> Scalar:
         y_h.log() if y_t == 1.0 else (-y_h + 1).log()
         for (y_t, y_h) in zip(y_true, y_hat)
     ]
-    cross_entropy = (- summation(log_likelihoods) / len(y_true))
+    cross_entropy = -summation(log_likelihoods) / len(y_true)
     return cross_entropy

@@ -1,7 +1,7 @@
 import random
 
 from minitorch.autodiff import Scalar
-from minitorch.losses import mean_squared_error, binary_cross_entropy
+from minitorch.losses import binary_cross_entropy, mean_squared_error
 from minitorch.operators import is_close, log
 
 
@@ -46,5 +46,5 @@ def test_bce_loss():
         elif y_t == 0:
             bce_check += log(1 - y_h.data)
 
-    bce_check = (-bce_check / len(y_true))
+    bce_check = -bce_check / len(y_true)
     assert is_close(bce_check, bce.data)
