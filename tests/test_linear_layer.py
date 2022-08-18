@@ -1,4 +1,5 @@
 import random
+import os
 
 import numpy as np
 import pytest
@@ -26,7 +27,10 @@ def test_linear_init(input_dim: int, output_dim: int):
 
 
 @given(medium_ints, medium_ints)
-@pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
+@pytest.mark.skipif(
+    os.environ.get("SKIP_LINEAR_FORWARD_TESTS", SKIP_LINEAR_FORWARD_TESTS),
+    reason=SKIP_REASON
+)
 def test_linear_forward_floats(input_dim: int, output_dim: int):
     # Initialise a linear layer
     linear = Linear(input_dim, output_dim)
@@ -46,7 +50,10 @@ def test_linear_forward_floats(input_dim: int, output_dim: int):
 
 
 @given(medium_ints, medium_ints)
-@pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
+@pytest.mark.skipif(
+    os.environ.get("SKIP_LINEAR_FORWARD_TESTS", SKIP_LINEAR_FORWARD_TESTS),
+    reason=SKIP_REASON
+)
 def test_linear_forward_scalars(input_dim: int, output_dim: int):
     # Initialise a linear layer
     linear = Linear(input_dim, output_dim)
