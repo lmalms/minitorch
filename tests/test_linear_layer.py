@@ -51,9 +51,5 @@ def test_linear_forward(input_dim: int, output_dim: int):
     X = [[i * random.random() for i in range(input_dim)] for _ in range(n_samples)]
     assert np.allclose(minitorch_forward(X), np_forward(X))
 
-    X = [
-        [Scalar(i * random.random()) for i in range(input_dim)]
-        for _ in range(n_samples)
-    ]
-    X_floats = [[input_.data for input_ in row] for row in X]
-    assert np.allclose(minitorch_forward(X), np_forward(X_floats))
+    X_scalars = [[Scalar(value) for value in row] for row in X]
+    assert np.allclose(minitorch_forward(X_scalars), np_forward(X))
