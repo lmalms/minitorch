@@ -19,24 +19,19 @@ class Network(Module):
         self.hidden_dim = hidden_dim
         self.n_hidden_layers = n_hidden_layers
         self._input_layer = Linear(input_dim, hidden_dim)
-        self._hidden_layers = [
-            Linear(input_dim, hidden_dim) for _ in range(n_hidden_layers)
-        ]
+        self._hidden_layer = Linear(hidden_dim, hidden_dim)
         self._output_layer = Linear(hidden_dim, output_dim)
 
     def forward(self, inputs: List[List[Union[float, Scalar]]]) -> List[List[Scalar]]:
         # Pass through input layer
-        hidden_state = self._input_layer.forward(inputs)
-        hidden_state = self._apply_relu(hidden_state)
+        input_to_hidden = self._apply_relu(self._input_layer.forward(inputs))
 
-        # Pass through hidden layers
-        for layer in self._hidden_layers:
-            hidden_state = layer.forward(hidden_state)
-            hidden_state = self._apply_relu(hidden_state)
+        # Pass through hidden layer
+        hidden_to_hidden = self._apply_relu(self._hidden_layer.forward(input_to_hidden))
 
         # Pass through output layer
-        out_ = self._output_layer(hidden_state)
-        return self._apply_relu(out_)
+        hidden_to_output = self._apply_relu(self._output_layer(hidden_to_hidden))
+        return hidden_to_output
 
     @staticmethod
     def _apply_relu(inputs: List[List[Union[Scalar]]]) -> List[List[Scalar]]:
