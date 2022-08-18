@@ -11,13 +11,11 @@ class Network(Module):
     each one followed by a relu activation function.
     """
 
-    def __init__(
-        self, input_dim: int, hidden_dim: int, output_dim: int, n_hidden_layers: int
-    ):
+    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int):
         super().__init__()
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
-        self.n_hidden_layers = n_hidden_layers
+        self.output_dim = output_dim
         self._input_layer = Linear(input_dim, hidden_dim)
         self._hidden_layer = Linear(hidden_dim, hidden_dim)
         self._output_layer = Linear(hidden_dim, output_dim)
