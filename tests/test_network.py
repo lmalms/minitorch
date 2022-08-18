@@ -74,3 +74,12 @@ def test_network_forward_floats(input_dim: int, hidden_dim: int, output_dim: int
     hh_state = [[relu(x) for x in row] for row in ho_state]
 
     assert np.all(np.isclose(y_hat, hh_state))
+
+
+@given(medium_ints, medium_ints, medium_ints)
+@pytest.mark.skipif(
+    os.environ.get("SKIP_NETWORK_FORWARD_TESTS", SKIP_NETWORK_FORWARD_TESTS),
+    reason=SKIP_REASON,
+)
+def test_network_forward_scalars(input_dim: int, hidden_dim: int, output_dim: int):
+    pass
