@@ -28,9 +28,14 @@ class Network(Module):
         hidden_to_hidden = self._apply_relu(self._hidden_layer.forward(input_to_hidden))
 
         # Pass through output layer
-        hidden_to_output = self._apply_relu(self._output_layer(hidden_to_hidden))
+        hidden_to_output = self._output_layer(hidden_to_hidden)
+
         return hidden_to_output
 
     @staticmethod
-    def _apply_relu(inputs: List[List[Union[Scalar]]]) -> List[List[Scalar]]:
+    def _apply_relu(inputs: List[List[Scalar]]) -> List[List[Scalar]]:
         return [[i.relu() for i in sample] for sample in inputs]
+
+    @staticmethod
+    def _apply_sigmoid(inputs: List[List[Scalar]]) -> List[List[Scalar]]:
+        return [[i.sigmoid() for i in sample] for sample in inputs]
