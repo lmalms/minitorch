@@ -171,7 +171,7 @@ class Variable:
             d_output - float, default = 1.
                 Starting derivative to backpropagate through the model
         """
-        return backpropagate(self, d_out)
+        backpropagate(self, d_out)
 
     def accumulate_derivative(self, val: float):
         """
@@ -384,5 +384,3 @@ def backpropagate(variable: Union[Variable, float], d_out: float = 1.0) -> None:
             var.accumulate_derivative(derivative)
         else:
             var.derivative = derivative
-
-    return var_derivative_map
