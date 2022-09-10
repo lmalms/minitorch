@@ -1,10 +1,8 @@
-from typing import Callable, List, Union
+from typing import Callable, List
 
-from minitorch.autodiff import Scalar
+from minitorch.types import FloatOrScalar
 from minitorch.operators import add, mul, neg
 
-# Type hints
-FloatOrScalar = Union[float, Scalar]
 
 
 def reduce(
