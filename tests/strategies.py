@@ -1,15 +1,15 @@
 from hypothesis import settings
 from hypothesis.strategies import composite, floats, integers
 
+from minitorch import operators
 from minitorch.autodiff import Scalar
-from minitorch.operators import is_close
 
 settings.register_profile("ci", deadline=None)
 settings.load_profile("ci")
 
 
 def assert_close(a: float, b: float) -> None:
-    assert is_close(a, b), f"failure with a={a} and b={b}."
+    assert operators.is_close(a, b), f"failure with a={a} and b={b}."
 
 
 @composite
@@ -23,7 +23,6 @@ small_floats = floats(min_value=-100, max_value=100, allow_nan=False)
 tiny_floats = floats(min_value=-5, max_value=5, allow_nan=False)
 small_positive_floats = floats(min_value=0.1, max_value=100, allow_nan=False)
 tiny_positive_floats = floats(min_value=0.1, max_value=10, allow_nan=False)
-med_ints = integers(min_value=1, max_value=20)
-
+medium_ints = integers(min_value=1, max_value=20)
 
 small_scalars = scalars(min_value=-100, max_value=100)

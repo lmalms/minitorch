@@ -1,8 +1,9 @@
 from typing import List, Tuple
 
-import minitorch.operators as operators
-from minitorch.autodiff import Scalar, summation
+from minitorch import operators
+from minitorch.autodiff import Scalar
 from minitorch.constants import EPS
+from minitorch.functional import summation
 
 
 class MathTestOperators:
@@ -84,11 +85,11 @@ class MathTestOperators:
 
     @staticmethod
     def summation_reduction(x: List[float]) -> float:
-        return operators.summation(x)
+        return summation(x)
 
     @staticmethod
     def mean_reduction(x: List[float]) -> float:
-        return operators.summation(x) / float(len(x))
+        return summation(x) / float(len(x))
 
     @staticmethod
     def complex(x: float):

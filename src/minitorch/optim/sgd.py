@@ -1,7 +1,7 @@
 from typing import List
 
+from minitorch.module import Parameter
 from minitorch.optim.base import BaseOptimizer
-from minitorch.parameter import Parameter
 
 
 class SGDOptimizer(BaseOptimizer):

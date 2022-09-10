@@ -5,9 +5,9 @@ from hypothesis import given
 from hypothesis.strategies import lists
 
 from minitorch.constants import EPS
+from minitorch.functional import add_lists, neg_list, product, summation
 from minitorch.operators import (
     add,
-    add_lists,
     eq,
     exp,
     gt,
@@ -21,18 +21,14 @@ from minitorch.operators import (
     maximum,
     mul,
     neg,
-    neg_list,
-    product,
     relu,
     relu_diff,
     sigmoid,
-    summation,
 )
 from minitorch.testing import MathTestOperators
 from tests.strategies import (
     assert_close,
     small_floats,
-    small_positive_floats,
     tiny_floats,
     tiny_positive_floats,
 )

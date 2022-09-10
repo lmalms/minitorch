@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, List, Optional, Tuple, Type, Union
+from typing import Any, Iterable, List, Optional, Tuple, Type, Union
 
 from minitorch.autodiff.utils import unwrap_tuple, wrap_tuple
 
@@ -68,7 +68,7 @@ class History:
         self,
         last_fn: Optional[Type[BaseFunction]] = None,
         ctx: Optional[Context] = None,
-        inputs: Optional[List[Union[Variable, float]]] = None,
+        inputs: Optional[Iterable[Union[Variable, float]]] = None,
     ):
         self.last_fn = last_fn
         self.ctx = ctx
@@ -220,7 +220,7 @@ class BaseFunction:
 
     @classmethod
     @abstractmethod
-    def to_data_type(cls):
+    def to_data_type(cls, value: Any):
         ...
 
     @classmethod
@@ -249,7 +249,7 @@ class BaseFunction:
 
     @classmethod
     def chain_rule(
-        cls, ctx: Context, inputs: List[Union[Variable, float]], d_out: float
+        cls, ctx: Context, inputs: Iterable[Union[Variable, float]], d_out: float
     ) -> List[Tuple[Variable, float]]:
         """
         Implements the chain rule for differentiation.
@@ -363,7 +363,7 @@ def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
     return diff_chain
 
 
-def backpropagate(variable, d_out: float = 1.0) -> None:
+def backpropagate(variable: Union[Variable, float], d_out: float = 1.0) -> None:
     derivative_chain = topological_sort(variable)
     var_derivative_map = {variable: d_out}
 
