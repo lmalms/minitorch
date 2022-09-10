@@ -1,5 +1,5 @@
-
 from typing import List
+
 from minitorch.autodiff import Scalar
 
 

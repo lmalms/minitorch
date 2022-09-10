@@ -1,8 +1,7 @@
 from typing import Callable, List
 
-from minitorch.types import FloatOrScalar
 from minitorch.operators import add, mul, neg
-
+from minitorch.types import FloatOrScalar
 
 
 def reduce(

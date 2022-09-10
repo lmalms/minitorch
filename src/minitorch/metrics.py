@@ -1,4 +1,5 @@
 from typing import List
+
 from minitorch.autodiff import Scalar
 from minitorch.functional import summation
 from minitorch.utils import check_for_equal_dim
