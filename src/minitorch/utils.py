@@ -8,7 +8,6 @@ def check_for_equal_dim(y_true: List[Scalar], y_hat: List[Scalar]):
 
 
 def check_for_binary_values(y: List[Scalar]):
-
     def _is_binary(y: List[Scalar]) -> bool:
         return all((s.data == 0) or (s.data == 1) for s in y)
 
