@@ -81,6 +81,12 @@ class Scalar(Variable):
     def __eq__(self, other: Union[int, float, Scalar]) -> Scalar:
         return EQ.apply(self, other)
 
+    def __ge__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return GE.apply(self, other)
+
+    def __le__(self, other: Union[int, float, Scalar]) -> Scalar:
+        return LE.apply(self, other)
+
     def __neg__(self) -> Scalar:
         return Neg.apply(self)
 
@@ -314,6 +320,30 @@ class EQ(ScalarFunction):
     @classmethod
     def _forward(cls, ctx: Context, a: float, b: float) -> float:
         return operators.eq(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
+        return 0.0, 0.0
+
+
+class GE(ScalarFunction):
+    """Greater than or equal function for scalars: f(x, y) = 1. if x >= y else 0."""
+
+    @classmethod
+    def _forward(cls, ctx: Context, a: float, b: float) -> float:
+        return operators.ge(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:
+        return 0.0, 0.0
+
+
+class LE(ScalarFunction):
+    """Less than or equal function for scalars: f(x, y) = 1. if x <= y else 0."""
+
+    @classmethod
+    def _forward(cls, ctx: Context, a: float, b: float) -> float:
+        return operators.le(a, b)
 
     @classmethod
     def backward(cls, ctx: Context, d_out: float) -> Tuple[float, float]:

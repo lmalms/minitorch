@@ -20,7 +20,7 @@ def binary_cross_entropy(y_true: List[Scalar], y_hat: List[Scalar]) -> Scalar:
          y_true - List[Scalar]
             The true probabilities for the positive class.
         y_hat - List[Scalar]
-            The predicted probabilities for the predictive class.
+            The predicted probabilities for the positive class.
     """
     check_for_equal_dim(y_true, y_hat)
     log_likelihoods = [
