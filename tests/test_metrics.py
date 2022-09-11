@@ -3,7 +3,7 @@ from typing import List
 import pytest
 
 from minitorch.autodiff import Scalar
-from minitorch.metrics import accuracy, true_positive_rate
+from minitorch.metrics import accuracy, false_positive_rate, true_positive_rate
 from minitorch.operators import is_close
 
 
@@ -67,3 +67,35 @@ def test_true_positive_rate(
 ):
     predicted_tpr = true_positive_rate(y_true, y_hat)
     assert is_close(predicted_tpr.data, true_tpr.data)
+
+
+@pytest.mark.parametrize(
+    ["y_true", "y_hat", "true_fpr"],
+    [
+        (
+            [Scalar(1), Scalar(1), Scalar(1), Scalar(1)],
+            [Scalar(1), Scalar(1), Scalar(1), Scalar(1)],
+            Scalar(0.0),
+        ),
+        (
+            [Scalar(1), Scalar(1), Scalar(1), Scalar(1)],
+            [Scalar(0), Scalar(0), Scalar(0), Scalar(0)],
+            Scalar(0.0),
+        ),
+        (
+            [Scalar(0), Scalar(1), Scalar(0), Scalar(1)],
+            [Scalar(1), Scalar(0), Scalar(1), Scalar(1)],
+            Scalar(1.0),
+        ),
+        (
+            [Scalar(0), Scalar(0), Scalar(1), Scalar(0)],
+            [Scalar(0), Scalar(1), Scalar(1), Scalar(0)],
+            Scalar(value=1 / 3),
+        ),
+    ],
+)
+def test_false_positive_rate(
+    y_true: List[Scalar], y_hat: List[Scalar], true_fpr: Scalar
+):
+    predicted_fpr = false_positive_rate(y_true, y_hat)
+    assert is_close(predicted_fpr.data, true_fpr.data)
