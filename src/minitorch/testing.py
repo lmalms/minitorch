@@ -185,6 +185,14 @@ class MathTestVariable(MathTestOperators):
         return x == (y + 5.5)
 
     @staticmethod
+    def ge2(x: Scalar, y: Scalar) -> Scalar:
+        return (x + 1.2) >= y
+
+    @staticmethod
+    def le2(x: Scalar, y: Scalar) -> Scalar:
+        return (x + 1.2) <= y
+
+    @staticmethod
     def summation_reduction(x: List[Scalar]) -> Scalar:
         return summation(x)
 

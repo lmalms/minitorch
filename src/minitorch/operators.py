@@ -43,6 +43,16 @@ def eq(x: float, y: float) -> float:
     return 1.0 if x == y else 0.0
 
 
+def ge(x: float, y: float) -> float:
+    """f(x, y) = 1. if x >= y else 0."""
+    return 1.0 if x >= y else 0.0
+
+
+def le(x: float, y: float) -> float:
+    """f(x, y) = 1. if x <= y else 0."""
+    return 1.0 if x <= y else 0.0
+
+
 def maximum(x: float, y: float) -> float:
     """f(x, y) = x if x > y else y"""
     return x if x > y else y
