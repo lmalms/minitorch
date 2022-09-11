@@ -11,7 +11,7 @@ from minitorch.module import Linear
 
 from .strategies import medium_ints
 
-SKIP_LINEAR_FORWARD_TESTS = False
+SKIP_LINEAR_FORWARD_TESTS = True
 SKIP_REASON = "Tests are slow."
 
 

@@ -10,11 +10,13 @@ from minitorch.operators import (
     add,
     eq,
     exp,
+    ge,
     gt,
     identity,
     inv,
     inv_diff,
     is_close,
+    le,
     log,
     log_diff,
     lt,
@@ -65,6 +67,20 @@ def test_lt(x: float) -> None:
 def test_gt(x: float) -> None:
     assert gt(x + 1.0, x) == 1.0
     assert gt(x, x + 1.0) == 0.0
+
+
+@given(small_floats)
+def test_ge(x: float) -> None:
+    assert ge(x - 1.0, x) == 0.0
+    assert ge(x, x - 1.0) == 1.0
+    assert ge(x + 1.0, x + 1.0) == 1.0
+
+
+@given(small_floats)
+def test_le(x: float) -> None:
+    assert le(x + 1.0, x) == 0.0
+    assert le(x, x + 1.0) == 1.0
+    assert le(x + 1.0, x + 1.0) == 1.0
 
 
 @given(small_floats)

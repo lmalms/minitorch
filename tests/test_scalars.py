@@ -97,6 +97,38 @@ def test_eq(x: float) -> None:
 
 
 @given(small_floats)
+def test_le(x: float) -> None:
+    assert (Scalar(x - 1) <= Scalar(x)) == 1.0
+    assert (Scalar(x) <= Scalar(x - 1)) == 0.0
+
+    assert (Scalar(x - 1) <= x) == 1.0
+    assert (Scalar(x) <= (x - 1)) == 0.0
+
+    assert ((x - 1) <= Scalar(x)) == 1.0
+    assert (x <= Scalar(x - 1)) == 0.0
+
+    assert (Scalar(x) <= Scalar(x)) == 1.0
+    assert (x <= Scalar(x)) == 1.0
+    assert (Scalar(x) <= x) == 1.0
+
+
+@given(small_floats)
+def test_ge(x: float) -> None:
+    assert (Scalar(x) >= Scalar(x - 1)) == 1.0
+    assert (Scalar(x - 1) >= Scalar(x)) == 0.0
+
+    assert (Scalar(x) >= (x - 1)) == 1.0
+    assert (Scalar(x - 1) >= x) == 0.0
+
+    assert (x >= Scalar(x - 1)) == 1.0
+    assert ((x - 1) > Scalar(x)) == 0.0
+
+    assert (Scalar(x) >= Scalar(x)) == 1.0
+    assert (x >= Scalar(x)) == 1.0
+    assert (Scalar(x) >= x) == 1.0
+
+
+@given(small_floats)
 def test_square(x: float) -> None:
     square_scalar = Scalar(x).square()
     assert is_close(square_scalar.data, x**2)
