@@ -59,6 +59,7 @@ def test_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
     def np_forward_single(
         weights: np.ndarray, biases: np.ndarray, input_: List[List[float]]
     ) -> np.ndarray:
+        # Note: check that last layer in network.py also applies relu activation!
         out_ = np.dot(np.array(input_), weights) + biases
         out_ = [[relu(x) for x in row] for row in out_]
         return np.array(out_)
