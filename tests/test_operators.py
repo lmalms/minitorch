@@ -5,7 +5,7 @@ from hypothesis import given
 from hypothesis.strategies import lists
 
 from minitorch.constants import EPS
-from minitorch.functional import add_lists, neg_list, product, summation
+from minitorch.functional import add_lists, neg_list, product, summation, multiply_lists
 from minitorch.operators import (
     add,
     eq,
@@ -225,6 +225,14 @@ def test_exp(x: float, y: float) -> None:
 def test_add_lists(x: float, y: float, v: float, w: float) -> None:
     x1, x2 = add_lists([x, y], [v, w])
     y1, y2 = x + v, y + w
+    assert is_close(x1, y1)
+    assert is_close(x2, y2)
+
+
+@given(small_floats, small_floats, small_floats, small_floats)
+def test_multiply_lists(x: float, y: float, v: float, w: float) -> None:
+    x1, x2 = multiply_lists([x, y], [v, w])
+    y1, y2 = x * v, y * w
     assert is_close(x1, y1)
     assert is_close(x2, y2)
 
