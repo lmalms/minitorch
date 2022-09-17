@@ -77,3 +77,12 @@ def add_lists(
     Sums elements in lists ls1 and ls2 pairwise and returns result as new list.
     """
     return map_double(add)(ls1, ls2)
+
+
+def multiply_lists(
+    ls1: List[FloatOrScalar], ls2: List[FloatOrScalar]
+) -> List[FloatOrScalar]:
+    """
+    Pairwise multiplication of elements in two lists.
+    """
+    return map_double(mul)(ls1, ls2)
