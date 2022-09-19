@@ -2,6 +2,8 @@ from typing import Sequence
 
 import numpy as np
 from typing_extensions import TypeAlias
+from typing import Union, Optional, Any
+from numba.cuda import is_cuda_array, to_device
 
 from minitorch.functional import multiply_lists, product, summation
 
@@ -82,4 +84,58 @@ def strides_from_shape(shape: UserShape) -> UserStrides:
         strides.append(s * offset)
         offset = s * offset
     return tuple(reversed(strides))
+
+
+class TensorData:
+    _storage: Storage
+    _strides: Strides
+    _shape: Shape
+    strides: UserStrides
+    shape: UserShape
+    dims: int
+
+    def __init__(
+            self,
+            storage: Union[Sequence[float], Storage],
+            shape: UserShape,
+            strides: Optional[UserStrides] = None
+    ):
+        self._verify_types(strides, shape)
+        self._verify_data(storage, strides, shape)
+        self._storage = np.array(storage)
+        self._strides = np.array(strides) if strides is not None else np.array(strides_from_shape(shape))
+        self._shape = np.array(shape)
+        self.dims = len(shape)
+        self.size = int(product(list(shape)))
+        self.shape = shape
+
+    @staticmethod
+    def _verify_types(strides: Any, shape: Any) -> None:
+        assert isinstance(strides, tuple), "strides must be a tuple."
+        assert isinstance(shape, tuple), "shape must be a tuple"
+
+    @staticmethod
+    def _verify_data(storage, strides, shape):
+        if strides is None:
+            strides = strides_from_shape(shape)
+        assert len(strides) == len(shape), "strides and shape must have the same length."
+        assert len(storage) == int(product(list(shape)))
+
+    def to_cuda_(self) -> None:
+        if not is_cuda_array(self._storage):
+            self._storage = to_device(self._storage)
+
+    def is_contiguous(self) -> bool:
+        """
+        Checks that layout is contiguous, i.e. outer dimensions have bigger strides than inner dimensions.
+
+        Returns:
+            bool - True if contiguous
+        """
+        paired_dims = list(zip(self._strides, self._strides[1:]))
+        not_contiguous = any(i < j for (i, j) in paired_dims)
+        return not not_contiguous
+
+
+
 
