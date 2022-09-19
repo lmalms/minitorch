@@ -1,9 +1,8 @@
-from typing import Sequence
+from typing import Any, Optional, Sequence, Union
 
 import numpy as np
-from typing_extensions import TypeAlias
-from typing import Union, Optional, Any
 from numba.cuda import is_cuda_array, to_device
+from typing_extensions import TypeAlias
 
 from minitorch.functional import multiply_lists, product, summation
 
@@ -95,15 +94,19 @@ class TensorData:
     dims: int
 
     def __init__(
-            self,
-            storage: Union[Sequence[float], Storage],
-            shape: UserShape,
-            strides: Optional[UserStrides] = None
+        self,
+        storage: Union[Sequence[float], Storage],
+        shape: UserShape,
+        strides: Optional[UserStrides] = None,
     ):
         self._verify_types(strides, shape)
         self._verify_data(storage, strides, shape)
         self._storage = np.array(storage)
-        self._strides = np.array(strides) if strides is not None else np.array(strides_from_shape(shape))
+        self._strides = (
+            np.array(strides)
+            if strides is not None
+            else np.array(strides_from_shape(shape))
+        )
         self._shape = np.array(shape)
         self.dims = len(shape)
         self.size = int(product(list(shape)))
@@ -118,7 +121,9 @@ class TensorData:
     def _verify_data(storage, strides, shape):
         if strides is None:
             strides = strides_from_shape(shape)
-        assert len(strides) == len(shape), "strides and shape must have the same length."
+        assert len(strides) == len(
+            shape
+        ), "strides and shape must have the same length."
         assert len(storage) == int(product(list(shape)))
 
     def to_cuda_(self) -> None:
@@ -135,7 +140,3 @@ class TensorData:
         paired_dims = list(zip(self._strides, self._strides[1:]))
         not_contiguous = any(i < j for (i, j) in paired_dims)
         return not not_contiguous
-
-
-
-
