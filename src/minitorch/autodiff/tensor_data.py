@@ -61,3 +61,25 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
                 index.append(remaining_ordinal % dim)
 
     return tuple(index)
+
+
+def broadcast_index() -> None:
+    pass
+
+
+def shape_broadcast() -> UserShape:
+    pass
+
+
+def strides_from_shape(shape: UserShape) -> UserStrides:
+    """
+    Infers strides from shape. For a given dimension this corresponds to the product of all
+    remaining dimensions assuming a contiguous "unrolling" i.e. outer dimensions have digger strides
+    than inner dimensions.
+    """
+    strides, offset = [1], 1
+    for s in reversed(shape[1:]):
+        strides.append(s * offset)
+        offset = s * offset
+    return tuple(reversed(strides))
+
