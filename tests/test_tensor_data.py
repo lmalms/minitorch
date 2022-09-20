@@ -1,14 +1,15 @@
+import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.strategies import DataObject, data
 
-import numpy as np
 from minitorch.autodiff import TensorData
-from .tensor_strategies import tensor_data
 from minitorch.functional import product
 
+from .tensor_strategies import tensor_data
 
-def test_tensor_data_layout() -> None:
+
+def test_layout() -> None:
     """
     Test basic properties of layout and strides.
     """
@@ -34,10 +35,27 @@ def test_tensor_data_layout() -> None:
 
 
 @pytest.mark.xfail
-def test_tensor_data_layout_fail() -> None:
+def test_layout_fail() -> None:
     """
     Make sure that bad layouts fail.
     """
-    shape, strides = (3, 5), (6, )
+    shape, strides = (3, 5), (6,)
     size = int(product(list(shape)))
     TensorData([0] * size, shape, strides)
+
+
+@given(tensor_data())
+def test_enumeration(td: TensorData) -> None:
+    """Test enumeration of tensors."""
+    indices = list(td.indices())
+
+    # Check that every position is enumerated
+    assert len(indices) == td.size
+
+    # Check that every position is enumerated only once
+    assert len(set(indices)) == len(indices)
+
+    # Check that all indices are within shape
+    for index in td.indices():
+        for (dim, i) in enumerate(index):
+            assert (i >= 0) and (i < td.shape[dim])

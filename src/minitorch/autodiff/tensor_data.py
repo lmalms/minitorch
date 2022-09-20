@@ -221,7 +221,7 @@ class TensorData:
 
         return TensorData(
             storage=self._storage,
-            shape=np.array([self.shape[i] for i in order]),
+            shape=tuple([self.shape[i] for i in order]),
         )
 
     def to_string(self) -> str:

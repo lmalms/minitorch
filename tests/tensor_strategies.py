@@ -1,5 +1,6 @@
-from typing import List, Optional
+from typing import Optional
 
+import numpy as np
 from hypothesis import settings
 from hypothesis.strategies import (
     DrawFn,
@@ -42,12 +43,16 @@ def tensor_data(
     size = int(product(list(shape)))
     data = draw(lists(numbers, min_size=size, max_size=size))
 
-    permute = draw(permutations(range(len(shape))))
-    permute_shape = tuple([shape[i] for i in permute])
+    permutation = draw(permutations(range(len(shape))))
+    shape_permutation = tuple([shape[i] for i in permutation])
+    reverse_permutation = [
+        i for (i, _) in sorted(enumerate(permutation), key=lambda pair: pair[1])
+    ]
 
-    z = sorted(enumerate(permute), key=lambda a: a[1])
-    reverse_permute = [a[0] for a in z]
-    td = TensorData(data, permute_shape)
-    ret = td.permute(*reverse_permute)
-    assert ret.shape == shape[0]
-    return ret
+    # Applying the reverse permutation to permutation
+    # should recover original shape
+    td = TensorData(data, shape_permutation)
+    reverse_td = td.permute(*reverse_permutation)
+
+    assert np.all(reverse_td.shape == np.array(shape))
+    return reverse_td
