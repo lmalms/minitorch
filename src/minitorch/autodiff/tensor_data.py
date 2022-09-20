@@ -48,9 +48,8 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
     """
     # TODO: can this be within tensor data class?
     # TODO: should I actually just be changing out_index here?
-    index = []
-    remaining_ordinal = ordinal
 
+    remaining_ordinal = ordinal
     for i, dim in enumerate(shape):
         is_last_dim = i == (len(shape) - 1)
 
@@ -58,14 +57,12 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
             remaining_size = product(shape[(i + 1) :].tolist())
             idx = remaining_ordinal // remaining_size
             remaining_ordinal = remaining_ordinal % remaining_size
-            index.append(idx)
+            out_index[i] = idx
         else:
             if remaining_ordinal // shape[i - 1] == 0:
-                index.append(remaining_ordinal)
+                out_index[i] = remaining_ordinal
             else:
-                index.append(remaining_ordinal % dim)
-
-    return tuple(index)
+                out_index[i] = remaining_ordinal % dim
 
 
 def broadcast_index() -> None:
@@ -114,6 +111,10 @@ class TensorData:
             if strides is not None
             else np.array(strides_from_shape(shape))
         )
+
+    @property
+    def storage(self) -> Storage:
+        return self._storage
 
     @property
     def shape(self) -> Shape:
@@ -213,7 +214,15 @@ class TensorData:
             New TensorData with the same storage and a new dimension order
         """
 
-        pass
+        if list(sorted(order)) != list(range(len(self.shape))):
+            raise IndexError(
+                f"Must assign a position to search dimension. Shape {self.shape}; Order {order}"
+            )
+
+        return TensorData(
+            storage=self._storage,
+            shape=np.array([self.shape[i] for i in order]),
+        )
 
     def to_string(self) -> str:
         s = ""
