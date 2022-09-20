@@ -1,4 +1,7 @@
-from typing import Any, Optional, Sequence, Union
+from __future__ import annotations
+
+import random
+from typing import Any, Iterable, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from numba.cuda import is_cuda_array, to_device
@@ -43,7 +46,8 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         shape : tensor shape
         out_index : return index corresponding to position
     """
-
+    # TODO: can this be within tensor data class?
+    # TODO: should I actually just be changing out_index here?
     index = []
     remaining_ordinal = ordinal
 
@@ -69,10 +73,12 @@ def broadcast_index() -> None:
 
 
 def shape_broadcast() -> UserShape:
+    # TODO: can this be moved into tensor data?
     pass
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
+    # TODO: can this be moved into tensor data?
     """
     Infers strides from shape. For a given dimension this corresponds to the product of all
     remaining dimensions assuming a contiguous "unrolling" i.e. outer dimensions have digger strides
@@ -99,32 +105,60 @@ class TensorData:
         shape: UserShape,
         strides: Optional[UserStrides] = None,
     ):
-        self._verify_types(strides, shape)
+        self._verify_types(shape, strides)
         self._verify_data(storage, strides, shape)
         self._storage = np.array(storage)
+        self._shape = np.array(shape)
         self._strides = (
             np.array(strides)
             if strides is not None
             else np.array(strides_from_shape(shape))
         )
-        self._shape = np.array(shape)
-        self.dims = len(shape)
-        self.size = int(product(list(shape)))
-        self.shape = shape
+
+    @property
+    def shape(self) -> Shape:
+        return self._shape
+
+    @property
+    def size(self) -> int:
+        return int(product(self.shape.tolist()))
+
+    @property
+    def dims(self) -> int:
+        return len(self.shape)
+
+    @property
+    def strides(self) -> Strides:
+        return self._strides
 
     @staticmethod
-    def _verify_types(strides: Any, shape: Any) -> None:
-        assert isinstance(strides, tuple), "strides must be a tuple."
-        assert isinstance(shape, tuple), "shape must be a tuple"
+    def _verify_types(shape: Any, strides: Any) -> None:
+        if not isinstance(shape, tuple):
+            raise TypeError("shape must be a tuple")
+        if strides is not None:
+            if not isinstance(strides, tuple):
+                raise TypeError("strides must be a tuple.")
 
     @staticmethod
     def _verify_data(storage, strides, shape):
         if strides is None:
             strides = strides_from_shape(shape)
-        assert len(strides) == len(
-            shape
-        ), "strides and shape must have the same length."
-        assert len(storage) == int(product(list(shape)))
+
+        if len(strides) != len(shape):
+            raise IndexError("strides and shape must have the same length.")
+
+        if len(storage) != int(product(list(shape))):
+            raise IndexError("data does not match size of tensor.")
+
+    def _verify_index(self, index) -> None:
+        if len(index) != len(self.shape):
+            raise IndexError(f"Index {index} must be the same size as {self._shape}.")
+
+        for i, idx in enumerate(index):
+            if idx >= self.shape[i]:
+                raise IndexError(f"Index {idx} of of range for shape {self.shape}.")
+            if idx < 0:
+                raise IndexError(f"Negative indexing for {index} not supported.")
 
     def to_cuda_(self) -> None:
         if not is_cuda_array(self._storage):
@@ -137,6 +171,70 @@ class TensorData:
         Returns:
             bool - True if contiguous
         """
-        paired_dims = list(zip(self._strides, self._strides[1:]))
+        paired_dims = list(zip(self.strides, self.strides[1:]))
         not_contiguous = any(i < j for (i, j) in paired_dims)
         return not not_contiguous
+
+    @staticmethod
+    def shape_broadcast(shape_a: UserShape, shape_b: UserShape) -> UserShape:
+        return shape_broadcast(shape_a, shape_b)
+
+    def index(self, index: Union[int, UserIndex]) -> int:
+        index = np.array([index]) if isinstance(index, int) else np.array(index)
+        self._verify_index(index)
+        return index_to_position(np.array(index), self.strides)
+
+    def indices(self) -> Iterable[UserIndex]:
+        shape, out_index = np.array(self.shape), np.array(self.shape)
+        for i in range(self.size):
+            to_index(i, shape, out_index)
+            yield tuple(out_index)
+
+    def sample(self) -> UserIndex:
+        return tuple((random.randint(0, s - 1) for s in self.shape))
+
+    def get(self, key: UserIndex) -> float:
+        return self._storage[self.index(key)]
+
+    def set(self, key: UserIndex, val: float) -> None:
+        self._storage[self.index(key)] = val
+
+    def tuple(self) -> Tuple[Storage, Shape, Strides]:
+        return self._storage, self._shape, self.strides
+
+    def permute(self, *order: int) -> TensorData:
+        """
+        Permute the dimensions of the tensor.
+
+        Args:
+            order: List[int] - a permutation of the dimensions
+
+        Returns:
+            New TensorData with the same storage and a new dimension order
+        """
+
+        pass
+
+    def to_string(self) -> str:
+        s = ""
+        for index in self.indices():
+            l = ""
+            for i in range(len(index) - 1, -1, -1):
+                if index[i] == 0:
+                    l = "\n%s[" % ("\t" * i) + l
+                else:
+                    break
+            s += l
+            v = self.get(index)
+            s += f"{v:3.2f}"
+            l = ""
+            for i in range(len(index) - 1, -1, -1):
+                if index[i] == self.shape[i] - 1:
+                    l += "]"
+                else:
+                    break
+            if l:
+                s += l
+            else:
+                s += " "
+        return s

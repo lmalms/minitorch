@@ -5,7 +5,7 @@ from hypothesis import given
 from hypothesis.strategies import lists
 
 from minitorch.constants import EPS
-from minitorch.functional import add_lists, neg_list, product, summation, multiply_lists
+from minitorch.functional import add_lists, multiply_lists, neg_list, product, summation
 from minitorch.operators import (
     add,
     eq,
@@ -28,12 +28,7 @@ from minitorch.operators import (
     sigmoid,
 )
 from minitorch.testing import MathTestOperators
-from tests.strategies import (
-    assert_close,
-    small_floats,
-    tiny_floats,
-    tiny_positive_floats,
-)
+from tests.strategies import small_floats, tiny_floats, tiny_positive_floats
 
 
 @given(small_floats, small_floats)
@@ -44,7 +39,7 @@ def test_same_as_python(x: float, y: float) -> None:
     assert neg(x) == -x
     assert maximum(x, y) == (x if x > y else y)
     if x != 0.0:
-        assert_close(inv(x), 1.0 / (x + EPS))
+        assert is_close(inv(x), 1.0 / (x + EPS))
 
 
 @given(small_floats)
