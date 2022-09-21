@@ -225,25 +225,27 @@ class TensorData:
         )
 
     def to_string(self) -> str:
-        s = ""
+        tensor_string = ""
         for index in self.indices():
-            l = ""
+            line = ""
             for i in range(len(index) - 1, -1, -1):
                 if index[i] == 0:
-                    l = "\n%s[" % ("\t" * i) + l
+                    # If index[i] == 0 start a new array using [
+                    # Have this indented by the position at which the 0 occurs
+                    # Hence the \t*i below
+                    line = "\n" + "\t" * i + "[" + line
                 else:
                     break
-            s += l
-            v = self.get(index)
-            s += f"{v:3.2f}"
-            l = ""
+            tensor_string += line
+            tensor_string += f"{self.get(index):3.2f}"
+            line = ""
             for i in range(len(index) - 1, -1, -1):
                 if index[i] == self.shape[i] - 1:
-                    l += "]"
+                    line += "]" if i == self.dims - 1 else "\n" + "\t" * i + "]"
                 else:
                     break
-            if l:
-                s += l
+            if line:
+                tensor_string += line
             else:
-                s += " "
-        return s
+                tensor_string += " "
+        return tensor_string
