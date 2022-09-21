@@ -222,6 +222,7 @@ class TensorData:
         return TensorData(
             storage=self._storage,
             shape=tuple([self.shape[i] for i in order]),
+            strides=tuple([self.strides[i] for i in order]),
         )
 
     def to_string(self) -> str:
