@@ -12,7 +12,7 @@ from hypothesis.strategies import (
     permutations,
 )
 
-from minitorch.autodiff import TensorData, UserShape
+from minitorch.autodiff import TensorData, UserIndex, UserShape
 from minitorch.functional import product
 
 from .strategies import small_ints
@@ -30,6 +30,11 @@ def vals(draw_fn, size: int, number: SearchStrategy[float]):  # returns Tensor
 def shapes(draw: DrawFn) -> UserShape:
     shape = draw(lists(small_ints, min_size=1, max_size=4))
     return tuple(shape)
+
+
+@composite
+def indices(draw: DrawFn, layout: TensorData) -> UserIndex:
+    return tuple((draw(integers(min_value=0, max_value=s - 1)) for s in layout.shape))
 
 
 @composite

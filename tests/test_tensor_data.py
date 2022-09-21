@@ -6,7 +6,7 @@ from hypothesis.strategies import DataObject, data
 from minitorch.autodiff import TensorData
 from minitorch.functional import product
 
-from .tensor_strategies import tensor_data
+from .tensor_strategies import indices, tensor_data
 
 
 def test_layout() -> None:
@@ -79,3 +79,15 @@ def test_index(td: TensorData) -> None:
         index = [0] * (td.dims - 1)
         with pytest.raises(IndexError):
             td.index(tuple(index))
+
+
+@given(data())
+def test_permute(data: DataObject) -> None:
+    """Test shape permutation."""
+    td = data.draw(tensor_data())
+    idx = data.draw(indices(td))
+    td_reverse = td.permute(*list(reversed(range(td.dims))))
+    assert td.index(idx) == td_reverse.index(tuple(reversed(idx)))
+
+    td_reverse_twice = td_reverse.permute(*list(reversed(range(td_reverse.dims))))
+    assert td.index(idx) == td_reverse_twice.index(idx)
