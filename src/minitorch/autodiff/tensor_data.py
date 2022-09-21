@@ -195,13 +195,13 @@ class TensorData:
         return tuple((random.randint(0, s - 1) for s in self.shape))
 
     def get(self, key: UserIndex) -> float:
-        return self._storage[self.index(key)]
+        return self.storage[self.index(key)]
 
     def set(self, key: UserIndex, val: float) -> None:
         self._storage[self.index(key)] = val
 
     def tuple(self) -> Tuple[Storage, Shape, Strides]:
-        return self._storage, self._shape, self.strides
+        return self.storage, self.shape, self.strides
 
     def permute(self, *order: int) -> TensorData:
         """

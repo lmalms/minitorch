@@ -58,4 +58,24 @@ def test_enumeration(td: TensorData) -> None:
     # Check that all indices are within shape
     for index in td.indices():
         for (dim, i) in enumerate(index):
-            assert (i >= 0) and (i < td.shape[dim])
+            assert 0 <= i < td.shape[dim]
+
+
+@given(tensor_data())
+def test_index(td: TensorData) -> None:
+    """Test enumeration of TensorData."""
+    # Check that all indices are within the size.
+    for index in td.indices():
+        position = td.index(index)
+        assert 0 <= position < td.size
+
+    # Check that negative index raises error
+    index = [0] * td.dims
+    with pytest.raises(IndexError):
+        index[0] = -1
+        td.index(tuple(index))
+
+    if td.dims > 1:
+        index = [0] * (td.dims - 1)
+        with pytest.raises(IndexError):
+            td.index(tuple(index))
