@@ -47,7 +47,6 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         out_index : return index corresponding to position
     """
     # TODO: can this be within tensor data class?
-    # TODO: should I actually just be changing out_index here?
 
     remaining_ordinal = ordinal
     for i, dim in enumerate(shape):
@@ -65,13 +64,29 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
                 out_index[i] = remaining_ordinal % dim
 
 
-def broadcast_index() -> None:
+def broadcast_index(
+    big_index: Index, big_shape: Shape, shape: Shape, out_index: OutIndex
+) -> None:
     pass
 
 
-def shape_broadcast() -> UserShape:
-    # TODO: can this be moved into tensor data?
-    pass
+def shape_broadcast(shape_a: UserShape, shape_b: UserShape) -> UserShape:
+    """
+    Brroadcast two shpes to create a new union shape.
+    Args:
+        shape_a: first tensor shape
+        shape_b: second tensor shape
+
+    Returns:
+        broadcasted shape.
+
+    Raises:
+        IndexingError: if shapes cannot be broadcast.
+    """
+    # Need to pass these rules
+    # 1. any dimension of size 1 can be converted to dimension n > 1 by coping that dimension n times
+    # 2. Extra dimension of shape 1 can be can added to ensure same number of dimensions
+    # 3. Any extra dimenions of size 1 can only be implicitly added on the left side of the shape.
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
