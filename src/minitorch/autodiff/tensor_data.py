@@ -83,10 +83,27 @@ def shape_broadcast(shape_a: UserShape, shape_b: UserShape) -> UserShape:
     Raises:
         IndexingError: if shapes cannot be broadcast.
     """
-    # Need to pass these rules
-    # 1. any dimension of size 1 can be converted to dimension n > 1 by coping that dimension n times
-    # 2. Extra dimension of shape 1 can be can added to ensure same number of dimensions
-    # 3. Any extra dimenions of size 1 can only be implicitly added on the left side of the shape.
+
+    def expand_dims(*dims):
+        max_dim = max(len(dim) for dim in dims)
+        dims = [(1,) * (max_dim - len(dim)) + dim for dim in dims]
+        return dims
+
+    if len(shape_a) != len(shape_b):
+        # Expand dimension to match
+        shape_a, shape_b = expand_dims(shape_a, shape_b)
+
+    broadcast_shape = tuple()
+    for (a, b) in zip(shape_a, shape_b):
+        if a != b:
+            if min(a, b) != 1:
+                raise IndexError(
+                    f"Shapes {shape_a} and {shape_b} cannot be broadcast together."
+                )
+
+        broadcast_shape += (max(a, b),)
+
+    return broadcast_shape
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
