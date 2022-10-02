@@ -21,6 +21,7 @@ Strides: TypeAlias = Sequence[int]
 
 
 ### Utils functions to work with TensorData ###
+MAX_DIMS = 32
 
 
 def index_to_position(index: _Index, strides: _Strides) -> int:
