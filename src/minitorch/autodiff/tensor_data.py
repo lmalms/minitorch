@@ -10,21 +10,20 @@ from typing_extensions import TypeAlias
 from minitorch.functional import multiply_lists, product, summation
 
 # Types for tensors
-Storage: TypeAlias = np.ndarray[np.float64]
-OutIndex: TypeAlias = np.ndarray[np.int32]
-Index: TypeAlias = np.ndarray[np.int32]
-Shape: TypeAlias = np.ndarray[np.int32]
-Strides: TypeAlias = np.ndarray[np.int32]
+_Index: TypeAlias = np.ndarray[np.int32]
+_Shape: TypeAlias = np.ndarray[np.int32]
+_Strides: TypeAlias = np.ndarray[np.int32]
 
-UserIndex: TypeAlias = Sequence[int]
-UserShape: TypeAlias = Sequence[int]
-UserStrides: TypeAlias = Sequence[int]
+Storage: TypeAlias = np.ndarray[np.float64]
+Index: TypeAlias = Sequence[int]
+Shape: TypeAlias = Sequence[int]
+Strides: TypeAlias = Sequence[int]
 
 
 ### Utils functions to work with TensorData ###
 
 
-def index_to_position(index: Index, strides: Strides) -> int:
+def index_to_position(index: _Index, strides: _Strides) -> int:
     """
     Converts a multidimensional tensor 'index' to a single_dimensional position in storage
     based on strides
@@ -40,7 +39,7 @@ def index_to_position(index: Index, strides: Strides) -> int:
     return int(summation(multiply_lists(index, strides)))
 
 
-def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
+def to_index(ordinal: int, shape: _Shape, out_index: _Index) -> None:
     """
     Convert an 'ordinal' to an index in 'shape'.
 
@@ -67,12 +66,14 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
 
 def broadcast_index(
-    big_index: Index, big_shape: Shape, shape: Shape, out_index: OutIndex
+    big_index: _Index, big_shape: _Shape, shape: _Shape, out_index: _Index
 ) -> None:
-    pass
+    for i in range(len(shape)):
+        offset = i + len(big_shape) - len(shape)
+        out_index[i] = big_index[offset] if shape[i] != 1 else 0
 
 
-def shape_broadcast(shape_a: UserShape, shape_b: UserShape) -> UserShape:
+def shape_broadcast(shape_a: Shape, shape_b: Shape) -> Shape:
     """
     Brroadcast two shpes to create a new union shape.
     Args:
@@ -86,7 +87,7 @@ def shape_broadcast(shape_a: UserShape, shape_b: UserShape) -> UserShape:
         IndexingError: if shapes cannot be broadcast.
     """
 
-    def expand_dims(*dims: Iterable[UserShape]):
+    def expand_dims(*dims: Iterable[Shape]):
         max_dim = max(len(dim) for dim in dims)
         dims = [(1,) * (max_dim - len(dim)) + dim for dim in dims]
         return dims
@@ -108,7 +109,7 @@ def shape_broadcast(shape_a: UserShape, shape_b: UserShape) -> UserShape:
     return broadcast_shape
 
 
-def strides_from_shape(shape: UserShape) -> UserStrides:
+def strides_from_shape(shape: Shape) -> Strides:
 
     """
     Infers strides from shape. For a given dimension this corresponds to the product of all
@@ -124,17 +125,17 @@ def strides_from_shape(shape: UserShape) -> UserStrides:
 
 class TensorData:
     _storage: Storage
-    _strides: Strides
-    _shape: Shape
-    strides: UserStrides
-    shape: UserShape
+    _strides: _Strides
+    _shape: _Shape
+    strides: Strides
+    shape: Shape
     dims: int
 
     def __init__(
         self,
         storage: Union[Sequence[float], Storage],
-        shape: UserShape,
-        strides: Optional[UserStrides] = None,
+        shape: Shape,
+        strides: Optional[Strides] = None,
     ):
         self._verify_types(shape, strides)
         self._verify_data(storage, strides, shape)
@@ -151,7 +152,7 @@ class TensorData:
         return self._storage
 
     @property
-    def shape(self) -> Shape:
+    def shape(self) -> _Shape:
         return self._shape
 
     @property
@@ -163,7 +164,7 @@ class TensorData:
         return len(self.shape)
 
     @property
-    def strides(self) -> Strides:
+    def strides(self) -> _Strides:
         return self._strides
 
     @staticmethod
@@ -211,30 +212,30 @@ class TensorData:
         return not not_contiguous
 
     @staticmethod
-    def shape_broadcast(shape_a: UserShape, shape_b: UserShape) -> UserShape:
+    def shape_broadcast(shape_a: Shape, shape_b: Shape) -> Shape:
         return shape_broadcast(shape_a, shape_b)
 
-    def index(self, index: Union[int, UserIndex]) -> int:
+    def index(self, index: Union[int, Index]) -> int:
         index = np.array([index]) if isinstance(index, int) else np.array(index)
         self._verify_index(index)
         return index_to_position(np.array(index), self.strides)
 
-    def indices(self) -> Iterable[UserIndex]:
+    def indices(self) -> Iterable[Index]:
         shape, out_index = np.array(self.shape), np.array(self.shape)
         for i in range(self.size):
             to_index(i, shape, out_index)
             yield tuple(out_index)
 
-    def sample(self) -> UserIndex:
+    def sample(self) -> Index:
         return tuple((random.randint(0, s - 1) for s in self.shape))
 
-    def get(self, key: UserIndex) -> float:
+    def get(self, key: Index) -> float:
         return self.storage[self.index(key)]
 
-    def set(self, key: UserIndex, val: float) -> None:
+    def set(self, key: Index, val: float) -> None:
         self._storage[self.index(key)] = val
 
-    def tuple(self) -> Tuple[Storage, Shape, Strides]:
+    def tuple(self) -> Tuple[Storage, _Shape, _Strides]:
         return self.storage, self.shape, self.strides
 
     def permute(self, *order: int) -> TensorData:

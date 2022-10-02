@@ -3,7 +3,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import DataObject, data
 
-from minitorch.autodiff import TensorData, UserShape, shape_broadcast
+from minitorch.autodiff import Shape, TensorData, shape_broadcast
 from minitorch.functional import product
 
 from .tensor_strategies import indices, tensor_data
@@ -109,9 +109,7 @@ def test_string(td: TensorData) -> None:
         ((5, 1, 5, 1), (1, 5, 1, 5), (5, 5, 5, 5)),
     ],
 )
-def test_shape_broadcast(
-    shape_a: UserShape, shape_b: UserShape, expected_shape: UserShape
-) -> None:
+def test_shape_broadcast(shape_a: Shape, shape_b: Shape, expected_shape: Shape) -> None:
     broadcast_shape = shape_broadcast(shape_a, shape_b)
     assert broadcast_shape == expected_shape
 
@@ -123,6 +121,6 @@ def test_shape_broadcast(
         ((5, 7, 5, 1), (1, 5, 1, 5)),
     ],
 )
-def test_shape_broadcast_fail(shape_a: UserShape, shape_b: UserShape) -> None:
+def test_shape_broadcast_fail(shape_a: Shape, shape_b: Shape) -> None:
     with pytest.raises(IndexError):
         _ = shape_broadcast(shape_a, shape_b)
