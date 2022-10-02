@@ -3,7 +3,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import DataObject, data
 
-from minitorch.autodiff import TensorData
+from minitorch.autodiff import TensorData, UserShape, shape_broadcast
 from minitorch.functional import product
 
 from .tensor_strategies import indices, tensor_data
@@ -91,3 +91,19 @@ def test_permute(data: DataObject) -> None:
 
     td_reverse_twice = td_reverse.permute(*list(reversed(range(td_reverse.dims))))
     assert td.index(idx) == td_reverse_twice.index(idx)
+
+
+@pytest.mark.parametrize(
+    "shape_a, shape_b, expected_shape",
+    [
+        ((1,), (5, 5), (5, 5)),
+        ((5, 5), (1,), (5, 5)),
+        ((1, 5, 5), (5, 5), (1, 5, 5)),
+        ((5, 1, 5, 1), (1, 5, 1, 5), (5, 5, 5, 5)),
+    ],
+)
+def test_shape_broadcast(
+    shape_a: UserShape, shape_b: UserShape, expected_shape: UserShape
+) -> None:
+    broadcast_shape = shape_broadcast(shape_a, shape_b)
+    assert broadcast_shape == expected_shape

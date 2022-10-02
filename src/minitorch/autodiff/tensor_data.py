@@ -21,6 +21,9 @@ UserShape: TypeAlias = Sequence[int]
 UserStrides: TypeAlias = Sequence[int]
 
 
+### Utils functions to work with TensorData ###
+
+
 def index_to_position(index: Index, strides: Strides) -> int:
     """
     Converts a multidimensional tensor 'index' to a single_dimensional position in storage
@@ -46,7 +49,6 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         shape : tensor shape
         out_index : return index corresponding to position
     """
-    # TODO: can this be within tensor data class?
 
     remaining_ordinal = ordinal
     for i, dim in enumerate(shape):
@@ -84,7 +86,7 @@ def shape_broadcast(shape_a: UserShape, shape_b: UserShape) -> UserShape:
         IndexingError: if shapes cannot be broadcast.
     """
 
-    def expand_dims(*dims):
+    def expand_dims(*dims: Iterable[UserShape]):
         max_dim = max(len(dim) for dim in dims)
         dims = [(1,) * (max_dim - len(dim)) + dim for dim in dims]
         return dims
@@ -107,7 +109,7 @@ def shape_broadcast(shape_a: UserShape, shape_b: UserShape) -> UserShape:
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
-    # TODO: can this be moved into tensor data?
+
     """
     Infers strides from shape. For a given dimension this corresponds to the product of all
     remaining dimensions assuming a contiguous "unrolling" i.e. outer dimensions have digger strides
