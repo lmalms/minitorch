@@ -93,11 +93,18 @@ def test_permute(data: DataObject) -> None:
     assert td.index(idx) == td_reverse_twice.index(idx)
 
 
+@given(tensor_data())
+def test_string(td: TensorData) -> None:
+    """Test tensor data stringify."""
+    td.to_string()
+
+
 @pytest.mark.parametrize(
     "shape_a, shape_b, expected_shape",
     [
         ((1,), (5, 5), (5, 5)),
         ((5, 5), (1,), (5, 5)),
+        ((2, 5), (5,), (2, 5)),
         ((1, 5, 5), (5, 5), (1, 5, 5)),
         ((5, 1, 5, 1), (1, 5, 1, 5), (5, 5, 5, 5)),
     ],
@@ -107,3 +114,15 @@ def test_shape_broadcast(
 ) -> None:
     broadcast_shape = shape_broadcast(shape_a, shape_b)
     assert broadcast_shape == expected_shape
+
+
+@pytest.mark.parametrize(
+    "shape_a, shape_b",
+    [
+        ((5, 2), (5,)),
+        ((5, 7, 5, 1), (1, 5, 1, 5)),
+    ],
+)
+def test_shape_broadcast_fail(shape_a: UserShape, shape_b: UserShape) -> None:
+    with pytest.raises(IndexError):
+        _ = shape_broadcast(shape_a, shape_b)
