@@ -18,6 +18,12 @@ from .variable import BaseFunction, Context, Variable, backpropagate
 TENSOR_COUNT = 0
 
 
+def format_variable_id() -> str:
+    global TENSOR_COUNT
+    TENSOR_COUNT += 1
+    return "Tensor" + str(TENSOR_COUNT)
+
+
 @dataclass
 class History:
     """
@@ -43,19 +49,19 @@ class Tensor:
         name: Optional[str] = None,
         backend: Optional[TensorBackend] = None,
     ):
-        self.tensor = data
+        self.data = data
         self.history = history
-        self.id = self._format_variable_id()
+        self.id = format_variable_id()
         self.name = name if name is not None else self.id
         self.backend = backend
         self._grad = None
 
     @property
-    def tensor(self) -> TensorData:
-        return self._tensor
+    def data(self) -> TensorData:
+        return self._data
 
-    @tensor.setter
-    def tensor(self, data: TensorData) -> None:
+    @data.setter
+    def data(self, data: TensorData) -> None:
         """
         Type validation before setting attribute.
         """
@@ -63,7 +69,7 @@ class Tensor:
             raise TypeError(
                 f"Data has to be of type TensorData - got type {type(data)}"
             )
-        self._tensor = data
+        self._data = data
 
     @property
     def history(self):
@@ -94,8 +100,21 @@ class Tensor:
     def requires_grad(self, requires_grad: bool) -> None:
         self.history = History() if requires_grad else None
 
-    @staticmethod
-    def _format_variable_id() -> str:
-        global TENSOR_COUNT
-        TENSOR_COUNT += 1
-        return "Tensor" + str(TENSOR_COUNT)
+    @property
+    def shape(self) -> Shape:
+        return self.data.shape
+
+    @property
+    def size(self) -> int:
+        return self.data.size
+
+    @property
+    def dims(self) -> int:
+        return self.data.dims
+
+    def to_numpy(self) -> np.ndarray:
+        """
+        Returns:
+            Tensor data as numpy array.
+        """
+        pass
