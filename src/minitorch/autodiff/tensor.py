@@ -117,4 +117,4 @@ class Tensor:
         Returns:
             Tensor data as numpy array.
         """
-        pass
+        return self.contiguous().data.storage.reshape(self.shape)
