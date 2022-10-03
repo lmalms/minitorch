@@ -112,9 +112,35 @@ class Tensor:
     def dims(self) -> int:
         return self.data.dims
 
+    def _ensure_tensor(self, t: TensorLike) -> Tensor:
+        """
+        Turns a python float into a tensor with the same backend
+        """
+        if isinstance(t, (int, float)):
+            return Tensor.make([t], (1,), backend=self.backend)
+
+        t._type_(self.backend)
+        return t
+
     def to_numpy(self) -> np.ndarray:
         """
         Returns:
             Tensor data as numpy array.
         """
         return self.contiguous().data.storage.reshape(self.shape)
+
+    @classmethod
+    def make(
+        cls,
+        storage: Union[Storage, List[float]],
+        shape: Shape,
+        strides: Optional[Strides] = None,
+        backend: Optional[TensorBackend] = None,
+    ) -> Tensor:
+        """
+        Creates a new tensor from data.
+        """
+        return Tensor(
+            data=TensorData(storage=storage, shape=shape, strides=strides),
+            backend=backend,
+        )
