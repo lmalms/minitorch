@@ -233,8 +233,8 @@ class TensorData:
     def get(self, key: Index) -> float:
         return self.storage[self.index(key)]
 
-    def set(self, key: Index, val: float) -> None:
-        self._storage[self.index(key)] = val
+    def set(self, key: Index, value: float) -> None:
+        self._storage[self.index(key)] = value
 
     def tuple(self) -> Tuple[Storage, _Shape, _Strides]:
         return self.storage, self.shape, self.strides
