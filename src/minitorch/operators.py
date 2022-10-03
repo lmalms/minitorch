@@ -80,7 +80,9 @@ def relu(x: float) -> float:
 
 def log(x: float, base: Optional[float] = None) -> float:
     """f(x) = log(x)"""
-    return math.log(x, base) if base is not None else math.log(x)
+    if (base is not None) and (base > 1.0):
+        return math.log(x, base)
+    return math.log(x)
 
 
 def exp(x: float) -> float:

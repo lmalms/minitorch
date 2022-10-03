@@ -26,7 +26,7 @@ class Parameter:
         """
         self.value = value
         if hasattr(self.value, "requires_grad"):
-            self.value.requires_grad_(True)
+            self.value.requires_grad = True
             if self.name is not None:
                 self.value.name = self.name
 

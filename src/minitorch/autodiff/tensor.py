@@ -18,12 +18,6 @@ from .variable import BaseFunction, Context, Variable, backpropagate
 TENSOR_COUNT = 0
 
 
-def format_variable_id() -> str:
-    global TENSOR_COUNT
-    TENSOR_COUNT += 1
-    return "Tensor" + str(TENSOR_COUNT)
-
-
 @dataclass
 class History:
     """
@@ -37,7 +31,7 @@ class History:
     inputs: Sequence[Tensor] = ()
 
 
-class Tensor:
+class Tensor(Variable):
     """
     A generalisation of Scalar in that it is a Variable that handles multidimensional arrays.
     """
@@ -49,12 +43,9 @@ class Tensor:
         name: Optional[str] = None,
         backend: Optional[TensorBackend] = None,
     ):
+        super().__init__(history=history, name=name)
         self.data = data
-        self.history = history
-        self.id = format_variable_id()
-        self.name = name if name is not None else self.id
         self.backend = backend
-        self._grad = None
 
     @property
     def data(self) -> TensorData:
@@ -72,33 +63,35 @@ class Tensor:
         self._data = data
 
     @property
-    def history(self):
-        return self._history
+    def derivative(self):
+        # TODO: validate types here!
+        return self._derivative
 
-    @history.setter
-    def history(self, history: Optional[History] = None) -> None:
+    @derivative.setter
+    def derivative(self, value: TensorLike) -> None:
         """
-        Validates history type before setting history attribute.
+        Validates derivative type before setting attribute.
         """
-        if not ((history is None) or isinstance(history, History)):
+        # TODO: validate types here!
+        if not isinstance(value, (int, float, Tensor)):
             raise TypeError(
-                f"History has to be None or of type history - got {type(history)}"
+                f"Derivatives have to be of type int or float - got {type(value)}."
             )
-        self._history = history
+        self._derivative = value
 
     @property
     def grad(self):
-        return self._grad
+        """
+        Alias for derivative.
+        """
+        return self._derivative
 
-    # TODO: a grad setter?
-
-    @property
-    def requires_grad(self) -> bool:
-        self.history is not None
-
-    @requires_grad.setter
-    def requires_grad(self, requires_grad: bool) -> None:
-        self.history = History() if requires_grad else None
+    @grad.setter
+    def grad(self, value: TensorLike) -> None:
+        """
+        Alias for derivative setter.
+        """
+        self.derivative = value
 
     @property
     def shape(self) -> Shape:
@@ -111,6 +104,17 @@ class Tensor:
     @property
     def dims(self) -> int:
         return self.data.dims
+
+    @property
+    def parents(self) -> Iterable[Variable]:
+        assert not self.is_constant()
+        return self.history.inputs
+
+    @staticmethod
+    def _format_variable_id() -> str:
+        global TENSOR_COUNT
+        TENSOR_COUNT += 1
+        return "Tensor" + str(TENSOR_COUNT)
 
     def __add__(self, other: TensorLike) -> Tensor:
         raise NotImplementedError
@@ -146,6 +150,12 @@ class Tensor:
         raise NotImplementedError
 
     def __eq__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __ge__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __le__(self, other: TensorLike) -> Tensor:
         raise NotImplementedError
 
     def __neg__(self, other: TensorLike) -> Tensor:
@@ -198,6 +208,12 @@ class Tensor:
         raise NotImplementedError
 
     def exp(self) -> Tensor:
+        raise NotImplementedError
+
+    def square(self) -> Tensor:
+        raise NotImplementedError
+
+    def cube(self) -> Tensor:
         raise NotImplementedError
 
     def sum(self, dim: Optional[int] = None) -> Tensor:
@@ -284,9 +300,7 @@ class Tensor:
 
     def zeros(self, shape: Optional[Shape] = None) -> Tensor:
         def zero(shape: Shape) -> Tensor:
-            return Tensor.make(
-                [0.0] * int(operators.prod(shape)), shape, backend=self.backend
-            )
+            return Tensor.make([0.0] * self.size, shape, backend=self.backend)
 
         out = zero(shape if shape is not None else self.shape)
         out._type_(self.backend)
@@ -298,3 +312,15 @@ class Tensor:
             Tensor data as numpy array.
         """
         return self.contiguous().data.storage.reshape(self.shape)
+
+    def tuple(self) -> Tuple[Storage, _Shape, _Strides]:
+        return self.data.tuple()
+
+    def detach(self) -> Tensor:
+        return Tensor(data=self.data, history=None, backend=self.backend)
+
+    def chain_rule():
+        raise NotImplementedError
+
+    def backward():
+        raise NotImplementedError

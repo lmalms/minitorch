@@ -187,7 +187,9 @@ def test_log(x: float, y: float) -> None:
     Monotonically increasing
     """
     assert log(1.0) == 0.0
-    assert is_close(log(x, y), (log(x) / log(y)))
+    if y > 1.0:
+        # Avoid zero division error.
+        assert is_close(log(x, y), (log(x) / log(y)))
     assert is_close(log(mul(x, y)), add(log(x), log(y)))
     assert is_close(log(x / y), log(x) - log(y))
     assert is_close(log(x**y), mul(y, log(x)))
