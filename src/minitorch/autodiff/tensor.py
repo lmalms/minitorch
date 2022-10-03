@@ -144,3 +144,43 @@ class Tensor:
             data=TensorData(storage=storage, shape=shape, strides=strides),
             backend=backend,
         )
+
+    # Functions
+    def __add__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __radd__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __sub__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __rsub__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __mul__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __rmul__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __truediv__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __rtruediv__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __matmul__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __lt__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __gt__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __eq__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
+
+    def __neg__(self, other: TensorLike) -> Tensor:
+        raise NotImplementedError
