@@ -221,5 +221,32 @@ class SimpleOps(TensorOps):
 
         return _zip_fn
 
+    @staticmethod
+    def reduce(
+        fn: Callable[[float, float], float], start: float = 0.0
+    ) -> Callable[[Tensor, int], Tensor]:
+        """
+        Higher order tensor reduce function.
+        """
+
+        reduce_fn = tensor_reduce(fn)
+
+        def _reduce(a: Tensor, dim: int) -> Tensor:
+            # Set dimension that is reduced to 1.
+            out_shape = list(a.shape)
+            out_shape[dim] = 1
+
+            out = a.zeros(tuple(out_shape))
+            out.data.storage = np.ones((out.size,)) * start
+
+            reduce_fn(*out.tuple(), *a.tuple(), dim)
+            return out
+
+        return _reduce
+
+    @staticmethod
+    def matrix_multiply(x: Tensor, y: Tensor) -> Tensor:
+        raise NotImplementedError
+
 
 SimpleBackend = TensorBackend(SimpleOps)
