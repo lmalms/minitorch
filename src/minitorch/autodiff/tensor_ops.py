@@ -22,7 +22,7 @@ from .tensor_data import (
 )
 
 
-def tensor_map(fn: Callable[[float], float]) -> Any:
+def tensor_map(fn: Callable[[float], float]):
     """
     Low-level implementation of tensor map between
     tensors with possibly different strides.
@@ -54,7 +54,7 @@ def tensor_map(fn: Callable[[float], float]) -> Any:
     return _map
 
 
-def tensor_zip(fn: Callable[[float, float], float]) -> Any:
+def tensor_zip(fn: Callable[[float, float], float]):
     """
     Low level implementation of tensor zip between
     tensors with possibly different strides.
@@ -73,9 +73,22 @@ def tensor_zip(fn: Callable[[float, float], float]) -> Any:
     ) -> None:
 
         # Apply pointwise assuming a and b have the same shape / size.
-        size = int(product(list(a_shape)))
-        for i, (a, b) in enumerate(zip(a_storage, b_storage)):
-            out_storage[i] = fn(a, b)
+        out_size = int(product(list(a_shape)))
+        out_index = np.zeros_like(out_shape)
+        a_index, b_index = np.zeros_like(a_shape), np.zeros_like(b_shape)
+        for out_position in range(out_size):
+            # Grab the index in out from position
+            to_index(out_position, out_shape, out_index)
+
+            # Get the corresponding positions in possibly smaller in_tensors
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+
+            # From these indices get positions
+            a_position = index_to_position(a_index, a_strides)
+            b_position = index_to_position(b_index, b_strides)
+
+            out_storage[out_position] = fn(a_storage[a_position], b_storage[b_position])
 
     return _zip
 
@@ -100,7 +113,7 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
 
 
 class MapProto(Protocol):
-    def __call__(self, x: Tensor, out: Optional[Tensor] = ..., /) -> Tensor:
+    def __call__(self, a: Tensor, out: Optional[Tensor] = None) -> Tensor:
         ...
 
 
@@ -191,6 +204,22 @@ class SimpleOps(TensorOps):
             return out
 
         return _map_fn
+
+    @staticmethod
+    def zip(fn: Callable[[float, float], float]) -> Callable[[Tensor, Tensor], Tensor]:
+        """
+        Higher order tensor zip function.
+        """
+        zip_fn = tensor_zip(fn)
+
+        def _zip_fn(a: Tensor, b: Tensor) -> Tensor:
+            if a.shape != b.shape:
+                out_shape = shape_broadcast(a.shape, b.shape)
+            out = a.zeros(out.shape)
+            zip_fn(*out.tuple(), *a.tuple(), *b.tuple())
+            return out
+
+        return _zip_fn
 
 
 SimpleBackend = TensorBackend(SimpleOps)
