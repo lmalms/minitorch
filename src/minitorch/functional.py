@@ -23,16 +23,6 @@ def reduce(
     return reduction
 
 
-def summation(ls: List[ScalarLike]) -> ScalarLike:
-    """Sums all values in a list."""
-    return reduce(add, x0=0.0)(ls)
-
-
-def product(ls: List[ScalarLike]) -> ScalarLike:
-    """Multiplies all scalars in a list."""
-    return reduce(mul, x0=1.0)(ls)
-
-
 def map_single(
     func: Callable[[ScalarLike], ScalarLike]
 ) -> Callable[[List[ScalarLike]], List[ScalarLike]]:
@@ -59,6 +49,16 @@ def map_double(
         return [func(i, j) for (i, j) in zip(ls1, ls2)]
 
     return mapping_func
+
+
+def summation(ls: List[ScalarLike]) -> ScalarLike:
+    """Sums all values in a list."""
+    return reduce(add, x0=0.0)(ls)
+
+
+def product(ls: List[ScalarLike]) -> ScalarLike:
+    """Multiplies all scalars in a list."""
+    return reduce(mul, x0=1.0)(ls)
 
 
 def neg_list(ls: List[ScalarLike]) -> List[ScalarLike]:

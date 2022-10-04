@@ -1,11 +1,13 @@
 from typing import List, Tuple, Union
 
-from minitorch.autodiff import Scalar
+from typing_extensions import TypeAlias
+
+# from minitorch.autodiff.scalar import Scalar
 
 # Data Types
-ScalarLike = Union[float, int, "Scalar"]
-TensorLike = Union[float, int, "Tensor"]
+ScalarLike: TypeAlias = Union[float, int, "Scalar"]
+TensorLike: TypeAlias = Union[float, int, "Tensor"]
 
 
 # Metric Types
-RocCurveResult = Tuple[List[Scalar], List[Scalar], List[Scalar]]
+# RocCurveResult = Tuple[List[Scalar], List[Scalar], List[Scalar]]
