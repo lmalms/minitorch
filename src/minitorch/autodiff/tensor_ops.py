@@ -215,7 +215,7 @@ class SimpleOps(TensorOps):
         def _zip_fn(a: Tensor, b: Tensor) -> Tensor:
             if a.shape != b.shape:
                 out_shape = shape_broadcast(a.shape, b.shape)
-            out = a.zeros(out.shape)
+            out = a.zeros(out_shape)
             zip_fn(*out.tuple(), *a.tuple(), *b.tuple())
             return out
 
