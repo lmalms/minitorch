@@ -1,11 +1,12 @@
 from __future__ import annotations
-from abc import abstractmethod
 
+from abc import abstractmethod
+from copy import deepcopy
 from typing import Any, Callable, Optional, Type
 
 import numpy as np
 from typing_extensions import Protocol
-from copy import deepcopy
+
 from minitorch import operators
 from minitorch.functional import product, reduce
 

@@ -6,10 +6,15 @@ from __future__ import annotations
 
 import random
 from abc import abstractmethod
-from typing import Iterable, Tuple
+from typing import Any, Iterable, List, Tuple
 
+import minitorch.operators as operators
 from minitorch.autodiff import Context, History
 from minitorch.autodiff.utils import wrap_tuple
+
+from .tensor import Tensor
+from .tensor_data import Index, Shape
+from .tensor_ops import SimpleBackend, TensorBackend
 
 
 class BaseTensorFunction:
@@ -19,7 +24,7 @@ class BaseTensorFunction:
 
     @classmethod
     @abstractmethod
-    def backward(cls, ctx: Context, out_: Tensor) -> Tuple[Tensor, ...]:
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, ...]:
         ...
 
     @classmethod
@@ -28,8 +33,8 @@ class BaseTensorFunction:
         ...
 
     @classmethod
-    def _backward(cls, ctx: Context, out_: Tensor) -> Tuple[Tensor, ...]:
-        return wrap_tuple(cls.backward(ctx, out_))
+    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, ...]:
+        return wrap_tuple(cls.backward(ctx, grad_out))
 
     @classmethod
     def _forward(cls, ctx: Context, *inputs: Iterable[Tensor]) -> Tensor:
@@ -51,4 +56,14 @@ class BaseTensorFunction:
         c = cls._forward(ctx, *raw_values)
 
         back = History(last_fn=cls, ctx=ctx, inputs=tensors) if requires_grad else None
-        return Tensor(c._tensor, back, backend=c.backend)
+        return Tensor(c.data, back, backend=c.backend)
+
+
+class Neg(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, t: Tensor) -> Tensor:
+        return t.func.neg_map(t)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+        return grad_out.func.neg_map(grad_out)

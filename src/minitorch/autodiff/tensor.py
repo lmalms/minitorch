@@ -19,11 +19,10 @@ from typing import (
 
 import numpy as np
 
-from minitorch import operators
 from minitorch.types import TensorLike
 
-from .tensor_ops import TensorBackend
 from .tensor_data import Index, Shape, Storage, Strides, TensorData, _Shape, _Strides
+from .tensor_ops import TensorBackend
 from .variable import BaseFunction, Context, Variable, backpropagate
 
 TENSOR_COUNT = 0
@@ -57,6 +56,7 @@ class Tensor(Variable):
         super().__init__(history=history, name=name)
         self.data = data
         self.backend = backend
+        self.func = backend
 
     @property
     def data(self) -> TensorData:
