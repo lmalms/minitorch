@@ -61,8 +61,8 @@ class BaseTensorFunction:
 
 class Neg(BaseTensorFunction):
     @classmethod
-    def forward(cls, ctx: Context, t: Tensor) -> Tensor:
-        return t.func.neg_map(t)
+    def forward(cls, ctx: Context, a: Tensor) -> Tensor:
+        return a.func.neg_map(a)
 
     @classmethod
     def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
@@ -71,11 +71,21 @@ class Neg(BaseTensorFunction):
 
 class Inv(BaseTensorFunction):
     @classmethod
-    def forward(cls, ctx: Context, t: Tensor) -> Tensor:
-        ctx.save_for_backward(t)
-        return t.func.inv_map(t)
+    def forward(cls, ctx: Context, a: Tensor) -> Tensor:
+        ctx.save_for_backward(a)
+        return a.func.inv_map(a)
 
     @classmethod
     def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
         t = ctx.saved_values
         return grad_out.func.inv_diff_zip(t, grad_out)
+
+
+class Add(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        return a.func.add_zip(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+        return grad_out, grad_out
