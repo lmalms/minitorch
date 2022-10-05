@@ -1,6 +1,7 @@
 from __future__ import annotations
+from abc import abstractmethod
 
-from typing import TYPE_CHECKING, Any, Callable, Optional, Type, _ProtocolMeta
+from typing import Any, Callable, Optional, Type
 
 import numpy as np
 from typing_extensions import Protocol
@@ -137,26 +138,31 @@ class TensorOps:
     cuda = False
 
     @staticmethod
+    @abstractmethod
     def map(fn: Callable[[float], float]) -> MapProto:
-        pass
+        ...
 
     @staticmethod
+    @abstractmethod
     def cmap(fn: Callable[[float], float]) -> Callable[[Tensor, Tensor], Tensor]:
-        pass
+        ...
 
     @staticmethod
+    @abstractmethod
     def zip(fn: Callable[[float, float], float]) -> Callable[[Tensor, Tensor], Tensor]:
-        pass
+        ...
 
     @staticmethod
+    @abstractmethod
     def reduce(
         fn: Callable[[float, float], float], start: float = 0.0
     ) -> Callable[[Tensor, int], Tensor]:
-        pass
+        ...
 
     @staticmethod
+    @abstractmethod
     def matrix_multiply(x: Tensor, y: Tensor) -> Tensor:
-        raise NotImplementedError
+        ...
 
 
 class TensorBackend:
