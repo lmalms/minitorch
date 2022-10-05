@@ -4,9 +4,9 @@ from typing import TYPE_CHECKING, Any, Callable, Optional, Type, _ProtocolMeta
 
 import numpy as np
 from typing_extensions import Protocol
-
+from copy import deepcopy
 from minitorch import operators
-from minitorch.functional import product
+from minitorch.functional import product, reduce
 
 from .tensor import Tensor
 from .tensor_data import (
@@ -72,7 +72,6 @@ def tensor_zip(fn: Callable[[float, float], float]):
         b_strides: _Strides,
     ) -> None:
 
-        # Apply pointwise assuming a and b have the same shape / size.
         out_size = int(product(list(a_shape)))
         out_index = np.zeros_like(out_shape)
         a_index, b_index = np.zeros_like(a_shape), np.zeros_like(b_shape)
@@ -107,7 +106,23 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
         in_strides: _Strides,
         reduce_dim: int,
     ):
-        pass
+        out_size = int(product(list(out_shape)))
+        out_index = np.zeros_like(out_shape)
+        for i in range(out_size):
+            # Grab the corresponding out_index
+            to_index(i, out_shape, out_index)
+
+            # Get all positions that will be reduced to that out_index
+            in_positions = []
+            in_index = deepcopy(out_index)
+            dim = in_shape[reduce_dim]
+            for j in range(dim):
+                in_index[dim] = j
+                in_positions.append(index_to_position(in_index, in_strides))
+
+            # Get all of the corresponding values
+            in_values = [in_storage[j] for j in in_positions]
+            out_storage[i] = reduce(fn, out_storage[i])(in_values)
 
     return _reduce
 
