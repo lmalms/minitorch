@@ -6,13 +6,13 @@ from __future__ import annotations
 
 import random
 from abc import abstractmethod
-from typing import Any, Iterable, List, Tuple
+from typing import Any, ForwardRef, Iterable, List, Tuple
 
 import minitorch.operators as operators
 from minitorch.autodiff import Context, History
 from minitorch.autodiff.utils import wrap_tuple
 
-from .tensor import Tensor
+from .tensor import TENSOR_COUNT, Tensor
 from .tensor_data import Index, Shape
 from .tensor_ops import SimpleBackend, TensorBackend
 
@@ -77,8 +77,8 @@ class Inv(BaseTensorFunction):
 
     @classmethod
     def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
-        t = ctx.saved_values
-        return grad_out.func.inv_diff_zip(t, grad_out)
+        a = ctx.saved_values
+        return grad_out.func.inv_diff_zip(a, grad_out)
 
 
 class Add(BaseTensorFunction):
@@ -89,3 +89,15 @@ class Add(BaseTensorFunction):
     @classmethod
     def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
         return grad_out, grad_out
+
+
+class Mul(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        ctx.save_for_backward(a, b)
+        return a.func.mul_zip(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+        (a, b) = ctx.saved_values
+        return grad_out.func.mul_zip(b, grad_out), grad_out.func.mul_zip(a, grad_out)
