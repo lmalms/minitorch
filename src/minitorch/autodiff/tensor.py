@@ -22,6 +22,7 @@ import numpy as np
 from minitorch import operators
 from minitorch.types import TensorLike
 
+from .tensor_ops import TensorBackend
 from .tensor_data import Index, Shape, Storage, Strides, TensorData, _Shape, _Strides
 from .variable import BaseFunction, Context, Variable, backpropagate
 
@@ -334,3 +335,10 @@ class Tensor(Variable):
 
     def backward():
         raise NotImplementedError
+
+    def accumulate_derivative(self, value: TensorLike) -> None:
+        """
+        Add value to the accumulated derivative for this variable
+        Should only be called on leaf variables during autodifferentiation.
+        """
+        return super().accumulate_derivative(value=value)
