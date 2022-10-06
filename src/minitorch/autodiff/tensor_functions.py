@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import random
 from abc import abstractmethod
-from typing import Any, ForwardRef, Iterable, List, Tuple
+from typing import Any, ForwardRef, Iterable, List, Tuple, Union
 
 import minitorch.operators as operators
 from minitorch.autodiff import Context, History
@@ -24,12 +24,14 @@ class BaseTensorFunction:
 
     @classmethod
     @abstractmethod
-    def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+    def backward(
+        cls, ctx: Context, grad_out: Tensor
+    ) -> Union[Tensor, Tuple[Tensor, ...]]:
         ...
 
     @classmethod
     @abstractmethod
-    def forward(cls, ctx: Context, *inputs: Iterable[Tensor]):
+    def forward(cls, ctx: Context, *inputs: Iterable[Tensor]) -> Tensor:
         ...
 
     @classmethod
@@ -127,8 +129,28 @@ class ReLU(BaseTensorFunction):
         return grad_out.func.relu_diff_zip(a, grad_out)
 
 
-# log
-# exp
+class Log(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor) -> Tensor:
+        ctx.save_for_backward(a)
+        return a.func.log_map(a)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+        return super().backward(ctx, grad_out)
+
+
+class Exp(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor) -> Tensor:
+        ctx.save_for_backward(a)
+        return a.func.exp_map(a)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+        a = ctx.save_for_backward
+        return grad_out.func.mul_zip(a.func.exp_map(a), grad_out)
+
+
 # sum
-#
 # all
