@@ -24,7 +24,7 @@ class BaseTensorFunction:
 
     @classmethod
     @abstractmethod
-    def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, ...]:
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
         ...
 
     @classmethod
@@ -101,3 +101,34 @@ class Mul(BaseTensorFunction):
     def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
         (a, b) = ctx.saved_values
         return grad_out.func.mul_zip(b, grad_out), grad_out.func.mul_zip(a, grad_out)
+
+
+class Sigmoid(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor) -> Tensor:
+        ctx.save_for_backward(a)
+        return a.func.sigmoid_map(a)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+        a = ctx.saved_values
+        return grad_out.func.sigmoid_diff_zip(a, grad_out)
+
+
+class ReLU(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor) -> Tensor:
+        ctx.save_for_backward(a)
+        return a.func.relu_map(a)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+        a = ctx.saved_values
+        return grad_out.func.relu_diff_zip(a, grad_out)
+
+
+# log
+# exp
+# sum
+#
+# all
