@@ -9,6 +9,7 @@ from abc import abstractmethod
 from typing import Any, ForwardRef, Iterable, List, Tuple, Union
 
 import minitorch.operators as operators
+import minitorch.functional as f
 from minitorch.autodiff import Context, History
 from minitorch.autodiff.utils import wrap_tuple
 
@@ -152,5 +153,80 @@ class Exp(BaseTensorFunction):
         return grad_out.func.mul_zip(a.func.exp_map(a), grad_out)
 
 
-# sum
-# all
+class Sum(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
+        ctx.save_for_backward(a.shape, dim)
+        return a.func.add_reduce(a, int(dim.item()))
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+        a_shape, dim = ctx.saved_values
+        return (grad_out, zeros((dim,)))
+
+
+class All(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
+        return a.func.mul_reduce(a, int(dim.item()))
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+        raise NotImplementedError
+
+
+class LT(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        return a.func.lt_zip(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+        return zeros((1,)), zeros((1,))
+
+
+class GT(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        return a.func.gt_zip(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+        return zeros((1,)), zeros((1,))
+
+
+class LE(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        return a.func.le_zip(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+        return zeros((1,)), zeros((1,))
+
+
+class GE(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        return a.func.ge_zip(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+        return zeros((1,)), zeros((1,))
+
+
+class EQ(BaseTensorFunction):
+    @classmethod
+    def forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        return a.func.eq_zip(a, b)
+
+    @classmethod
+    def backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+        return zeros((1,)), zeros((1,))
+
+
+### Tensor utils functions ###
+
+
+def zeros(shape: Shape, backend: TensorBackend = SimpleBackend) -> Tensor:
+    return Tensor.make([0.0] * int(f.product(shape)), shape, backend=backend)
