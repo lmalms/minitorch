@@ -15,7 +15,7 @@ from minitorch.autodiff.utils import wrap_tuple
 from minitorch.autodiff.variable import BaseFunction
 
 from .tensor import TENSOR_COUNT, Tensor
-from .tensor_data import Index, Shape
+from .tensor_data import Index, Shape, Storage
 from .tensor_ops import SimpleBackend, TensorBackend
 
 
@@ -325,3 +325,31 @@ def rand(
     tensor = Tensor.make(vals, shape, backend=backend)
     tensor.requires_grad = requires_grad
     return tensor
+
+
+def _tensor(
+    data: Storage,
+    shape: Shape,
+    backend: TensorBackend = SimpleBackend,
+    requires_grad: bool = False,
+):
+    tensor = Tensor.make(data, shape, backend)
+    tensor.requires_grad = requires_grad
+    return tensor
+
+
+def tensor(
+    data: Any, backend: TensorBackend = SimpleBackend, requires_grad: bool = False
+):
+    def shape(ls: Any) -> List[int]:
+        if isinstance(ls, (list, tuple)):
+            return [len(ls)] + shape(ls[0])
+        return []
+
+    def flatten(ls: Any) -> List[float]:
+        if isinstance(ls, (list, tuple)):
+            return [y for x in ls for y in flatten(x)]
+        return [ls]
+
+    data_, shape_ = flatten(data), shape(data)
+    return _tensor(data_, tuple(shape_), backend, requires_grad)
