@@ -259,7 +259,7 @@ class Tensor(Variable):
 
     def item(self) -> float:
         assert self.size == 1
-        return self[0]
+        return self.data[0]
 
     @classmethod
     def make(
