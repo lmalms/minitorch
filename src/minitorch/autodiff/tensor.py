@@ -24,6 +24,8 @@ from minitorch.types import TensorLike
 from .tensor_data import Index, Shape, Storage, Strides, TensorData, _Shape, _Strides
 from .tensor_functions import (
     EQ,
+    GE,
+    GT,
     LE,
     LT,
     Add,
@@ -149,49 +151,49 @@ class Tensor(Variable):
         return "Tensor" + str(TENSOR_COUNT)
 
     def __add__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return Add.apply(self, self._ensure_tensor(other))
 
     def __radd__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return Add.apply(self, self._ensure_tensor(other))
 
     def __sub__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return Add.apply(self, -self._ensure_tensor(other))
 
     def __rsub__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return Add.apply(self._ensure_tensor(other), -self)
 
     def __mul__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return Mul.apply(self, self._ensure_tensor(other))
 
     def __rmul__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return Mul.apply(self, self._ensure_tensor(other))
 
     def __truediv__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return Mul.apply(self, Inv.apply(self._ensure_tensor(other)))
 
     def __rtruediv__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return Mul.apply(self._ensure_tensor(other), Inv.apply(self))
 
     def __matmul__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return MatMul.apply(self, other)
 
     def __lt__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return LT.apply(self, self._ensure_tensor(other))
 
     def __gt__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return GT.apply(self, self._ensure_tensor(other))
 
     def __eq__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return EQ.apply(self, self._ensure_tensor(other))
 
     def __ge__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return GE.apply(self, self._ensure_tensor(other))
 
     def __le__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+        return LE.apply(self, self._ensure_tensor(other))
 
-    def __neg__(self, other: TensorLike) -> Tensor:
-        raise NotImplementedError
+    def __neg__(self) -> Tensor:
+        return Neg.apply(self)
 
     def __repr__(self) -> str:
         return self.data.to_string()
