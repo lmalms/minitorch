@@ -22,6 +22,27 @@ import numpy as np
 from minitorch.types import TensorLike
 
 from .tensor_data import Index, Shape, Storage, Strides, TensorData, _Shape, _Strides
+from .tensor_functions import (
+    EQ,
+    LE,
+    LT,
+    Add,
+    All,
+    Copy,
+    Exp,
+    Inv,
+    IsClose,
+    Log,
+    MatMul,
+    Mul,
+    Neg,
+    Permute,
+    ReLU,
+    Sigmoid,
+    Sum,
+    View,
+    tensor,
+)
 from .tensor_ops import TensorBackend
 from .variable import BaseFunction, Context, Variable, backpropagate
 
