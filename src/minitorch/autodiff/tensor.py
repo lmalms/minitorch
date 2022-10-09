@@ -264,25 +264,27 @@ class Tensor(Variable):
         """
         Computes the mean over dimension dim.
         """
-        raise NotImplementedError
+        if dim is None:
+            return self.sum() / self.size
+        return self.sum(dim) / self.shape[dim]
 
     def permute(self, *order: Iterable[int]) -> Tensor:
         """
         Permute tensor dimensions to *order
         """
-        raise NotImplementedError
+        return Permute.apply(self, tensor(list(order)))
 
     def view(self, *shape: Iterable[int]) -> Tensor:
         """
         Changes the view of the tensor to new shape with the same size.
         """
-        raise NotImplementedError
+        return View.apply(self, tensor(list(shape)))
 
     def contiguous(self) -> Tensor:
         """
         Returns a contiguous tensor with the same data.
         """
-        raise NotImplementedError
+        return Copy.apply(self)
 
     def item(self) -> float:
         assert self.size == 1
