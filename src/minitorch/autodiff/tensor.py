@@ -227,22 +227,24 @@ class Tensor(Variable):
         return t
 
     def all(self, dim: Optional[int] = None) -> Tensor:
-        raise NotImplementedError
+        if dim is None:
+            return All.apply(self, self._ensure_tensor(0))
+        return All.apply(self, self._ensure_tensor(dim))
 
     def is_close(self, t: Tensor) -> Tensor:
-        raise NotImplementedError
+        return IsClose.apply(self, self._ensure_tensor(t))
 
     def sigmoid(self) -> Tensor:
-        raise NotImplementedError
+        return Sigmoid.apply(self)
 
     def relu(self) -> Tensor:
-        raise NotImplementedError
+        return ReLU.apply(self)
 
     def log(self) -> Tensor:
-        raise NotImplementedError
+        return Log.apply(self)
 
     def exp(self) -> Tensor:
-        raise NotImplementedError
+        return Exp.apply(self)
 
     def square(self) -> Tensor:
         raise NotImplementedError
@@ -254,7 +256,9 @@ class Tensor(Variable):
         """
         Computes the sum over dimension dim
         """
-        raise NotImplementedError
+        if dim is None:
+            return Sum.apply(self.contiguous().view(self.size), self._ensure_tensor(0))
+        return Sum.apply(self, self._ensure_tensor(dim))
 
     def mean(self, dim: Optional[int] = None) -> Tensor:
         """
