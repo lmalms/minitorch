@@ -7,10 +7,10 @@ from typing import Any, Callable, Optional, Type
 import numpy as np
 from typing_extensions import Protocol
 
+import minitorch.autodiff.tensor as t
 from minitorch import operators
 from minitorch.functional import product, reduce
 
-from .tensor import Tensor
 from .tensor_data import (
     MAX_DIMS,
     Storage,
@@ -130,7 +130,7 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
 
 
 class MapProto(Protocol):
-    def __call__(self, a: Tensor, out: Optional[Tensor] = None) -> Tensor:
+    def __call__(self, a: t.Tensor, out: Optional[t.Tensor] = None) -> t.Tensor:
         ...
 
 
@@ -145,24 +145,26 @@ class TensorOps:
 
     @staticmethod
     @abstractmethod
-    def cmap(fn: Callable[[float], float]) -> Callable[[Tensor, Tensor], Tensor]:
+    def cmap(fn: Callable[[float], float]) -> Callable[[t.Tensor, t.Tensor], t.Tensor]:
         ...
 
     @staticmethod
     @abstractmethod
-    def zip(fn: Callable[[float, float], float]) -> Callable[[Tensor, Tensor], Tensor]:
+    def zip(
+        fn: Callable[[float, float], float]
+    ) -> Callable[[t.Tensor, t.Tensor], t.Tensor]:
         ...
 
     @staticmethod
     @abstractmethod
     def reduce(
         fn: Callable[[float, float], float], start: float = 0.0
-    ) -> Callable[[Tensor, int], Tensor]:
+    ) -> Callable[[t.Tensor, int], t.Tensor]:
         ...
 
     @staticmethod
     @abstractmethod
-    def matrix_multiply(x: Tensor, y: Tensor) -> Tensor:
+    def matrix_multiply(x: t.Tensor, y: t.Tensor) -> t.Tensor:
         ...
 
 
@@ -219,7 +221,7 @@ class SimpleOps(TensorOps):
         """
         map_fn = tensor_map(fn)
 
-        def _map_fn(a: Tensor, out: Optional[Tensor] = None) -> Tensor:
+        def _map_fn(a: t.Tensor, out: Optional[t.Tensor] = None) -> t.Tensor:
             if out is None:
                 out = a.zeros(a.shape)
             map_fn(*out.tuple(), *a.tuple())
@@ -228,13 +230,15 @@ class SimpleOps(TensorOps):
         return _map_fn
 
     @staticmethod
-    def zip(fn: Callable[[float, float], float]) -> Callable[[Tensor, Tensor], Tensor]:
+    def zip(
+        fn: Callable[[float, float], float]
+    ) -> Callable[[t.Tensor, t.Tensor], t.Tensor]:
         """
         Higher order tensor zip function.
         """
         zip_fn = tensor_zip(fn)
 
-        def _zip_fn(a: Tensor, b: Tensor) -> Tensor:
+        def _zip_fn(a: t.Tensor, b: t.Tensor) -> t.Tensor:
             if a.shape != b.shape:
                 out_shape = shape_broadcast(a.shape, b.shape)
             out = a.zeros(out_shape)
@@ -246,14 +250,14 @@ class SimpleOps(TensorOps):
     @staticmethod
     def reduce(
         fn: Callable[[float, float], float], start: float = 0.0
-    ) -> Callable[[Tensor, int], Tensor]:
+    ) -> Callable[[t.Tensor, int], t.Tensor]:
         """
         Higher order tensor reduce function.
         """
 
         reduce_fn = tensor_reduce(fn)
 
-        def _reduce(a: Tensor, dim: int) -> Tensor:
+        def _reduce(a: t.Tensor, dim: int) -> t.Tensor:
             # Set dimension that is reduced to 1.
             out_shape = list(a.shape)
             out_shape[dim] = 1
@@ -267,7 +271,7 @@ class SimpleOps(TensorOps):
         return _reduce
 
     @staticmethod
-    def matrix_multiply(x: Tensor, y: Tensor) -> Tensor:
+    def matrix_multiply(x: t.Tensor, y: t.Tensor) -> t.Tensor:
         raise NotImplementedError
 
 

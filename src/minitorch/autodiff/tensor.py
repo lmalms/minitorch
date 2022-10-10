@@ -5,48 +5,16 @@ Implementation of the code Tensor object for autodifferentiation.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import Iterable, List, Optional, Sequence, Tuple, Type, Union
 
 import numpy as np
 
+import minitorch.autodiff.tensor_functions as tf
 from minitorch.types import TensorLike
 
 from .tensor_data import Index, Shape, Storage, Strides, TensorData, _Shape, _Strides
-from .tensor_functions import (
-    EQ,
-    GE,
-    GT,
-    LE,
-    LT,
-    Add,
-    All,
-    Copy,
-    Exp,
-    Inv,
-    IsClose,
-    Log,
-    MatMul,
-    Mul,
-    Neg,
-    Permute,
-    ReLU,
-    Sigmoid,
-    Sum,
-    View,
-    tensor,
-)
 from .tensor_ops import TensorBackend
-from .variable import BaseFunction, Context, Variable, backpropagate
+from .variable import BaseFunction, Context, Variable
 
 TENSOR_COUNT = 0
 
@@ -151,49 +119,49 @@ class Tensor(Variable):
         return "Tensor" + str(TENSOR_COUNT)
 
     def __add__(self, other: TensorLike) -> Tensor:
-        return Add.apply(self, self._ensure_tensor(other))
+        return tf.Add.apply(self, self._ensure_tensor(other))
 
     def __radd__(self, other: TensorLike) -> Tensor:
-        return Add.apply(self, self._ensure_tensor(other))
+        return tf.Add.apply(self, self._ensure_tensor(other))
 
     def __sub__(self, other: TensorLike) -> Tensor:
-        return Add.apply(self, -self._ensure_tensor(other))
+        return tf.Add.apply(self, -self._ensure_tensor(other))
 
     def __rsub__(self, other: TensorLike) -> Tensor:
-        return Add.apply(self._ensure_tensor(other), -self)
+        return tf.Add.apply(self._ensure_tensor(other), -self)
 
     def __mul__(self, other: TensorLike) -> Tensor:
-        return Mul.apply(self, self._ensure_tensor(other))
+        return tf.Mul.apply(self, self._ensure_tensor(other))
 
     def __rmul__(self, other: TensorLike) -> Tensor:
-        return Mul.apply(self, self._ensure_tensor(other))
+        return tf.Mul.apply(self, self._ensure_tensor(other))
 
     def __truediv__(self, other: TensorLike) -> Tensor:
-        return Mul.apply(self, Inv.apply(self._ensure_tensor(other)))
+        return tf.Mul.apply(self, tf.Inv.apply(self._ensure_tensor(other)))
 
     def __rtruediv__(self, other: TensorLike) -> Tensor:
-        return Mul.apply(self._ensure_tensor(other), Inv.apply(self))
+        return tf.Mul.apply(self._ensure_tensor(other), tf.Inv.apply(self))
 
     def __matmul__(self, other: TensorLike) -> Tensor:
-        return MatMul.apply(self, other)
+        return tf.MatMul.apply(self, other)
 
     def __lt__(self, other: TensorLike) -> Tensor:
-        return LT.apply(self, self._ensure_tensor(other))
+        return tf.LT.apply(self, self._ensure_tensor(other))
 
     def __gt__(self, other: TensorLike) -> Tensor:
-        return GT.apply(self, self._ensure_tensor(other))
+        return tf.GT.apply(self, self._ensure_tensor(other))
 
     def __eq__(self, other: TensorLike) -> Tensor:
-        return EQ.apply(self, self._ensure_tensor(other))
+        return tf.EQ.apply(self, self._ensure_tensor(other))
 
     def __ge__(self, other: TensorLike) -> Tensor:
-        return GE.apply(self, self._ensure_tensor(other))
+        return tf.GE.apply(self, self._ensure_tensor(other))
 
     def __le__(self, other: TensorLike) -> Tensor:
-        return LE.apply(self, self._ensure_tensor(other))
+        return tf.LE.apply(self, self._ensure_tensor(other))
 
     def __neg__(self) -> Tensor:
-        return Neg.apply(self)
+        return tf.Neg.apply(self)
 
     def __repr__(self) -> str:
         return self.data.to_string()
@@ -228,23 +196,23 @@ class Tensor(Variable):
 
     def all(self, dim: Optional[int] = None) -> Tensor:
         if dim is None:
-            return All.apply(self, self._ensure_tensor(0))
-        return All.apply(self, self._ensure_tensor(dim))
+            return tf.All.apply(self, self._ensure_tensor(0))
+        return tf.All.apply(self, self._ensure_tensor(dim))
 
     def is_close(self, t: Tensor) -> Tensor:
-        return IsClose.apply(self, self._ensure_tensor(t))
+        return tf.IsClose.apply(self, self._ensure_tensor(t))
 
     def sigmoid(self) -> Tensor:
-        return Sigmoid.apply(self)
+        return tf.Sigmoid.apply(self)
 
     def relu(self) -> Tensor:
-        return ReLU.apply(self)
+        return tf.ReLU.apply(self)
 
     def log(self) -> Tensor:
-        return Log.apply(self)
+        return tf.Log.apply(self)
 
     def exp(self) -> Tensor:
-        return Exp.apply(self)
+        return tf.Exp.apply(self)
 
     def square(self) -> Tensor:
         raise NotImplementedError
@@ -257,8 +225,10 @@ class Tensor(Variable):
         Computes the sum over dimension dim
         """
         if dim is None:
-            return Sum.apply(self.contiguous().view(self.size), self._ensure_tensor(0))
-        return Sum.apply(self, self._ensure_tensor(dim))
+            return tf.Sum.apply(
+                self.contiguous().view(self.size), self._ensure_tensor(0)
+            )
+        return tf.Sum.apply(self, self._ensure_tensor(dim))
 
     def mean(self, dim: Optional[int] = None) -> Tensor:
         """
@@ -272,19 +242,19 @@ class Tensor(Variable):
         """
         Permute tensor dimensions to *order
         """
-        return Permute.apply(self, tensor(list(order)))
+        return tf.Permute.apply(self, tf.tensor(list(order)))
 
     def view(self, *shape: Iterable[int]) -> Tensor:
         """
         Changes the view of the tensor to new shape with the same size.
         """
-        return View.apply(self, tensor(list(shape)))
+        return tf.View.apply(self, tf.tensor(list(shape)))
 
     def contiguous(self) -> Tensor:
         """
         Returns a contiguous tensor with the same data.
         """
-        return Copy.apply(self)
+        return tf.Copy.apply(self)
 
     def item(self) -> float:
         assert self.size == 1

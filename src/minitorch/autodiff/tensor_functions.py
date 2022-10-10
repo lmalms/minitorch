@@ -6,15 +6,16 @@ from __future__ import annotations
 
 import random
 from abc import abstractmethod
+from dataclasses import dataclass
 from typing import Any, Callable, List, Tuple
 
 import minitorch.autodiff.tensor as t
 import minitorch.functional as f
-from minitorch.autodiff.utils import wrap_tuple
-from minitorch.autodiff.variable import BaseFunction, Context, History
 
 from .tensor_data import Index, Shape, Storage, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
+from .utils import wrap_tuple
+from .variable import BaseFunction, Context, History
 
 
 class TensorFunction(BaseFunction):
