@@ -6,15 +6,13 @@ from __future__ import annotations
 
 import random
 from abc import abstractmethod
-from typing import Any, Callable, ForwardRef, List, Tuple, Union
+from typing import Any, Callable, List, Tuple
 
+import minitorch.autodiff.tensor as t
 import minitorch.functional as f
-import minitorch.operators as operators
-from minitorch.autodiff import Context, History
 from minitorch.autodiff.utils import wrap_tuple
-from minitorch.autodiff.variable import BaseFunction
+from minitorch.autodiff.variable import BaseFunction, Context, History
 
-from .tensor import TENSOR_COUNT, Tensor
 from .tensor_data import Index, Shape, Storage, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
 
@@ -25,29 +23,29 @@ class TensorFunction(BaseFunction):
         """
         If value is not already of type Tensor, tries to convert.
         """
-        if isinstance(value, Tensor):
+        if isinstance(value, t.Tensor):
             return value
 
         value = tensor(value)
-        if isinstance(value, Tensor):
+        if isinstance(value, t.Tensor):
             return value
 
         raise ValueError("Cannot convert value to Tensor.")
 
     @classmethod
-    def backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, ...]:
+    def backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, ...]:
         return wrap_tuple(cls._backward(ctx, grad_out))
 
     @classmethod
-    def forward(cls, ctx: Context, *inputs: Tensor) -> Tensor:
+    def forward(cls, ctx: Context, *inputs: t.Tensor) -> t.Tensor:
         return cls.to_data_type(cls._forward(ctx, *inputs))
 
     @classmethod
     def variable(cls, data: TensorData, history: History, backend: TensorBackend):
-        return Tensor(data, history=history, backend=backend)
+        return t.Tensor(data, history=history, backend=backend)
 
     @classmethod
-    def apply(cls, *tensors: Tensor) -> Tensor:
+    def apply(cls, *tensors: t.Tensor) -> t.Tensor:
         raw_values = []
         requires_grad = False
         for t in tensors:
@@ -70,251 +68,253 @@ class TensorFunction(BaseFunction):
 
     @classmethod
     @abstractmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, ...]:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, ...]:
         ...
 
     @classmethod
     @abstractmethod
-    def _forward(cls, ctx: Context, *inputs: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, *inputs: t.Tensor) -> t.Tensor:
         ...
 
 
 class Neg(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor) -> t.Tensor:
         return a.func.neg_map(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
         return grad_out.func.neg_map(grad_out)
 
 
 class Inv(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a)
         return a.func.inv_map(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
         a = ctx.saved_values
         return grad_out.func.inv_diff_zip(a, grad_out)
 
 
 class Add(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, b: t.Tensor) -> t.Tensor:
         return a.func.add_zip(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         return grad_out, grad_out
 
 
 class Mul(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, b: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a, b)
         return a.func.mul_zip(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         (a, b) = ctx.saved_values
         return grad_out.func.mul_zip(b, grad_out), grad_out.func.mul_zip(a, grad_out)
 
 
 class Sigmoid(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a)
         return a.func.sigmoid_map(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
         a = ctx.saved_values
         return grad_out.func.sigmoid_diff_zip(a, grad_out)
 
 
 class ReLU(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a)
         return a.func.relu_map(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
         a = ctx.saved_values
         return grad_out.func.relu_diff_zip(a, grad_out)
 
 
 class Log(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a)
         return a.func.log_map(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
         return super().backward(ctx, grad_out)
 
 
 class Exp(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a)
         return a.func.exp_map(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
         a = ctx.save_for_backward
         return grad_out.func.mul_zip(a.func.exp_map(a), grad_out)
 
 
 class Sum(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, dim: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a.shape, dim)
         return a.func.add_reduce(a, int(dim.item()))
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         a_shape, dim = ctx.saved_values
         return (grad_out, zeros((dim,)))
 
 
 class All(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, dim: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, dim: t.Tensor) -> t.Tensor:
         return a.func.mul_reduce(a, int(dim.item()))
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
         raise NotImplementedError
 
 
 class LT(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, b: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a.shape, b.shape)
         return a.func.lt_zip(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         a_shape, b_shape = ctx.saved_values
         return zeros(a_shape), zeros(b_shape)
 
 
 class GT(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, b: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a.shape, b.shape)
         return a.func.gt_zip(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         a_shape, b_shape = ctx.saved_values
         return zeros(a_shape), zeros(b_shape)
 
 
 class LE(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, b: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a.shape, b.shape)
         return a.func.le_zip(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         a_shape, b_shape = ctx.saved_values
         return zeros(a_shape), zeros(b_shape)
 
 
 class GE(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, b: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a.shape, b.shape)
         return a.func.ge_zip(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         a_shape, b_shape = ctx.saved_values
         return zeros(a_shape), zeros(b_shape)
 
 
 class EQ(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, b: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a.shape, b.shape)
         return a.func.eq_zip(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
         a_shape, b_shape = ctx.saved_values
         return zeros(a_shape), zeros(b_shape)
 
 
 class IsClose(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, b: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a, b)
         return a.func.is_close_zip(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tuple[Tensor, Tensor]:
+    def _backward(
+        cls, ctx: Context, a: t.Tensor, b: t.Tensor
+    ) -> Tuple[t.Tensor, t.Tensor]:
         a, b = ctx.saved_values
         return zeros(a.shape), zeros(b.shape)
 
 
 class Permute(BaseFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, order: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, order: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(order)
-        return Tensor(data=a.data.permute(*[order[i] for i in range(order.dims)]))
+        return t.Tensor(data=a.data.permute(*[order[i] for i in range(order.dims)]))
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         order = ctx.saved_values
-        return Tensor(
+        return t.Tensor(
             data=grad_out.data.permute(*[order[i] for i in range(order.dims)])
         ), zeros((1,))
 
 
 class View(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, shape: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, shape: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a.shape)
         assert a.data.is_contiguous(), "Tensor must be contiguous to view."
         new_shape = [int(shape[i]) for i in range(shape.dims)]
-        return Tensor.make(a.data.storage, tuple(new_shape), backend=a.backend)
+        return t.Tensor.make(a.data.storage, tuple(new_shape), backend=a.backend)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         (original_shape,) = ctx.saved_values
-        return Tensor.make(
+        return t.Tensor.make(
             grad_out.data.storage, original_shape, backend=grad_out.backend
         ), zeros((1,))
 
 
 class Copy(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor) -> t.Tensor:
         return a.func.id_map(a)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tensor:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
         return grad_out
 
 
 class MatMul(TensorFunction):
     @classmethod
-    def _forward(cls, ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+    def _forward(cls, ctx: Context, a: t.Tensor, b: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a, b)
         return a.func.matrix_multiply(a, b)
 
     @classmethod
-    def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, Tensor]:
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         a, b = ctx.saved_values
 
-        def transpose(a: Tensor) -> Tensor:
+        def transpose(a: t.Tensor) -> t.Tensor:
             order = reversed(list(range(a.dims)))
             return a._new(data=a.data.permute(*order))
 
@@ -327,15 +327,15 @@ class MatMul(TensorFunction):
 ### Tensor utils functions ###
 
 
-def zeros(shape: Shape, backend: TensorBackend = SimpleBackend) -> Tensor:
-    return Tensor.make([0.0] * int(f.product(shape)), shape, backend=backend)
+def zeros(shape: Shape, backend: TensorBackend = SimpleBackend) -> t.Tensor:
+    return t.Tensor.make([0.0] * int(f.product(shape)), shape, backend=backend)
 
 
 def rand(
     shape: Shape, backend: TensorBackend = SimpleBackend, requires_grad: bool = False
 ):
     vals = [random.random() for _ in range((f.product(shape)))]
-    tensor = Tensor.make(vals, shape, backend=backend)
+    tensor = t.Tensor.make(vals, shape, backend=backend)
     tensor.requires_grad = requires_grad
     return tensor
 
@@ -346,7 +346,7 @@ def _tensor(
     backend: TensorBackend = SimpleBackend,
     requires_grad: bool = False,
 ):
-    tensor = Tensor.make(data, shape, backend)
+    tensor = t.Tensor.make(data, shape, backend)
     tensor.requires_grad = requires_grad
     return tensor
 
@@ -374,8 +374,8 @@ def tensor(
 
 
 def grad_central_difference(
-    f: Callable[..., Tensor],
-    *inputs: Tensor,
+    f: Callable[..., t.Tensor],
+    *inputs: t.Tensor,
     arg: int = 0,
     epsilon: float = 1e-06,
     idx: Index,
@@ -390,7 +390,7 @@ def grad_central_difference(
     return delta.item() / (2 * epsilon)
 
 
-def grad_check(f: Callable[..., Tensor], *inputs: Tensor) -> None:
+def grad_check(f: Callable[..., t.Tensor], *inputs: t.Tensor) -> None:
 
     # Compute derivatives with respect to each of the inputs.
     for x in inputs:
