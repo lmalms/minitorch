@@ -15,7 +15,7 @@ from minitorch.autodiff.utils import wrap_tuple
 from minitorch.autodiff.variable import BaseFunction
 
 from .tensor import TENSOR_COUNT, Tensor
-from .tensor_data import Index, Shape, Storage
+from .tensor_data import Index, Shape, Storage, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
 
 
@@ -43,6 +43,10 @@ class TensorFunction(BaseFunction):
         return cls.to_data_type(cls._forward(ctx, *inputs))
 
     @classmethod
+    def variable(cls, data: TensorData, history: History, backend: TensorBackend):
+        return Tensor(data, history=history, backend=backend)
+
+    @classmethod
     def apply(cls, *tensors: Tensor) -> Tensor:
         raw_values = []
         requires_grad = False
@@ -55,10 +59,10 @@ class TensorFunction(BaseFunction):
         ctx = Context(requires_grad)
 
         # Call forward with input values
-        c = cls._forward(ctx, *raw_values)
+        c = cls.forward(ctx, *raw_values)
 
         back = History(last_fn=cls, ctx=ctx, inputs=tensors) if requires_grad else None
-        return Tensor(c.data, back, backend=c.backend)
+        return cls.variable(c.data, back, c.backend)
 
     @classmethod
     def chain_rule(cls, ctx, inputs, d_out):
