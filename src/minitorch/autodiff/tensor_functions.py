@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import random
 from abc import abstractmethod
-from dataclasses import dataclass
 from typing import Any, Callable, List, Tuple
 
 import minitorch.autodiff.tensor as t

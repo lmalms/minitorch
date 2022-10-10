@@ -177,12 +177,16 @@ class TensorData:
                 raise TypeError("strides must be a tuple.")
 
     @staticmethod
-    def _verify_data(storage, strides, shape):
+    def _verify_data(storage: Storage, strides: Strides, shape: Shape):
         if strides is None:
             strides = strides_from_shape(shape)
 
         if len(strides) != len(shape):
             raise IndexError("strides and shape must have the same length.")
+
+        if isinstance(storage, np.ndarray):
+            if storage.ndim != 1:
+                raise IndexError("Numpy arrays should be 1D.")
 
         if len(storage) != int(product(list(shape))):
             raise IndexError("data does not match size of tensor.")
