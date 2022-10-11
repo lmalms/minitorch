@@ -111,16 +111,15 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
     ):
         out_size = int(product(list(out_shape)))
         out_index = np.zeros_like(out_shape)
+        in_index = np.zeros_like(in_shape)
         for out_position in range(out_size):
             # Grab the corresponding out_index
             to_index(out_position, out_shape, out_index)
 
             # Get all positions that will be reduced to that out_index
             in_positions = []
-            in_index = deepcopy(out_index)
-            dim = in_shape[reduce_dim]
-            for j in range(dim):
-                in_index[dim] = j
+            for j in range(in_shape[reduce_dim]):
+                in_index[reduce_dim] = j
                 in_positions.append(index_to_position(in_index, in_strides))
 
             # Get all of the corresponding values
