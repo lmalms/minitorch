@@ -283,8 +283,10 @@ class View(TensorFunction):
     def _forward(cls, ctx: Context, a: t.Tensor, shape: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(a.shape)
         assert a.data.is_contiguous(), "Tensor must be contiguous to view."
-        new_shape = [int(shape[i]) for i in range(shape.dims)]
-        return t.Tensor.make(a.data.storage, tuple(new_shape), backend=a.backend)
+
+        # Make sure shapes are all ints.
+        shape = [int(shape[i]) for i in range(shape.size)]
+        return t.Tensor.make(a.data.storage, tuple(shape), backend=a.backend)
 
     @classmethod
     def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
@@ -346,7 +348,7 @@ def _tensor(
     backend: TensorBackend = SimpleBackend,
     requires_grad: bool = False,
 ):
-    tensor = t.Tensor.make(data, shape, backend)
+    tensor = t.Tensor.make(data, shape, backend=backend)
     tensor.requires_grad = requires_grad
     return tensor
 

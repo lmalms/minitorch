@@ -74,10 +74,11 @@ def tensor_zip(fn: Callable[[float, float], float]):
         b_strides: _Strides,
     ) -> None:
 
-        out_size = int(product(list(a_shape)))
+        out_size = int(product(list(out_shape)))
         out_index = np.zeros_like(out_shape)
         a_index, b_index = np.zeros_like(a_shape), np.zeros_like(b_shape)
         for out_position in range(out_size):
+
             # Grab the index in out from position
             to_index(out_position, out_shape, out_index)
 
@@ -110,9 +111,9 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
     ):
         out_size = int(product(list(out_shape)))
         out_index = np.zeros_like(out_shape)
-        for i in range(out_size):
+        for out_position in range(out_size):
             # Grab the corresponding out_index
-            to_index(i, out_shape, out_index)
+            to_index(out_position, out_shape, out_index)
 
             # Get all positions that will be reduced to that out_index
             in_positions = []
@@ -124,7 +125,7 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
 
             # Get all of the corresponding values
             in_values = [in_storage[j] for j in in_positions]
-            out_storage[i] = reduce(fn, out_storage[i])(in_values)
+            out_storage[out_position] = reduce(fn, out_storage[out_position])(in_values)
 
     return _reduce
 
@@ -241,6 +242,8 @@ class SimpleOps(TensorOps):
         def _zip_fn(a: t.Tensor, b: t.Tensor) -> t.Tensor:
             if a.shape != b.shape:
                 out_shape = shape_broadcast(a.shape, b.shape)
+            else:
+                out_shape = a.shape
             out = a.zeros(out_shape)
             zip_fn(*out.tuple(), *a.tuple(), *b.tuple())
             return out
@@ -261,10 +264,11 @@ class SimpleOps(TensorOps):
             # Set dimension that is reduced to 1.
             out_shape = list(a.shape)
             out_shape[dim] = 1
-
-            out = a.zeros(tuple(out_shape))
-            out.data.storage = np.ones((out.size,)) * start
-
+            out = a.make(
+                storage=np.ones((int(product(out_shape)))) * start,
+                shape=tuple(out_shape),
+                backend=a.backend,
+            )
             reduce_fn(*out.tuple(), *a.tuple(), dim)
             return out
 

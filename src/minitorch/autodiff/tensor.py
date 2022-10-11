@@ -10,26 +10,32 @@ from typing import Iterable, List, Optional, Sequence, Tuple, Type, Union
 import numpy as np
 
 import minitorch.autodiff.tensor_functions as tf
+import minitorch.functional as f
 from minitorch.types import TensorLike
 
 from .tensor_data import Index, Shape, Storage, Strides, TensorData, _Shape, _Strides
-from .tensor_ops import TensorBackend
-from .variable import BaseFunction, Context, Variable
+from .tensor_ops import SimpleBackend, TensorBackend
+from .variable import BaseFunction, Context, History, Variable
 
 TENSOR_COUNT = 0
 
 
-@dataclass
-class History:
+class TensorHistory(History):
     """
     History stores the history of a Function operations that was used
     to create the new variable
     """
 
-    # TODO: Can I not just inherit / use Variable -> History here?
-    last_fn: Optional[Type[BaseFunction]] = None
-    ctx: Optional[Context] = None
-    inputs: Sequence[Tensor] = ()
+    def __init__(
+        self,
+        last_fn: Optional[Type[BaseFunction]] = None,
+        ctx: Optional[Context] = None,
+        inputs: Optional[Iterable[Tensor]] = None,
+    ):
+        super().__init__(last_fn, ctx, inputs)
+
+    def backprop_step(self, grad_out: Tensor) -> List[Tuple[Variable, float]]:
+        raise NotImplementedError
 
 
 class Tensor(Variable):
@@ -40,9 +46,9 @@ class Tensor(Variable):
     def __init__(
         self,
         data: TensorData,
-        history: Optional[History] = None,
+        history: TensorHistory = TensorHistory(),
+        backend: TensorBackend = SimpleBackend,
         name: Optional[str] = None,
-        backend: Optional[TensorBackend] = None,
     ):
         super().__init__(history=history, name=name)
         self.data = data
@@ -125,10 +131,10 @@ class Tensor(Variable):
         return tf.Add.apply(self, self._ensure_tensor(other))
 
     def __sub__(self, other: TensorLike) -> Tensor:
-        return tf.Add.apply(self, -self._ensure_tensor(other))
+        return tf.Add.apply(self, tf.Neg.apply(self._ensure_tensor(other)))
 
     def __rsub__(self, other: TensorLike) -> Tensor:
-        return tf.Add.apply(self._ensure_tensor(other), -self)
+        return tf.Add.apply(self._ensure_tensor(other), tf.Neg.apply(self))
 
     def __mul__(self, other: TensorLike) -> Tensor:
         return tf.Mul.apply(self, self._ensure_tensor(other))
@@ -196,7 +202,7 @@ class Tensor(Variable):
 
     def all(self, dim: Optional[int] = None) -> Tensor:
         if dim is None:
-            return tf.All.apply(self, self._ensure_tensor(0))
+            return tf.All.apply(self.view(self.size), self._ensure_tensor(0))
         return tf.All.apply(self, self._ensure_tensor(dim))
 
     def is_close(self, t: Tensor) -> Tensor:
@@ -238,13 +244,13 @@ class Tensor(Variable):
             return self.sum() / self.size
         return self.sum(dim) / self.shape[dim]
 
-    def permute(self, *order: Iterable[int]) -> Tensor:
+    def permute(self, *order: int) -> Tensor:
         """
         Permute tensor dimensions to *order
         """
         return tf.Permute.apply(self, tf.tensor(list(order)))
 
-    def view(self, *shape: Iterable[int]) -> Tensor:
+    def view(self, *shape: int) -> Tensor:
         """
         Changes the view of the tensor to new shape with the same size.
         """
@@ -258,7 +264,7 @@ class Tensor(Variable):
 
     def item(self) -> float:
         assert self.size == 1
-        return self.data[0]
+        return self[0]
 
     @classmethod
     def make(
@@ -272,7 +278,7 @@ class Tensor(Variable):
         Creates a new tensor from data.
         """
         return Tensor(
-            data=TensorData(storage=storage, shape=shape, strides=strides),
+            data=TensorData(storage=storage, shape=tuple(shape), strides=strides),
             backend=backend,
         )
 
@@ -310,7 +316,9 @@ class Tensor(Variable):
 
     def zeros(self, shape: Optional[Shape] = None) -> Tensor:
         def zero(shape: Shape) -> Tensor:
-            return Tensor.make([0.0] * self.size, shape, backend=self.backend)
+            return Tensor.make(
+                [0.0] * int(f.product(list(shape))), shape, backend=self.backend
+            )
 
         out = zero(shape if shape is not None else self.shape)
         out._type_(self.backend)

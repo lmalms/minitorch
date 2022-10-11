@@ -220,7 +220,7 @@ class TensorData:
     def shape_broadcast(shape_a: Shape, shape_b: Shape) -> Shape:
         return shape_broadcast(shape_a, shape_b)
 
-    def index(self, index: Union[int, Index]) -> int:
+    def index_to_position(self, index: Union[int, Index]) -> int:
         index = np.array([index]) if isinstance(index, int) else np.array(index)
         self._verify_index(index)
         return index_to_position(np.array(index), self.strides)
@@ -235,10 +235,10 @@ class TensorData:
         return tuple((random.randint(0, s - 1) for s in self.shape))
 
     def get(self, key: Index) -> float:
-        return self.storage[self.index(key)]
+        return self.storage[self.index_to_position(key)]
 
     def set(self, key: Index, value: float) -> None:
-        self._storage[self.index(key)] = value
+        self._storage[self.index_to_position(key)] = value
 
     def tuple(self) -> Tuple[Storage, _Shape, _Strides]:
         return self.storage, self.shape, self.strides
