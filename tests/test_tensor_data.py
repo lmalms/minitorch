@@ -19,8 +19,8 @@ def test_layout() -> None:
     td = TensorData([0] * size, shape, strides)
     assert td.is_contiguous()
     assert np.all(td.shape == np.array(shape))
-    assert td.index((1, 0)) == 5
-    assert td.index((1, 2)) == 7
+    assert td.index_to_position((1, 0)) == 5
+    assert td.index_to_position((1, 2)) == 7
 
     shape, strides = (5, 3), (1, 5)
     size = int(product(list(shape)))
@@ -66,19 +66,19 @@ def test_index(td: TensorData) -> None:
     """Test enumeration of TensorData."""
     # Check that all indices are within the size.
     for index in td.indices():
-        position = td.index(index)
+        position = td.index_to_position(index)
         assert 0 <= position < td.size
 
     # Check that negative index raises error
     index = [0] * td.dims
     with pytest.raises(IndexError):
         index[0] = -1
-        td.index(tuple(index))
+        td.index_to_position(tuple(index))
 
     if td.dims > 1:
         index = [0] * (td.dims - 1)
         with pytest.raises(IndexError):
-            td.index(tuple(index))
+            td.index_to_position(tuple(index))
 
 
 @given(data())
@@ -87,10 +87,12 @@ def test_permute(data: DataObject) -> None:
     td = data.draw(tensor_data())
     idx = data.draw(indices(td))
     td_reverse = td.permute(*list(reversed(range(td.dims))))
-    assert td.index(idx) == td_reverse.index(tuple(reversed(idx)))
+    assert td.index_to_position(idx) == td_reverse.index_to_position(
+        tuple(reversed(idx))
+    )
 
     td_reverse_twice = td_reverse.permute(*list(reversed(range(td_reverse.dims))))
-    assert td.index(idx) == td_reverse_twice.index(idx)
+    assert td.index_to_position(idx) == td_reverse_twice.index_to_position(idx)
 
 
 @given(tensor_data())
