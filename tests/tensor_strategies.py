@@ -12,7 +12,8 @@ from hypothesis.strategies import (
     permutations,
 )
 
-from minitorch.autodiff import Index, Shape, TensorData
+from minitorch.autodiff import Index, Shape, Tensor, TensorData, tensor
+from minitorch.autodiff.tensor_ops import SimpleBackend, TensorBackend
 from minitorch.functional import product
 
 from .strategies import small_ints
@@ -21,9 +22,13 @@ settings.register_profile("ci", deadline=None)
 settings.load_profile("ci")
 
 
+DEFAULT_FLOAT_SEARCH_STRATEGY = floats(allow_nan=False, min_value=-100, max_value=100)
+
+
 @composite
-def vals(draw_fn, size: int, number: SearchStrategy[float]):  # returns Tensor
-    pass
+def vals(draw_fn: DrawFn, size: int, number: SearchStrategy[float]) -> Tensor:
+    data = draw_fn(lists(number, min_size=size, max_size=size))
+    return tensor(data)
 
 
 @composite
@@ -61,3 +66,15 @@ def tensor_data(
 
     assert np.all(reverse_td.shape == np.array(shape))
     return reverse_td
+
+
+@composite
+def tensors(
+    draw_fn: DrawFn,
+    numbers: SearchStrategy[float] = DEFAULT_FLOAT_SEARCH_STRATEGY,
+    backend: Optional[TensorBackend] = None,
+    shape: Optional[Shape] = None,
+):
+    backend = SimpleBackend if backend is None else backend
+    td = draw_fn(tensor_data(numbers, shape=shape))
+    return Tensor(td, backend=backend)
