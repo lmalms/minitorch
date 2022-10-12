@@ -60,6 +60,7 @@ class TensorFunction(BaseFunction):
         c = cls.forward(ctx, *raw_values)
 
         back = History(last_fn=cls, ctx=ctx, inputs=tensors) if requires_grad else None
+
         return cls.variable(c.data, back, c.backend)
 
     @classmethod

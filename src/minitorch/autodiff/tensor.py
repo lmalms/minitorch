@@ -5,7 +5,7 @@ Implementation of the code Tensor object for autodifferentiation.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Sequence, Tuple, Type, Union
+from typing import Iterable, List, Optional, Tuple, Type, Union
 
 import numpy as np
 
@@ -13,7 +13,7 @@ import minitorch.autodiff.tensor_functions as tf
 import minitorch.functional as f
 from minitorch.types import TensorLike
 
-from .tensor_data import Index, Shape, Storage, Strides, TensorData, _Shape, _Strides
+from .tensor_data import Index, Shape, Storage, Strides, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
 from .variable import BaseFunction, Context, History, Variable
 
@@ -331,7 +331,7 @@ class Tensor(Variable):
         """
         return self.contiguous().data.storage.reshape(self.shape)
 
-    def tuple(self) -> Tuple[Storage, _Shape, _Strides]:
+    def tuple(self) -> Tuple[Storage, Shape, Strides]:
         return self.data.tuple()
 
     def detach(self) -> Tensor:

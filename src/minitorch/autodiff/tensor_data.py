@@ -153,20 +153,20 @@ class TensorData:
         return self._storage
 
     @property
-    def shape(self) -> _Shape:
-        return self._shape
+    def shape(self) -> Shape:
+        return tuple(self._shape)
 
     @property
     def size(self) -> int:
-        return int(product(self.shape.tolist()))
+        return int(product(self._shape.tolist()))
 
     @property
     def dims(self) -> int:
         return len(self.shape)
 
     @property
-    def strides(self) -> _Strides:
-        return self._strides
+    def strides(self) -> Strides:
+        return tuple(self._strides)
 
     @staticmethod
     def _verify_types(shape: Any, strides: Any) -> None:
@@ -223,7 +223,7 @@ class TensorData:
     def index_to_position(self, index: Union[int, Index]) -> int:
         index = np.array([index]) if isinstance(index, int) else np.array(index)
         self._verify_index(index)
-        return index_to_position(np.array(index), self.strides)
+        return index_to_position(np.array(index), self._strides)
 
     def indices(self) -> Iterable[Index]:
         shape, out_index = np.array(self.shape), np.array(self.shape)
@@ -240,7 +240,7 @@ class TensorData:
     def set(self, key: Index, value: float) -> None:
         self._storage[self.index_to_position(key)] = value
 
-    def tuple(self) -> Tuple[Storage, _Shape, _Strides]:
+    def tuple(self) -> Tuple[Storage, Shape, Strides]:
         return self.storage, self.shape, self.strides
 
     def permute(self, *order: int) -> TensorData:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Any, Callable, Optional, Type
+from typing import Any, Callable, Iterable, Optional, Tuple, Type
 
 import numpy as np
 from typing_extensions import Protocol
@@ -13,15 +13,19 @@ from minitorch.functional import product, reduce
 
 from .tensor_data import (
     MAX_DIMS,
+    Index,
+    Shape,
     Storage,
-    _Index,
-    _Shape,
-    _Strides,
+    Strides,
     broadcast_index,
     index_to_position,
     shape_broadcast,
     to_index,
 )
+
+
+def to_numpy(*inputs: Tuple[float]) -> Iterable[np.ndarray]:
+    return [np.array(in_) for in_ in inputs]
 
 
 def tensor_map(fn: Callable[[float], float]):
@@ -32,14 +36,21 @@ def tensor_map(fn: Callable[[float], float]):
 
     def _map(
         out_storage: Storage,
-        out_shape: _Shape,
-        out_strides: _Strides,
+        out_shape: Shape,
+        out_strides: Strides,
         in_storage: Storage,
-        in_shape: _Shape,
-        in_strides: _Strides,
+        in_shape: Shape,
+        in_strides: Strides,
     ) -> None:
+        # Cast as numpy arrays
+        out_shape, out_strides = to_numpy(out_shape, out_strides)
+        in_shape, in_strides = to_numpy(in_shape, in_strides)
+
+        # Placeholders to use during map
         out_size = int(product(in_shape.tolist()))
-        in_index, out_index = np.zeros_like(in_shape), np.zeros_like(out_shape)
+        in_index = np.zeros_like(in_shape)
+        out_index = np.zeros_like(out_shape)
+
         for out_position in range(out_size):
             # Get index corresponding to ordinal in out_tensor
             to_index(out_position, out_shape, out_index)
@@ -64,19 +75,25 @@ def tensor_zip(fn: Callable[[float, float], float]):
 
     def _zip(
         out_storage: Storage,
-        out_shape: _Shape,
-        out_strides: _Strides,
+        out_shape: Shape,
+        out_strides: Strides,
         a_storage: Storage,
-        a_shape: _Shape,
-        a_strides: _Strides,
+        a_shape: Shape,
+        a_strides: Strides,
         b_storage: Storage,
-        b_shape: _Shape,
-        b_strides: _Strides,
+        b_shape: Shape,
+        b_strides: Strides,
     ) -> None:
+        # Cast to numpy arrays
+        out_shape, out_strides = to_numpy(out_shape, out_strides)
+        a_shape, a_strides = to_numpy(a_shape, a_strides)
+        b_shape, b_strides = to_numpy(b_shape, b_strides)
 
-        out_size = int(product(list(out_shape)))
+        # Placeholders to fill during zip
+        out_size = int(product(out_shape.tolist()))
         out_index = np.zeros_like(out_shape)
         a_index, b_index = np.zeros_like(a_shape), np.zeros_like(b_shape)
+
         for out_position in range(out_size):
 
             # Grab the index in out from position
@@ -102,22 +119,28 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
 
     def _reduce(
         out_storage: Storage,
-        out_shape: _Shape,
-        out_strides: _Strides,
+        out_shape: Shape,
+        out_strides: Strides,
         in_storage: Storage,
-        in_shape: _Shape,
-        in_strides: _Strides,
+        in_shape: Shape,
+        in_strides: Strides,
         reduce_dim: int,
     ):
-        out_size = int(product(list(out_shape)))
+        # Cast to numpy arrays
+        out_shape, out_strides = to_numpy(out_shape, out_strides)
+        in_shape, in_strides = to_numpy(in_shape, in_strides)
+
+        # Placeholders to fill during reduce.
+        out_size = int(product(out_shape.tolist()))
         out_index = np.zeros_like(out_shape)
-        in_index = np.zeros_like(in_shape)
+
         for out_position in range(out_size):
             # Grab the corresponding out_index
             to_index(out_position, out_shape, out_index)
 
             # Get all positions that will be reduced to that out_index
             in_positions = []
+            in_index = deepcopy(out_index)
             for j in range(in_shape[reduce_dim]):
                 in_index[reduce_dim] = j
                 in_positions.append(index_to_position(in_index, in_strides))
