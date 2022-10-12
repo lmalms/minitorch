@@ -265,22 +265,20 @@ def test_neg_list(x: List[float]) -> None:
 
 
 # Generic mathematical tests
-one_arg_tests, two_arg_tests, _ = MathTestOperators.generate_tests()
+one_arg_tests, two_arg_tests, _ = MathTestOperators._tests()
 
 
 @given(small_floats)
 @pytest.mark.parametrize("fn", one_arg_tests)
-def test_one_arg_funcs(fn: List[Tuple[str, Callable, Callable]], x: float) -> None:
-    name, base_fn, _ = fn
+def test_one_arg_funcs(fn: List[Tuple[str, Callable]], x: float) -> None:
+    name, base_fn = fn
     base_fn(x)
 
 
 @given(small_floats, small_floats)
 @pytest.mark.parametrize("fn", two_arg_tests)
-def test_two_arg_funcs(
-    fn: List[Tuple[str, Callable, Callable]], x: float, y: float
-) -> None:
-    name, base_fn, _ = fn
+def test_two_arg_funcs(fn: List[Tuple[str, Callable]], x: float, y: float) -> None:
+    name, base_fn = fn
     base_fn(x, y)
 
 

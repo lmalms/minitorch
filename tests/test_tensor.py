@@ -3,11 +3,12 @@ from typing import Callable, Iterable, List, Tuple
 import pytest
 from hypothesis import given
 from hypothesis.strategies import DataObject, data, lists, permutations
-from minitorch.testing import MathTestVariable
+
 from minitorch.autodiff import Tensor, tensor
+from minitorch.testing import MathTestVariable
+
 from .strategies import small_floats
 from .tensor_strategies import shaped_tensors, tensors
-
 
 # Check that MathTestVariable is good to go for tensors as well!
 

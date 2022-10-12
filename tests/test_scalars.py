@@ -192,20 +192,20 @@ def test_relu(x: float, y: float) -> None:
 
 # One and two argument functions with scalars
 
-one_arg_funcs, two_arg_funcs, _ = MathTestVariable.generate_tests()
+one_arg_funcs, two_arg_funcs, _ = MathTestVariable._tests()
 
 
 @given(small_scalars)
 @pytest.mark.parametrize("fn", one_arg_funcs)
 def test_one_arg_derivative(fn, x: Scalar):
-    name, _, scalar_fn = fn
+    name, scalar_fn = fn
     derivative_check(scalar_fn, x)
 
 
 @given(small_scalars, small_scalars)
 @pytest.mark.parametrize("fn", two_arg_funcs)
 def test_two_arg_derivative(fn, x: Scalar, y: Scalar):
-    name, _, scalar_fn = fn
+    name, scalar_fn = fn
     derivative_check(scalar_fn, x, y)
 
 

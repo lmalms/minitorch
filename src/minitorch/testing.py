@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Callable, Iterable, List, Tuple
 
 from minitorch import operators
 from minitorch.autodiff import Scalar
@@ -103,20 +103,24 @@ class MathTestOperators:
         )
 
     @classmethod
-    def generate_tests(cls) -> Tuple[List, List, List]:
+    def _tests(
+        cls,
+    ) -> Tuple[
+        List[Tuple[str, Callable[[float], float]]],
+        List[Tuple[str, Callable[[float, float], float]]],
+        List[Tuple[str, Callable[[Iterable[float]], float]]],
+    ]:
         """
         Collates all tests.
         """
         one_arg_tests = []
         two_arg_tests = []
         reduction_tests = []
-        for k in dir(MathTestOperators):
-            if callable(getattr(MathTestOperators, k)) and not (
-                k.startswith("generate") or k.startswith("_")
-            ):
-                base_fn = getattr(MathTestOperators, k)
-                scalar_fn = getattr(cls, k)
-                tup = (k, base_fn, scalar_fn)
+
+        for k in dir(cls):
+            if callable(getattr(cls, k)) and not k.startswith("_"):
+                base_fn = getattr(cls, k)
+                tup = (k, base_fn)
                 if k.endswith("2"):
                     two_arg_tests.append(tup)
                 elif k.endswith("reduction"):
@@ -125,6 +129,15 @@ class MathTestOperators:
                     one_arg_tests.append(tup)
 
         return one_arg_tests, two_arg_tests, reduction_tests
+
+    @classmethod
+    def _comp_testing(cls):
+        one_arg, two_arg, red = MathTestOperators._test()
+        one_argv, two_argv, redv = cls._tests()
+        one_arg_comp = [(n1, f1, f2) for (n1, f1), (_, f2) in zip(one_arg, one_argv)]
+        two_arg_comp = [(n1, f1, f2) for (n1, f1), (_, f2) in zip(two_arg, two_argv)]
+        red_comp = [(n1, f1, f2) for (n1, f1), (_, f2) in zip(red, redv)]
+        return one_arg_comp, two_arg_comp, red_comp
 
 
 class MathTestVariable(MathTestOperators):
