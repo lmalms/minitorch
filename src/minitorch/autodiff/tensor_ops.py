@@ -12,8 +12,6 @@ from minitorch import operators
 from minitorch.functional import product, reduce
 
 from .tensor_data import (
-    MAX_DIMS,
-    Index,
     Shape,
     Storage,
     Strides,
