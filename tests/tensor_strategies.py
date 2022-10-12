@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 import numpy as np
 from hypothesis import settings
@@ -74,7 +74,27 @@ def tensors(
     numbers: SearchStrategy[float] = DEFAULT_FLOAT_SEARCH_STRATEGY,
     backend: Optional[TensorBackend] = None,
     shape: Optional[Shape] = None,
-):
+) -> Tensor:
     backend = SimpleBackend if backend is None else backend
     td = draw_fn(tensor_data(numbers, shape=shape))
     return Tensor(td, backend=backend)
+
+
+@composite
+def shaped_tensors(
+    draw_fn: DrawFn,
+    n: int,
+    numbers: SearchStrategy[float] = DEFAULT_FLOAT_SEARCH_STRATEGY,
+    backend: Optional[TensorBackend] = None,
+) -> List[Tensor]:
+
+    backend = SimpleBackend if backend is None else backend
+    td = draw_fn(tensor_data(numbers))
+
+    tensors = []
+    for i in range(n):
+        data = draw_fn(lists(numbers, min_size=td.size, max_size=td.size))
+        tensors.append(
+            Tensor(data=TensorData(data, td.shape, td.strides), backend=backend)
+        )
+    return tensors
