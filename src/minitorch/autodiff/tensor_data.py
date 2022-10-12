@@ -256,7 +256,7 @@ class TensorData:
 
         if list(sorted(order)) != list(range(len(self.shape))):
             raise IndexError(
-                f"Must assign a position to search dimension. Shape {self.shape}; Order {order}"
+                f"Must assign a position to each dimension. Shape {self.shape}; Order {order}"
             )
 
         return TensorData(

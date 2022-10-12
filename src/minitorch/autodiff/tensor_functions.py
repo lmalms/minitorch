@@ -265,11 +265,11 @@ class IsClose(TensorFunction):
         return zeros(a.shape), zeros(b.shape)
 
 
-class Permute(BaseFunction):
+class Permute(TensorFunction):
     @classmethod
     def _forward(cls, ctx: Context, a: t.Tensor, order: t.Tensor) -> t.Tensor:
         ctx.save_for_backward(order)
-        return t.Tensor(data=a.data.permute(*[order[i] for i in range(order.dims)]))
+        return t.Tensor(data=a.data.permute(*[order[i] for i in range(order.size)]))
 
     @classmethod
     def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
