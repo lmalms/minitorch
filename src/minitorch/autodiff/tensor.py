@@ -46,7 +46,7 @@ class Tensor(Variable):
     def __init__(
         self,
         data: TensorData,
-        history: TensorHistory = TensorHistory(),
+        history: Optional[TensorHistory] = None,
         backend: TensorBackend = SimpleBackend,
         name: Optional[str] = None,
     ):
