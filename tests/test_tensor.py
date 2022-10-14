@@ -55,6 +55,17 @@ def test_view() -> None:
     assert t.is_close(t_view).all().item() == 1.0
 
 
+@pytest.mark.xfail
+def test_permute_view_fail() -> None:
+    """
+    Tensors have to be contiguous to view.
+    """
+    t = tensor([[2, 3, 4], [4, 5, 7]])
+    assert t.shape == (2, 3)
+    t_permute = t.permute(1, 0)
+    t_permute.view(6)
+
+
 @given(tensors())
 @pytest.mark.parametrize("fn", one_arg)
 def test_one_arg(
