@@ -5,6 +5,8 @@ from minitorch.autodiff import Scalar
 from minitorch.constants import EPS
 from minitorch.functional import summation
 
+# TODO: this would be a good place for a Generic Type definition!
+
 
 class MathTestOperators:
     @staticmethod
@@ -132,7 +134,7 @@ class MathTestOperators:
 
     @classmethod
     def _comp_testing(cls):
-        one_arg, two_arg, red = MathTestOperators._test()
+        one_arg, two_arg, red = MathTestOperators._tests()
         one_argv, two_argv, redv = cls._tests()
         one_arg_comp = [(n1, f1, f2) for (n1, f1), (_, f2) in zip(one_arg, one_argv)]
         two_arg_comp = [(n1, f1, f2) for (n1, f1), (_, f2) in zip(two_arg, two_argv)]
