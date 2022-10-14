@@ -5,6 +5,7 @@ from hypothesis import given
 from hypothesis.strategies import DataObject, data, lists, permutations
 
 from minitorch.autodiff import Tensor, tensor
+from minitorch.autodiff.tensor_data import Shape
 from minitorch.operators import is_close
 from minitorch.testing import MathTestVariable
 
@@ -108,3 +109,26 @@ def test_two_arg(
     t_out = tensor_fn(t1, t2)
     for idx in t_out.data.indices():
         assert is_close(t_out[idx], base_fn(t1[idx], t2[idx]))
+
+
+@pytest.mark.parametrize(
+    ["in_tensor", "dim", "out_tensor", "out_shape"],
+    [
+        (
+            tensor([[[1, 2, 3], [4, 5, 6]]]),
+            0,
+            tensor([[[1, 2, 3], [4, 5, 6]]]),
+            (1, 2, 3),
+        ),
+        (tensor([[[1, 2, 3], [4, 5, 6]]]), 1, tensor([[[5, 7, 9]]]), (1, 1, 3)),
+        (tensor([[[1, 2, 3], [4, 5, 6]]]), 2, tensor([[[6], [15]]]), (1, 2, 1)),
+        (tensor([[[1, 2, 3], [4, 5, 6]]]), None, tensor([21]), (1,)),
+    ],
+)
+def test_reduce_sum(
+    in_tensor: Tensor, dim: int, out_tensor: Tensor, out_shape: Shape
+) -> None:
+    assert in_tensor.shape == (1, 2, 3)
+    t_summed = in_tensor.sum(dim=dim)
+    assert t_summed.shape == out_shape
+    assert t_summed.is_close(out_tensor).all().item() == 1.0
