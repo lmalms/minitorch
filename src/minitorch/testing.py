@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, List, Tuple
+from typing import Callable, Generic, Iterable, List, Tuple, TypeVar
 
 from minitorch import operators
 from minitorch.autodiff import Scalar
@@ -76,7 +76,7 @@ class MathTestOperators:
 
     @staticmethod
     def gt2(x: float, y: float) -> float:
-        return operators.lt(y, x + 1.2)
+        return operators.gt(x + 1.2, y)
 
     @staticmethod
     def lt2(x: float, y: float) -> float:
@@ -85,6 +85,14 @@ class MathTestOperators:
     @staticmethod
     def eq2(x: float, y: float) -> float:
         return operators.eq(x, (y + 5.5))
+
+    @staticmethod
+    def ge2(x: float, y: float) -> float:
+        return operators.ge(x + 1.2, y)
+
+    @staticmethod
+    def le2(x: float, y: float) -> float:
+        return operators.le(x + 1.2, y)
 
     @staticmethod
     def summation_reduction(x: List[float]) -> float:
@@ -145,20 +153,40 @@ class MathTestOperators:
 
 class MathTestVariable(MathTestOperators):
     @staticmethod
-    def inv(x: Scalar):
-        return 1.0 / (x + 3.5)
+    def neg(x: Scalar) -> Scalar:
+        return -x
 
     @staticmethod
-    def square(x: Scalar):
+    def add_constant(x: Scalar) -> Scalar:
+        return x + 5.0
+
+    @staticmethod
+    def subtract_constant(x: Scalar) -> Scalar:
+        return x - 5.0
+
+    @staticmethod
+    def multiply(x: Scalar) -> Scalar:
+        return 5.0 * x
+
+    @staticmethod
+    def divide(x: Scalar) -> Scalar:
+        return x / 5.0
+
+    @staticmethod
+    def square(x: Scalar) -> Scalar:
         return x.square()
 
     @staticmethod
-    def cube(x: Scalar):
+    def cube(x: Scalar) -> Scalar:
         return x.cube()
 
     @staticmethod
     def sigmoid(x: Scalar):
         return x.sigmoid()
+
+    @staticmethod
+    def inv(x: Scalar):
+        return 1.0 / (x + 3.5)
 
     @staticmethod
     def log(x: Scalar):

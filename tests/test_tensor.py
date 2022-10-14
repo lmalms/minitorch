@@ -24,6 +24,37 @@ def test_create_and_index(data: List[float]) -> None:
         assert data[idx] == t[idx]
 
 
+def test_from_list() -> None:
+    """
+    Test longer from list conversion.
+    """
+    t = tensor([[2, 3, 4], [4, 5, 7]])
+    assert t.shape == (2, 3)
+
+    t = tensor([[[2, 3, 4], [4, 5, 7]]])
+    assert t.shape == (1, 2, 3)
+
+
+def test_view() -> None:
+    """
+    Test view.
+    """
+    t = tensor([[2, 3, 4], [4, 5, 7]])
+    assert t.shape == (2, 3)
+
+    t_view = t.view(6)
+    assert t_view.shape == (6,)
+
+    t_view = t_view.view(1, 6)
+    assert t_view.shape == (1, 6)
+
+    t_view = t_view.view(6, 1)
+    assert t_view.shape == (6, 1)
+
+    t_view = t_view.view(2, 3)
+    assert t.is_close(t_view).all().item() == 1.0
+
+
 @given(tensors())
 @pytest.mark.parametrize("fn", one_arg)
 def test_one_arg(
