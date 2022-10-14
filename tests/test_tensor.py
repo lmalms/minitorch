@@ -66,6 +66,22 @@ def test_permute_view_fail() -> None:
     t_permute.view(6)
 
 
+@pytest.mark.xfail
+def test_index_fail() -> None:
+    t = tensor([[2, 3, 4], [4, 5, 7]])
+    assert t.shape == (2, 3)
+    t[50, 2]
+
+
+def test_from_numpy() -> None:
+    t = tensor([[2, 3, 4], [4, 5, 7]])
+    assert t.shape == (2, 3)
+    t_to_np = t.to_numpy()
+    t_from_numpy = tensor(t_to_np.tolist())
+    for idx in t.data.indices():
+        assert t[idx] == t_from_numpy[idx]
+
+
 @given(tensors())
 @pytest.mark.parametrize("fn", one_arg)
 def test_one_arg(
