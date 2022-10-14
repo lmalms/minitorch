@@ -34,3 +34,19 @@ def test_one_arg(
     t_out = tensor_fn(t)
     for idx in t_out.data.indices():
         assert is_close(t_out[idx], base_fn(t[idx]))
+
+
+@given(shaped_tensors(2))
+@pytest.mark.parametrize("fn", two_arg)
+def test_two_arg(
+    fn: Tuple[str, Callable[[float, float], float], Callable[[Tensor, Tensor], Tensor]],
+    ts: Tuple[Tensor, Tensor],
+) -> None:
+    """
+    Test two arg forward funcs and compare to float implementations.
+    """
+    _, base_fn, tensor_fn = fn
+    t1, t2 = ts
+    t_out = tensor_fn(t1, t2)
+    for idx in t_out.data.indices():
+        assert is_close(t_out[idx], base_fn(t1[idx], t2[idx]))
