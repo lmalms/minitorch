@@ -48,7 +48,7 @@ class Scalar(Variable):
     def _format_variable_id() -> str:
         global SCALAR_COUNT
         SCALAR_COUNT += 1
-        return "Tensor" + str(SCALAR_COUNT)
+        return "Scalar" + str(SCALAR_COUNT)
 
     def __repr__(self) -> str:
         return f"Scalar({self.data:.3f}, name={self.name})"

@@ -47,7 +47,8 @@ class MathTestOperators:
 
     @staticmethod
     def log(x: float) -> float:
-        return operators.log(abs(x) + EPS)  # To assure values are positive for tests.
+        # To assure values are positive for tests.
+        return operators.log(x + 1e06)
 
     @staticmethod
     def relu(x: float) -> float:
@@ -59,7 +60,7 @@ class MathTestOperators:
 
     @staticmethod
     def explog(x: float) -> float:
-        return operators.log(x + 100000) + operators.exp(x - 200)
+        return operators.log(x + 1e06) + operators.exp(x - 200)
 
     @staticmethod
     def add2(x: float, y: float) -> float:
