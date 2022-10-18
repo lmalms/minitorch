@@ -342,10 +342,10 @@ def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
 
     def bfs_visit(variable: Union[Variable, float]) -> None:
         if not isinstance(variable, Variable):
-            return
+            return diff_chain
 
         if variable.is_constant():
-            return
+            return diff_chain
 
         visit_variable_and_add(variable)
 

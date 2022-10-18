@@ -35,7 +35,10 @@ class TensorHistory(History):
         super().__init__(last_fn, ctx, inputs)
 
     def backprop_step(self, grad_out: Tensor) -> List[Tuple[Variable, float]]:
-        raise NotImplementedError
+        """
+        Runs one step of back-propagation by calling the chain rule.
+        """
+        return self.last_fn.chain_rule(self.ctx, self.inputs, d_out=grad_out)
 
 
 class Tensor(Variable):
@@ -88,6 +91,19 @@ class Tensor(Variable):
         self._derivative = value
 
     @property
+    def requires_grad(self) -> bool:
+        return self.history is not None
+
+    @requires_grad.setter
+    def requires_grad(self, requires_grad: bool) -> None:
+        """
+        Sets the requires_grad_ flag to 'val' on variable.
+        This ensures that operations on this variable will trigger
+        backpropagation.
+        """
+        self.history = TensorHistory() if requires_grad else None
+
+    @property
     def grad(self):
         """
         Alias for derivative.
@@ -123,6 +139,9 @@ class Tensor(Variable):
         global TENSOR_COUNT
         TENSOR_COUNT += 1
         return "Tensor" + str(TENSOR_COUNT)
+
+    def __hash__(self):
+        return hash(self.name)
 
     def __add__(self, other: TensorLike) -> Tensor:
         return tf.Add.apply(self, self._ensure_tensor(other))

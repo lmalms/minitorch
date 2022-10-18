@@ -14,7 +14,7 @@ import minitorch.functional as f
 from .tensor_data import Index, Shape, Storage, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
 from .utils import wrap_tuple
-from .variable import BaseFunction, Context, History
+from .variable import BaseFunction, Context
 
 
 class TensorFunction(BaseFunction):
@@ -41,17 +41,19 @@ class TensorFunction(BaseFunction):
         return cls.to_data_type(cls._forward(ctx, *inputs))
 
     @classmethod
-    def variable(cls, data: TensorData, history: History, backend: TensorBackend):
+    def variable(
+        cls, data: TensorData, history: t.TensorHistory, backend: TensorBackend
+    ):
         return t.Tensor(data, history=history, backend=backend)
 
     @classmethod
     def apply(cls, *tensors: t.Tensor) -> t.Tensor:
         raw_values = []
         requires_grad = False
-        for t in tensors:
-            if t.history is not None:
+        for tensor in tensors:
+            if tensor.history is not None:
                 requires_grad = True
-            raw_values.append(t.detach())
+            raw_values.append(tensor.detach())
 
         # Create new context for Tensor
         ctx = Context(requires_grad)
@@ -59,7 +61,11 @@ class TensorFunction(BaseFunction):
         # Call forward with input values
         c = cls.forward(ctx, *raw_values)
 
-        back = History(last_fn=cls, ctx=ctx, inputs=tensors) if requires_grad else None
+        back = (
+            t.TensorHistory(last_fn=cls, ctx=ctx, inputs=tensors)
+            if requires_grad
+            else None
+        )
 
         return cls.variable(c.data, back, c.backend)
 
@@ -393,23 +399,22 @@ def grad_central_difference(
     return delta.item() / (2 * epsilon)
 
 
-def grad_check(f: Callable[..., t.Tensor], *inputs: t.Tensor) -> None:
+def grad_check(f: Callable[..., t.Tensor], *tensors: t.Tensor) -> None:
 
     # Compute derivatives with respect to each of the inputs.
-    for x in inputs:
-        x.requires_grad = True
-        x.zero_grad_()
+    for tensor in tensors:
+        tensor.requires_grad = True
+        tensor.zero_grad_()
 
     random.seed(10)
-    out_ = f(*inputs)
+    out_ = f(*tensors)
     out_.sum().backward()
 
-    for i, in_ in enumerate(inputs):
+    for i, tensor in enumerate(tensors):
         # Grad a random index within that tensor imput
-        idx = x.data.sample()
-        check = grad_central_difference(f, *inputs, arg=i, idx=idx)
-
-        assert x.grad is not None
+        idx = tensor.data.sample()
+        check = grad_central_difference(f, *tensors, arg=i, idx=idx)
+        assert tensor.grad is not None
 
         # TODO: Check that grads are close.
         raise NotImplementedError
