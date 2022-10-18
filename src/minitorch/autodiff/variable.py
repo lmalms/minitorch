@@ -368,6 +368,7 @@ def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
     return diff_chain
 
 
+# TODO: need to update the type hints here d_out should also work with tensors / variables!
 def backpropagate(variable: Union[Variable, float], d_out: float = 1.0) -> None:
     derivative_chain = topological_sort(variable)
     var_derivative_map = {variable: d_out}

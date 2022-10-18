@@ -5,7 +5,7 @@ Implementation of the code Tensor object for autodifferentiation.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Tuple, Type, Union
+from typing import Any, Iterable, List, Optional, Tuple, Type, Union
 
 import numpy as np
 
@@ -15,7 +15,7 @@ from minitorch.types import TensorLike
 
 from .tensor_data import Index, Shape, Storage, Strides, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
-from .variable import BaseFunction, Context, History, Variable
+from .variable import BaseFunction, Context, History, Variable, backpropagate
 
 TENSOR_COUNT = 0
 
@@ -337,11 +337,28 @@ class Tensor(Variable):
     def detach(self) -> Tensor:
         return Tensor(data=self.data, history=None, backend=self.backend)
 
-    def chain_rule():
-        raise NotImplementedError
+    def chain_rule(self, d_out: Any) -> Iterable[Tuple[Variable, Any]]:
+        h = self.history
+        assert h is not None
+        assert h.last_fn is not None
+        assert h.ctx is not None
 
-    def backward():
-        raise NotImplementedError
+        x = h.last_fn.backward(h.ctx, d_out)
+        assert len(x) == len(
+            h.inputs
+        ), f"Bug in TensorFunction {h.last_fn}. Need a derivative for each input."
+        return [
+            (in_, in_.expand(self._ensure_tensor(d_in)))
+            for in_, d_in in zip(h.inputs, x)
+        ]
+
+    def backward(self, grad_out: Optional[Tensor] = None) -> None:
+        if grad_out is None:
+            assert self.shape == (
+                1,
+            ), "Must provide a grad_out if non-scalar like tensor"
+            grad_out = Tensor.make([1.0], shape=(1,), backend=self.backend)
+        backpropagate(self, grad_out)
 
     def accumulate_derivative(self, value: TensorLike) -> None:
         """
