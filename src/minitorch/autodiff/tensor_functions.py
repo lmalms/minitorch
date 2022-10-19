@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import random
 from abc import abstractmethod
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, Iterable, List, Tuple, Union
 
 import minitorch.autodiff.tensor as t
 import minitorch.functional as f
@@ -14,7 +14,7 @@ import minitorch.functional as f
 from .tensor_data import Index, Shape, Storage, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
 from .utils import wrap_tuple
-from .variable import BaseFunction, Context
+from .variable import BaseFunction, Context, is_constant
 
 
 class TensorFunction(BaseFunction):
@@ -70,8 +70,18 @@ class TensorFunction(BaseFunction):
         return cls.variable(c.data, back, c.backend)
 
     @classmethod
-    def chain_rule(cls, ctx, inputs, d_out):
-        raise NotImplementedError
+    def chain_rule(
+        cls, ctx: Context, inputs: Iterable[Union[t.Tensor, float]], grad_out: t.Tensor
+    ):
+        gradients = cls.backward(ctx, grad_out)
+        assert len(gradients) == len(inputs)
+        tensor_grad_pairs = list(zip(inputs, gradients))
+        tensor_grad_pairs = [
+            (t_, t_.expand(grad))
+            for (t_, grad) in tensor_grad_pairs
+            if not is_constant(t_)
+        ]
+        return tensor_grad_pairs
 
     @classmethod
     @abstractmethod

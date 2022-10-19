@@ -377,7 +377,7 @@ def backpropagate(variable: Union[Variable, float], d_out: float = 1.0) -> None:
         if not var.is_leaf():
             # Fetch any derivatives from previous backprop steps
             d_out = var_derivative_map.get(var, 1.0)
-            input_diff_pairs = var.history.backprop_step(d_out=d_out)
+            input_diff_pairs = var.history.backprop_step(d_out)
 
             # Update scalars with new derivatives
             for (input_, diff) in input_diff_pairs:

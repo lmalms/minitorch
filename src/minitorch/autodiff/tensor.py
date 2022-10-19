@@ -15,7 +15,7 @@ from minitorch.types import TensorLike
 
 from .tensor_data import Index, Shape, Storage, Strides, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
-from .variable import BaseFunction, Context, History, Variable, backpropagate
+from .variable import Context, History, Variable, backpropagate
 
 TENSOR_COUNT = 0
 
@@ -28,7 +28,7 @@ class TensorHistory(History):
 
     def __init__(
         self,
-        last_fn: Optional[Type[BaseFunction]] = None,
+        last_fn: Optional[Type[tf.TensorFunction]] = None,
         ctx: Optional[Context] = None,
         inputs: Optional[Iterable[Tensor]] = None,
     ):
@@ -38,7 +38,7 @@ class TensorHistory(History):
         """
         Runs one step of back-propagation by calling the chain rule.
         """
-        return self.last_fn.chain_rule(self.ctx, self.inputs, d_out=grad_out)
+        return self.last_fn.chain_rule(self.ctx, self.inputs, grad_out)
 
 
 class Tensor(Variable):
