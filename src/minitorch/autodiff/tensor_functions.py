@@ -197,7 +197,7 @@ class Sum(TensorFunction):
     @classmethod
     def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         _, dim = ctx.saved_values
-        return (grad_out, zeros((dim,)))
+        return grad_out, zeros((1,))
 
 
 class All(TensorFunction):
@@ -310,7 +310,7 @@ class View(TensorFunction):
 
     @classmethod
     def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
-        (original_shape,) = ctx.saved_values
+        original_shape = ctx.saved_values
         return t.Tensor.make(
             grad_out.data.storage, original_shape, backend=grad_out.backend
         ), zeros((1,))

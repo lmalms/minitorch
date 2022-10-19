@@ -6,6 +6,7 @@ from hypothesis.strategies import DataObject, data, lists, permutations
 
 from minitorch.autodiff import Tensor, tensor
 from minitorch.autodiff.tensor_data import Shape
+from minitorch.autodiff.tensor_functions import grad_check
 from minitorch.operators import is_close
 from minitorch.testing import MathTestVariable
 
@@ -85,7 +86,7 @@ def test_from_numpy() -> None:
 
 @given(tensors())
 @pytest.mark.parametrize("fn", one_arg)
-def test_one_arg(
+def test_one_arg_forward(
     fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]], t: Tensor
 ) -> None:
     """Test one arg functions and compare to floats."""
@@ -97,7 +98,7 @@ def test_one_arg(
 
 @given(shaped_tensors(2))
 @pytest.mark.parametrize("fn", two_arg)
-def test_two_arg(
+def test_two_arg_forward(
     fn: Tuple[str, Callable[[float, float], float], Callable[[Tensor, Tensor], Tensor]],
     ts: Tuple[Tensor, Tensor],
 ) -> None:
@@ -132,3 +133,15 @@ def test_reduce_sum(
     t_summed = in_tensor.sum(dim=dim)
     assert t_summed.shape == out_shape
     assert t_summed.is_close(out_tensor).all().item() == 1.0
+
+
+@given(tensors())
+@pytest.mark.parametrize("fn", one_arg)
+def test_one_arg_grad(
+    fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]], t: Tensor
+) -> None:
+    """
+    Test autograd on one-arg funcs and compare using central difference.
+    """
+    _, _, tensor_fn = fn
+    grad_check(tensor_fn, t)
