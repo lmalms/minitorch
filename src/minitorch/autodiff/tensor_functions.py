@@ -391,8 +391,6 @@ def tensor(
 
 ### Gradient checks for tensors ###
 
-# TODO: check that implementation matches Scalar implementation
-
 
 def grad_central_difference(
     f: Callable[..., t.Tensor],
