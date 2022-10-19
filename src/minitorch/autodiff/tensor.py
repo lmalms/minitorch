@@ -319,19 +319,18 @@ class Tensor(Variable):
 
         # Backward is smaller -> broadcast up
         broadcast_shape = TensorData.shape_broadcast(self.shape, other.shape)
-        padding = self.zeros(broadcast_shape)
-        self.backend.id_map(other, padding)
+        out_ = self.zeros(broadcast_shape)
+        self.backend.id_map(other, out_)
         if self.shape == broadcast_shape:
-            return padding
+            return out_
 
         # Still different, reduce extra dimensions.
-        out = padding
-        original_shape = [1] * (len(out.shape) - len(self.shape)) + list(self.shape)
-        for dim, shape in enumerate(out.shape):
+        original_shape = [1] * (len(out_.shape) - len(self.shape)) + list(self.shape)
+        for dim, shape in enumerate(out_.shape):
             if original_shape[dim] == 1 and shape != 1:
-                out = self.backend.add_reduce(out, dim)
-        assert out.size == self.size, f"{out.shape}, {self.size}"
-        return Tensor.make(out.data.storage, self.shape, backend=self.backend)
+                out_ = self.backend.add_reduce(out_, dim)
+        assert out_.size == self.size, f"{out_.shape}, {self.size}"
+        return Tensor.make(out_.data.storage, self.shape, backend=self.backend)
 
     def zeros(self, shape: Optional[Shape] = None) -> Tensor:
         def zero(shape: Shape) -> Tensor:
@@ -356,26 +355,25 @@ class Tensor(Variable):
     def detach(self) -> Tensor:
         return Tensor(data=self.data, history=None, backend=self.backend)
 
-    def chain_rule(self, d_out: Any) -> Iterable[Tuple[Variable, Any]]:
-        h = self.history
-        assert h is not None
-        assert h.last_fn is not None
-        assert h.ctx is not None
+    # def chain_rule(self, d_out: Any) -> Iterable[Tuple[Variable, Any]]:
+    #     h = self.history
+    #     assert h is not None
+    #     assert h.last_fn is not None
+    #     assert h.ctx is not None
 
-        x = h.last_fn.backward(h.ctx, d_out)
-        assert len(x) == len(
-            h.inputs
-        ), f"Bug in TensorFunction {h.last_fn}. Need a derivative for each input."
-        return [
-            (in_, in_.expand(self._ensure_tensor(d_in)))
-            for in_, d_in in zip(h.inputs, x)
-        ]
+    #     x = h.last_fn.backward(h.ctx, d_out)
+    #     assert len(x) == len(
+    #         h.inputs
+    #     ), f"Bug in TensorFunction {h.last_fn}. Need a derivative for each input."
+    #     return [
+    #         (in_, in_.expand(self._ensure_tensor(d_in)))
+    #         for in_, d_in in zip(h.inputs, x)
+    #     ]
 
     def backward(self, grad_out: Optional[Tensor] = None) -> None:
         if grad_out is None:
-            assert self.shape == (
-                1,
-            ), "Must provide a grad_out if non-scalar like tensor"
+            if self.shape == 1:
+                raise ValueError("Must provide a grad_out if non-scalar like tensor")
             grad_out = Tensor.make([1.0], shape=(1,), backend=self.backend)
         backpropagate(self, grad_out)
 

@@ -76,7 +76,7 @@ def broadcast_index(
 
 def shape_broadcast(shape_a: Shape, shape_b: Shape) -> Shape:
     """
-    Brroadcast two shpes to create a new union shape.
+    Broadcast two shpes to create a new union shape.
     Args:
         shape_a: first tensor shape
         shape_b: second tensor shape

@@ -59,7 +59,7 @@ def maximum(x: float, y: float) -> float:
 
 
 def is_close(x: float, y: float) -> bool:
-    """f(x, y) = |x - y| < 1e-02"""
+    """f(x, y) = |x - y| < 1e-03"""
     return abs(x - y) < 1e-03
 
 

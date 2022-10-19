@@ -10,6 +10,7 @@ from typing import Any, Callable, Iterable, List, Tuple, Union
 
 import minitorch.autodiff.tensor as t
 import minitorch.functional as f
+from minitorch import operators
 
 from .tensor_data import Index, Shape, Storage, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
@@ -74,7 +75,8 @@ class TensorFunction(BaseFunction):
         cls, ctx: Context, inputs: Iterable[Union[t.Tensor, float]], grad_out: t.Tensor
     ):
         gradients = cls.backward(ctx, grad_out)
-        assert len(gradients) == len(inputs)
+        if len(gradients) != len(inputs):
+            raise IndexError("Expecting a gradient for each input.")
         tensor_grad_pairs = list(zip(inputs, gradients))
         tensor_grad_pairs = [
             (t_, t_.expand(grad))
@@ -347,7 +349,7 @@ class MatMul(TensorFunction):
 
 
 def zeros(shape: Shape, backend: TensorBackend = SimpleBackend) -> t.Tensor:
-    return t.Tensor.make([0.0] * int(f.product(shape)), shape, backend=backend)
+    return t.Tensor.make([0.0] * int(f.product(list(shape))), shape, backend=backend)
 
 
 def rand(
@@ -395,9 +397,9 @@ def tensor(
 def grad_central_difference(
     f: Callable[..., t.Tensor],
     *inputs: t.Tensor,
-    arg: int = 0,
-    epsilon: float = 1e-06,
     idx: Index,
+    arg: int,
+    epsilon: float = 1e-06,
 ):
     # Get the value to compute the derivative wrt to
     x = inputs[arg]
@@ -426,5 +428,9 @@ def grad_check(f: Callable[..., t.Tensor], *tensors: t.Tensor) -> None:
         check = grad_central_difference(f, *tensors, arg=i, idx=idx)
         assert tensor.grad is not None
 
-        # TODO: Check that grads are close.
-        raise NotImplementedError
+        if not operators.is_close(tensor.grad[idx], check):
+            raise ValueError(
+                f"Derivative check failed for function {f.__name__} with arguments {tensors}. "
+                f"Derivative failed at input position {i}, index {idx}. Calculated derivative is {tensor.grad[idx]},"
+                f" should be {check}."
+            )
