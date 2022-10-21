@@ -1,7 +1,7 @@
 from typing import Callable, Generic, Iterable, List, Tuple, TypeVar
 
 from minitorch import operators
-from minitorch.autodiff import Scalar
+from minitorch.autodiff import Scalar, Tensor
 from minitorch.constants import EPS
 from minitorch.functional import summation
 
@@ -247,3 +247,17 @@ class MathTestVariable(MathTestOperators):
     @staticmethod
     def complex(x: Scalar) -> Scalar:
         return (((x * 10 + 7).relu() * 6 + 5).relu() * 10).sigmoid().log() / 50
+
+
+class MathTestTensor(MathTestVariable):
+    @staticmethod
+    def summation_reduction(x: Tensor) -> Tensor:
+        return x.sum(dim=0)
+
+    @staticmethod
+    def mean_reduction(x: Tensor) -> Tensor:
+        return x.mean(dim=0)
+
+    @staticmethod
+    def mean_full_reduction(x: Tensor) -> Tensor:
+        return x.mean()

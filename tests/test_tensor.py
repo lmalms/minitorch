@@ -8,12 +8,12 @@ from minitorch.autodiff import Tensor, tensor
 from minitorch.autodiff.tensor_data import Shape
 from minitorch.autodiff.tensor_functions import grad_check
 from minitorch.operators import is_close
-from minitorch.testing import MathTestVariable
+from minitorch.testing import MathTestTensor, MathTestVariable
 
 from .strategies import small_floats
 from .tensor_strategies import indices, shaped_tensors, tensors
 
-one_arg, two_arg, red_arg = MathTestVariable._comp_testing()
+one_arg, two_arg, red_arg = MathTestTensor._comp_testing()
 
 
 @given(lists(small_floats, min_size=1))
@@ -138,10 +138,37 @@ def test_reduce_sum(
 @given(tensors())
 @pytest.mark.parametrize("fn", one_arg)
 def test_one_arg_grad(
-    fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]], t: Tensor
+    fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]],
+    t: Tensor,
 ) -> None:
     """
     Test autograd on one-arg funcs and compare using central difference.
+    """
+    _, tensor_fn = fn
+    grad_check(tensor_fn, t)
+
+
+@given(shaped_tensors(2))
+@pytest.mark.parametrize("fn", two_arg)
+def test_two_arg_grad(
+    fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]],
+    tensors: Tuple[Tensor, Tensor],
+):
+    """
+    Test the grads of two arg tensor functions.
+    """
+    _, _, tensor_fn = fn
+    grad_check(tensor_fn, *tensors)
+
+
+@given(tensors())
+@pytest.mark.parametrize("fn", red_arg)
+def test_red_grad(
+    fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]],
+    t: Tensor,
+):
+    """
+    Test the grads of tensor reduce functions.
     """
     _, _, tensor_fn = fn
     grad_check(tensor_fn, t)
