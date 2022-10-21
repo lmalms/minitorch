@@ -40,12 +40,13 @@ def tensor_map(fn: Callable[[float], float]):
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
+
         # Cast as numpy arrays
         out_shape, out_strides = to_numpy(out_shape, out_strides)
         in_shape, in_strides = to_numpy(in_shape, in_strides)
 
         # Placeholders to use during map
-        out_size = int(product(in_shape.tolist()))
+        out_size = int(product(out_shape.tolist()))
         in_index = np.zeros_like(in_shape)
         out_index = np.zeros_like(out_shape)
 
@@ -60,9 +61,9 @@ def tensor_map(fn: Callable[[float], float]):
             in_position = index_to_position(in_index, in_strides)
 
             # Apply func at positions
-            print(in_storage[in_position])
-            print(out_position)
             out_storage[out_position] = fn(in_storage[in_position])
+
+            # break
 
     return _map
 
