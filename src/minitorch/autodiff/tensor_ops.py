@@ -60,6 +60,8 @@ def tensor_map(fn: Callable[[float], float]):
             in_position = index_to_position(in_index, in_strides)
 
             # Apply func at positions
+            print(in_storage[in_position])
+            print(out_position)
             out_storage[out_position] = fn(in_storage[in_position])
 
     return _map

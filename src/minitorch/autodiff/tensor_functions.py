@@ -353,6 +353,10 @@ def zeros(shape: Shape, backend: TensorBackend = SimpleBackend) -> t.Tensor:
     return t.Tensor.make([0.0] * int(f.product(list(shape))), shape, backend=backend)
 
 
+def ones(shape: Shape, backend: TensorBackend = SimpleBackend) -> t.Tensor:
+    return t.Tensor.make([1.0] * int(f.product(list(shape))), shape, backend=backend)
+
+
 def rand(
     shape: Shape, backend: TensorBackend = SimpleBackend, requires_grad: bool = False
 ):

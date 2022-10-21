@@ -324,6 +324,7 @@ class Tensor(Variable):
         if self.shape == broadcast_shape:
             return out_
 
+        print(f"made it here in Tensor.expand")
         # Still different, reduce extra dimensions.
         original_shape = [1] * (len(out_.shape) - len(self.shape)) + list(self.shape)
         for dim, shape in enumerate(out_.shape):
@@ -372,7 +373,7 @@ class Tensor(Variable):
 
     def backward(self, grad_out: Optional[Tensor] = None) -> None:
         if grad_out is None:
-            if self.shape == 1:
+            if self.shape != (1,):
                 raise ValueError("Must provide a grad_out if non-scalar like tensor")
             grad_out = Tensor.make([1.0], shape=(1,), backend=self.backend)
         backpropagate(self, grad_out)
