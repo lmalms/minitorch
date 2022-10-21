@@ -216,3 +216,16 @@ def test_grad_size() -> None:
     assert y.grad is not None
     assert x.shape == x.grad.shape
     assert y.grad.shape == y.grad.shape
+
+
+@given(tensors())
+def test_grad_view(t: Tensor) -> None:
+    """
+    Test the gradient of view.
+    """
+
+    def view(x: Tensor) -> Tensor:
+        x = x.contiguous()
+        return x.view(x.size)
+
+    grad_check(view, t)
