@@ -144,7 +144,7 @@ def test_one_arg_grad(
     """
     Test autograd on one-arg funcs and compare using central difference.
     """
-    _, tensor_fn = fn
+    _, _, tensor_fn = fn
     grad_check(tensor_fn, t)
 
 

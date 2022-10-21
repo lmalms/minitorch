@@ -261,7 +261,7 @@ class Tensor(Variable):
         """
         if dim is None:
             return self.sum() / self.size
-        return self.sum(dim) / self.shape[dim]
+        return self.sum(dim) / int(self.shape[dim])
 
     def permute(self, *order: int) -> Tensor:
         """

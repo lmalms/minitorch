@@ -103,6 +103,10 @@ class MathTestOperators:
         return summation(x) / float(len(x))
 
     @staticmethod
+    def mean_full_reduction(x: List[float]) -> float:
+        return summation(x) / float(len(x))
+
+    @staticmethod
     def complex(x: float):
         return (
             operators.log(
@@ -242,6 +246,10 @@ class MathTestVariable(MathTestOperators):
 
     @staticmethod
     def mean_reduction(x: List[Scalar]) -> Scalar:
+        return summation(x) / float(len(x))
+
+    @staticmethod
+    def mean_full_reduction(x: List[Scalar]) -> Scalar:
         return summation(x) / float(len(x))
 
     @staticmethod
