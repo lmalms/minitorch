@@ -318,15 +318,17 @@ class Tensor(Variable):
 
         # Backward is smaller -> broadcast up
         broadcast_shape = TensorData.shape_broadcast(self.shape, other.shape)
-        out_ = self.zeros(broadcast_shape)
-        self.backend.id_map(other, out_)
+        padding = self.zeros(broadcast_shape)
+        self.backend.id_map(other, padding)
         if self.shape == broadcast_shape:
-            return out_
+            return padding
 
         # Still different, reduce extra dimensions.
+        print("here in expand")
+        out_ = padding
         original_shape = [1] * (len(out_.shape) - len(self.shape)) + list(self.shape)
         for dim, shape in enumerate(out_.shape):
-            if original_shape[dim] == 1 and shape != 1:
+            if (original_shape[dim] == 1) and (shape != 1):
                 out_ = self.backend.add_reduce(out_, dim)
         assert out_.size == self.size, f"{out_.shape}, {self.size}"
         return Tensor.make(out_.data.storage, self.shape, backend=self.backend)
