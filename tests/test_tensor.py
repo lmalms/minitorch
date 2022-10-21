@@ -145,3 +145,32 @@ def test_one_arg_grad(
     """
     _, _, tensor_fn = fn
     grad_check(tensor_fn, t)
+
+
+@given(data(), tensors())
+def test_permute(data: DataObject, t: Tensor) -> None:
+    """
+    Tests permute function
+    """
+    permutation = data.draw(permutations(range(len(t.shape))))
+
+    def permute(x: Tensor) -> Tensor:
+        return x.permute(*permutation)
+
+    grad_check(permute, t)
+
+
+def test_grad_size() -> None:
+    """
+    Test size of gradients.
+    """
+    x = tensor([1], requires_grad=True)
+    y = tensor([[1, 1]], requires_grad=True)
+    z = (x * y).sum()
+    z.backward()
+
+    assert z.shape == (1,)
+    assert x.grad is not None
+    assert y.grad is not None
+    assert x.shape == x.grad.shape
+    assert y.grad.shape == y.grad.shape

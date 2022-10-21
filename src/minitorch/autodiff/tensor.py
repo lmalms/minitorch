@@ -313,6 +313,7 @@ class Tensor(Variable):
         Returns:
             Expanded version of other with the right derivatives.
         """
+
         # If shapes are equal return shape
         if self.shape == other.shape:
             return other
@@ -324,7 +325,6 @@ class Tensor(Variable):
         if self.shape == broadcast_shape:
             return out_
 
-        print(f"made it here in Tensor.expand")
         # Still different, reduce extra dimensions.
         original_shape = [1] * (len(out_.shape) - len(self.shape)) + list(self.shape)
         for dim, shape in enumerate(out_.shape):
