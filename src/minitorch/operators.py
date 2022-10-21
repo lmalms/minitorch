@@ -59,7 +59,7 @@ def maximum(x: float, y: float) -> float:
 
 
 def is_close(x: float, y: float) -> bool:
-    """f(x, y) = |x - y| < 1e-02"""
+    """f(x, y) = |x - y| < 1e-03"""
     return abs(x - y) < 1e-03
 
 
@@ -80,7 +80,9 @@ def relu(x: float) -> float:
 
 def log(x: float, base: Optional[float] = None) -> float:
     """f(x) = log(x)"""
-    return math.log(x, base) if base is not None else math.log(x)
+    if (base is not None) and (base > 1.0):
+        return math.log(x, base)
+    return math.log(x)
 
 
 def exp(x: float) -> float:

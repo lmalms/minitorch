@@ -141,6 +141,19 @@ class Variable:
             )
         self._derivative = float(value)
 
+    @property
+    def requires_grad(self) -> bool:
+        return self.history is not None
+
+    @requires_grad.setter
+    def requires_grad(self, requires_grad: bool) -> None:
+        """
+        Sets the requires_grad_ flag to 'val' on variable.
+        This ensures that operations on this variable will trigger
+        backpropagation.
+        """
+        self.history = History() if requires_grad else None
+
     @staticmethod
     def _format_variable_id() -> str:
         global VARIABLE_COUNT
@@ -149,19 +162,11 @@ class Variable:
 
     def is_leaf(self):
         """True if this variable has no last_fn"""
-        return self.history.last_fn is None
+        return self.history is not None and self.history.last_fn is None
 
     def is_constant(self):
         """True if this variable has no history."""
         return self.history is None
-
-    def requires_grad_(self, requires_grad: bool):
-        """
-        Sets the requires_grad_ flag to 'val' on variable.
-        This ensures that operations on this variable will trigger
-        backpropagation.
-        """
-        self.history = History() if requires_grad else None
 
     def backward(self, d_out: float = 1.0) -> None:
         """
@@ -173,7 +178,7 @@ class Variable:
         """
         backpropagate(self, d_out)
 
-    def accumulate_derivative(self, val: float):
+    def accumulate_derivative(self, value: float):
         """
         Add val to the derivative accumulated on this variable.
         Should only be called during auto-differentiation on leaf variables.
@@ -184,14 +189,14 @@ class Variable:
         """
         assert self.is_leaf(), "Only leaf variables can have derivatives."
         if self.derivative is None:
-            self._derivative = self.zeros()
-        self._derivative += val
+            self.derivative = self.zeros()
+        self.derivative += value
 
     def zero_derivative_(self) -> None:
         """
         Reset derivative on this variable.
         """
-        self._derivative = self.zeros()
+        self.derivative = self.zeros()
 
     def zero_grad_(self) -> None:
         """
@@ -199,7 +204,7 @@ class Variable:
         """
         self.zero_derivative_()
 
-    def expand(self, x):
+    def expand(self, x: Any):
         """
         Placeholder for tensor variables.
         """
@@ -337,10 +342,10 @@ def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
 
     def bfs_visit(variable: Union[Variable, float]) -> None:
         if not isinstance(variable, Variable):
-            return
+            return diff_chain
 
         if variable.is_constant():
-            return
+            return diff_chain
 
         visit_variable_and_add(variable)
 
@@ -363,15 +368,16 @@ def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
     return diff_chain
 
 
+# TODO: need to update the type hints here d_out should also work with tensors / variables!
 def backpropagate(variable: Union[Variable, float], d_out: float = 1.0) -> None:
     derivative_chain = topological_sort(variable)
     var_derivative_map = {variable: d_out}
 
-    for i, var in enumerate(derivative_chain):
+    for var in derivative_chain:
         if not var.is_leaf():
             # Fetch any derivatives from previous backprop steps
             d_out = var_derivative_map.get(var, 1.0)
-            input_diff_pairs = var.history.backprop_step(d_out=d_out)
+            input_diff_pairs = var.history.backprop_step(d_out)
 
             # Update scalars with new derivatives
             for (input_, diff) in input_diff_pairs:

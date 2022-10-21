@@ -1,17 +1,17 @@
 from typing import Callable, List
 
 from minitorch.operators import add, mul, neg
-from minitorch.types import FloatOrScalar
+from minitorch.types import ScalarLike
 
 
 def reduce(
-    func: Callable[[FloatOrScalar, FloatOrScalar], FloatOrScalar], x0: FloatOrScalar
-) -> Callable[[List[FloatOrScalar]], FloatOrScalar]:
+    func: Callable[[ScalarLike, ScalarLike], ScalarLike], x0: ScalarLike
+) -> Callable[[List[ScalarLike]], ScalarLike]:
     """
     Returns a callable that applies func to each element in a list.
     """
 
-    def reduction(ls: List[FloatOrScalar]) -> FloatOrScalar:
+    def reduction(ls: List[ScalarLike]) -> ScalarLike:
         # Changing list in place later on so need to make a copy
         ls_copy = ls.copy()
         x = x0
@@ -23,57 +23,60 @@ def reduce(
     return reduction
 
 
-def summation(ls: List[FloatOrScalar]) -> FloatOrScalar:
-    """Sums all values in a list."""
-    return reduce(add, x0=0.0)(ls)
-
-
-def product(ls: List[FloatOrScalar]) -> FloatOrScalar:
-    """Multiplies all scalars in a list."""
-    return reduce(mul, x0=1.0)(ls)
-
-
 def map_single(
-    func: Callable[[FloatOrScalar], FloatOrScalar]
-) -> Callable[[List[FloatOrScalar]], List[FloatOrScalar]]:
+    func: Callable[[ScalarLike], ScalarLike]
+) -> Callable[[List[ScalarLike]], List[ScalarLike]]:
     """
     Higher order map. Returns mapping function that applies func to
     every element in a list and then returns that list.
     """
 
-    def mapping_func(ls: List[FloatOrScalar]) -> List[FloatOrScalar]:
+    def mapping_func(ls: List[ScalarLike]) -> List[ScalarLike]:
         return [func(i) for i in ls]
 
     return mapping_func
 
 
 def map_double(
-    func: Callable[[FloatOrScalar, FloatOrScalar], FloatOrScalar]
-) -> Callable[[List[FloatOrScalar], List[FloatOrScalar]], List[FloatOrScalar]]:
+    func: Callable[[ScalarLike, ScalarLike], ScalarLike]
+) -> Callable[[List[ScalarLike], List[ScalarLike]], List[ScalarLike]]:
     """
     Higher order map. Returns a mapping function that applies func to elements in two equally sized list and returns
     result as new list.
     """
 
-    def mapping_func(
-        ls1: List[FloatOrScalar], ls2: List[FloatOrScalar]
-    ) -> List[FloatOrScalar]:
+    def mapping_func(ls1: List[ScalarLike], ls2: List[ScalarLike]) -> List[ScalarLike]:
         return [func(i, j) for (i, j) in zip(ls1, ls2)]
 
     return mapping_func
 
 
-def neg_list(ls: List[FloatOrScalar]) -> List[FloatOrScalar]:
+def summation(ls: List[ScalarLike]) -> ScalarLike:
+    """Sums all values in a list."""
+    return reduce(add, x0=0.0)(ls)
+
+
+def product(ls: List[ScalarLike]) -> ScalarLike:
+    """Multiplies all scalars in a list."""
+    return reduce(mul, x0=1.0)(ls)
+
+
+def neg_list(ls: List[ScalarLike]) -> List[ScalarLike]:
     """
     Negates each element in ls.
     """
     return map_single(neg)(ls)
 
 
-def add_lists(
-    ls1: List[FloatOrScalar], ls2: List[FloatOrScalar]
-) -> List[FloatOrScalar]:
+def add_lists(ls1: List[ScalarLike], ls2: List[ScalarLike]) -> List[ScalarLike]:
     """
     Sums elements in lists ls1 and ls2 pairwise and returns result as new list.
     """
     return map_double(add)(ls1, ls2)
+
+
+def multiply_lists(ls1: List[ScalarLike], ls2: List[ScalarLike]) -> List[ScalarLike]:
+    """
+    Pairwise multiplication of elements in two lists.
+    """
+    return map_double(mul)(ls1, ls2)

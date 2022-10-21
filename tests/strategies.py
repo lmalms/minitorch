@@ -1,15 +1,10 @@
 from hypothesis import settings
 from hypothesis.strategies import composite, floats, integers
 
-from minitorch import operators
 from minitorch.autodiff import Scalar
 
 settings.register_profile("ci", deadline=None)
 settings.load_profile("ci")
-
-
-def assert_close(a: float, b: float) -> None:
-    assert operators.is_close(a, b), f"failure with a={a} and b={b}."
 
 
 @composite

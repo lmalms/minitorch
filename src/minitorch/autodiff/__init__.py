@@ -4,6 +4,9 @@ from minitorch.autodiff.scalar import (
     central_difference,
     derivative_check,
 )
+from minitorch.autodiff.tensor import Tensor
+from minitorch.autodiff.tensor_data import Index, Shape, TensorData, shape_broadcast
+from minitorch.autodiff.tensor_functions import tensor
 from minitorch.autodiff.variable import (
     Context,
     History,

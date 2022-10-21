@@ -6,6 +6,8 @@ from typing import Any, Callable, Optional, Tuple, Union
 from minitorch import operators
 from minitorch.autodiff.variable import BaseFunction, Context, History, Variable
 
+SCALAR_COUNT = 0
+
 
 class Scalar(Variable):
     """
@@ -41,6 +43,12 @@ class Scalar(Variable):
                 f"Scalar values have to be of type int or float - got {type(value)}."
             )
         self._data = float(value)
+
+    @staticmethod
+    def _format_variable_id() -> str:
+        global SCALAR_COUNT
+        SCALAR_COUNT += 1
+        return "Scalar" + str(SCALAR_COUNT)
 
     def __repr__(self) -> str:
         return f"Scalar({self.data:.3f}, name={self.name})"
@@ -141,7 +149,7 @@ class ScalarFunction(BaseFunction):
         ...
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> Union[Tuple[..., float], float]:
+    def backward(cls, ctx: Context, d_out: float) -> Union[Tuple[float, ...], float]:
         """
         Backward call.
 
@@ -382,7 +390,7 @@ def derivative_check(func: Callable[..., Scalar], *scalars):
     Asserts False if derivative is incorrect.
     """
     for scalar in scalars:
-        scalar.requires_grad_(True)
+        scalar.requires_grad = True
     out_ = func(*scalars)
     out_.backward()
 

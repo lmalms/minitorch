@@ -16,6 +16,7 @@ class Parameter:
         """
         Returns the parameter's value's derivative
         """
+        # TODO: add grad alias here.
         if hasattr(self.value, "derivative"):
             return self.value.derivative
         return 0.0
@@ -26,7 +27,7 @@ class Parameter:
         """
         self.value = value
         if hasattr(self.value, "requires_grad"):
-            self.value.requires_grad_(True)
+            self.value.requires_grad = True
             if self.name is not None:
                 self.value.name = self.name
 

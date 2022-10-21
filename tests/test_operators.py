@@ -5,7 +5,7 @@ from hypothesis import given
 from hypothesis.strategies import lists
 
 from minitorch.constants import EPS
-from minitorch.functional import add_lists, neg_list, product, summation
+from minitorch.functional import add_lists, multiply_lists, neg_list, product, summation
 from minitorch.operators import (
     add,
     eq,
@@ -28,12 +28,7 @@ from minitorch.operators import (
     sigmoid,
 )
 from minitorch.testing import MathTestOperators
-from tests.strategies import (
-    assert_close,
-    small_floats,
-    tiny_floats,
-    tiny_positive_floats,
-)
+from tests.strategies import small_floats, tiny_floats, tiny_positive_floats
 
 
 @given(small_floats, small_floats)
@@ -44,7 +39,7 @@ def test_same_as_python(x: float, y: float) -> None:
     assert neg(x) == -x
     assert maximum(x, y) == (x if x > y else y)
     if x != 0.0:
-        assert_close(inv(x), 1.0 / (x + EPS))
+        assert is_close(inv(x), 1.0 / (x + EPS))
 
 
 @given(small_floats)
@@ -192,7 +187,9 @@ def test_log(x: float, y: float) -> None:
     Monotonically increasing
     """
     assert log(1.0) == 0.0
-    assert is_close(log(x, y), (log(x) / log(y)))
+    if y > 1.0:
+        # Avoid zero division error.
+        assert is_close(log(x, y), (log(x) / log(y)))
     assert is_close(log(mul(x, y)), add(log(x), log(y)))
     assert is_close(log(x / y), log(x) - log(y))
     assert is_close(log(x**y), mul(y, log(x)))
@@ -229,6 +226,14 @@ def test_add_lists(x: float, y: float, v: float, w: float) -> None:
     assert is_close(x2, y2)
 
 
+@given(small_floats, small_floats, small_floats, small_floats)
+def test_multiply_lists(x: float, y: float, v: float, w: float) -> None:
+    x1, x2 = multiply_lists([x, y], [v, w])
+    y1, y2 = x * v, y * w
+    assert is_close(x1, y1)
+    assert is_close(x2, y2)
+
+
 @given(lists(small_floats, min_size=5, max_size=5))
 def test_summation(x: List[float]) -> None:
     assert is_close(summation(x), summation(x))
@@ -260,22 +265,20 @@ def test_neg_list(x: List[float]) -> None:
 
 
 # Generic mathematical tests
-one_arg_tests, two_arg_tests, _ = MathTestOperators.generate_tests()
+one_arg_tests, two_arg_tests, _ = MathTestOperators._tests()
 
 
 @given(small_floats)
 @pytest.mark.parametrize("fn", one_arg_tests)
-def test_one_arg_funcs(fn: List[Tuple[str, Callable, Callable]], x: float) -> None:
-    name, base_fn, _ = fn
+def test_one_arg_funcs(fn: List[Tuple[str, Callable]], x: float) -> None:
+    name, base_fn = fn
     base_fn(x)
 
 
 @given(small_floats, small_floats)
 @pytest.mark.parametrize("fn", two_arg_tests)
-def test_two_arg_funcs(
-    fn: List[Tuple[str, Callable, Callable]], x: float, y: float
-) -> None:
-    name, base_fn, _ = fn
+def test_two_arg_funcs(fn: List[Tuple[str, Callable]], x: float, y: float) -> None:
+    name, base_fn = fn
     base_fn(x, y)
 
 
