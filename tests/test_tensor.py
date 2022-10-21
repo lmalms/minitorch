@@ -37,6 +37,15 @@ def test_from_list() -> None:
     assert t.shape == (1, 2, 3)
 
 
+def test_from_numpy() -> None:
+    t = tensor([[2, 3, 4], [4, 5, 7]])
+    assert t.shape == (2, 3)
+    t_to_np = t.to_numpy()
+    t_from_numpy = tensor(t_to_np.tolist())
+    for idx in t.data.indices():
+        assert t[idx] == t_from_numpy[idx]
+
+
 def test_view() -> None:
     """
     Test view.
@@ -57,31 +66,30 @@ def test_view() -> None:
     assert t.is_close(t_view).all().item() == 1.0
 
 
-@pytest.mark.xfail
-def test_permute_view_fail() -> None:
+@given(tensors())
+def test_view_grad(t: Tensor) -> None:
     """
-    Tensors have to be contiguous to view.
+    Test the gradient of view.
     """
-    t = tensor([[2, 3, 4], [4, 5, 7]])
-    assert t.shape == (2, 3)
-    t_permute = t.permute(1, 0)
-    t_permute.view(6)
+
+    def view(x: Tensor) -> Tensor:
+        x = x.contiguous()
+        return x.view(x.size)
+
+    grad_check(view, t)
 
 
-@pytest.mark.xfail
-def test_index_fail() -> None:
-    t = tensor([[2, 3, 4], [4, 5, 7]])
-    assert t.shape == (2, 3)
-    t[50, 2]
+@given(data(), tensors())
+def test_permute_grad(data: DataObject, t: Tensor) -> None:
+    """
+    Tests permute function
+    """
+    permutation = data.draw(permutations(range(len(t.shape))))
 
+    def permute(x: Tensor) -> Tensor:
+        return x.permute(*permutation)
 
-def test_from_numpy() -> None:
-    t = tensor([[2, 3, 4], [4, 5, 7]])
-    assert t.shape == (2, 3)
-    t_to_np = t.to_numpy()
-    t_from_numpy = tensor(t_to_np.tolist())
-    for idx in t.data.indices():
-        assert t[idx] == t_from_numpy[idx]
+    grad_check(permute, t)
 
 
 @given(tensors())
@@ -189,19 +197,6 @@ def test_red_grad(
     grad_check(tensor_fn, t)
 
 
-@given(data(), tensors())
-def test_permute(data: DataObject, t: Tensor) -> None:
-    """
-    Tests permute function
-    """
-    permutation = data.draw(permutations(range(len(t.shape))))
-
-    def permute(x: Tensor) -> Tensor:
-        return x.permute(*permutation)
-
-    grad_check(permute, t)
-
-
 def test_grad_size() -> None:
     """
     Test size of gradients.
@@ -218,14 +213,19 @@ def test_grad_size() -> None:
     assert y.grad.shape == y.grad.shape
 
 
-@given(tensors())
-def test_grad_view(t: Tensor) -> None:
+@pytest.mark.xfail
+def test_permute_view_fail() -> None:
     """
-    Test the gradient of view.
+    Tensors have to be contiguous to view.
     """
+    t = tensor([[2, 3, 4], [4, 5, 7]])
+    assert t.shape == (2, 3)
+    t_permute = t.permute(1, 0)
+    t_permute.view(6)
 
-    def view(x: Tensor) -> Tensor:
-        x = x.contiguous()
-        return x.view(x.size)
 
-    grad_check(view, t)
+@pytest.mark.xfail
+def test_index_fail() -> None:
+    t = tensor([[2, 3, 4], [4, 5, 7]])
+    assert t.shape == (2, 3)
+    t[50, 2]
