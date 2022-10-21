@@ -74,17 +74,15 @@ class Tensor(Variable):
         self._data = data
 
     @property
-    def derivative(self):
-        # TODO: validate types here!
+    def derivative(self) -> Tensor:
         return self._derivative
 
     @derivative.setter
-    def derivative(self, value: TensorLike) -> None:
+    def derivative(self, value: Tensor) -> None:
         """
         Validates derivative type before setting attribute.
         """
-        # TODO: validate types here!
-        if not isinstance(value, (int, float, Tensor)):
+        if not isinstance(value, Tensor):
             raise TypeError(
                 f"Derivatives have to be of type int or float - got {type(value)}."
             )
@@ -104,14 +102,14 @@ class Tensor(Variable):
         self.history = TensorHistory() if requires_grad else None
 
     @property
-    def grad(self):
+    def grad(self) -> Tensor:
         """
         Alias for derivative.
         """
         return self._derivative
 
     @grad.setter
-    def grad(self, value: TensorLike) -> None:
+    def grad(self, value: Tensor) -> None:
         """
         Alias for derivative setter.
         """

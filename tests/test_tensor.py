@@ -153,12 +153,27 @@ def test_one_arg_grad(
 def test_two_arg_grad(
     fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]],
     tensors: Tuple[Tensor, Tensor],
-):
+) -> None:
     """
     Test the grads of two arg tensor functions.
     """
     _, _, tensor_fn = fn
     grad_check(tensor_fn, *tensors)
+
+
+@given(shaped_tensors(2))
+@pytest.mark.parametrize("fn", two_arg)
+def test_two_arg_grad_broadcast(
+    fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]],
+    tensors: Tuple[Tensor, Tensor],
+) -> None:
+    _, _, tensor_fn = fn
+    t1, t2 = tensors
+    grad_check(tensor_fn, t1, t2)
+
+    # Broadcast check
+    grad_check(tensor_fn, t1.sum(0), t2)
+    grad_check(tensor_fn, t1, t2.sum(0))
 
 
 @given(tensors())
