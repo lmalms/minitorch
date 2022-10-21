@@ -287,15 +287,16 @@ class IsClose(TensorFunction):
 class Permute(TensorFunction):
     @classmethod
     def _forward(cls, ctx: Context, a: t.Tensor, order: t.Tensor) -> t.Tensor:
-        ctx.save_for_backward(a, order)
+        ctx.save_for_backward(order)
         return t.Tensor(data=a.data.permute(*[order[i] for i in range(order.size)]))
 
     @classmethod
     def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
-        a, order = ctx.saved_tensors
-        grad_out = t.Tensor(
-            data=grad_out.data.permute(*[order[i] for i in range(order.size)])
-        )
+        # Reverse of permute is argsort of permute order.
+        order = ctx.saved_tensors
+        order_list = [order[i] for i in range(order.size)]
+        reverse_order, _ = zip(*sorted(enumerate(order_list), key=lambda pair: pair[1]))
+        grad_out = t.Tensor(data=grad_out.data.permute(*reverse_order))
         return grad_out, zeros((1,))
 
 

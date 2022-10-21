@@ -324,7 +324,6 @@ class Tensor(Variable):
             return padding
 
         # Still different, reduce extra dimensions.
-        print("here in expand")
         out_ = padding
         original_shape = [1] * (len(out_.shape) - len(self.shape)) + list(self.shape)
         for dim, shape in enumerate(out_.shape):
