@@ -1,16 +1,13 @@
 from __future__ import annotations
-from abc import abstractmethod
 
 from typing import Callable, Generic, Iterable, List, Tuple, TypeVar
 
 from minitorch import operators
 from minitorch.autodiff import Scalar, Tensor
-from minitorch.autodiff.variable import Variable
 from minitorch.constants import EPS
 from minitorch.functional import summation
 
 T = TypeVar("T")
-K = TypeVar("K")
 
 
 class MathTest(Generic[T]):
@@ -181,6 +178,26 @@ class MathTestVariable(MathTest[T]):
         return (x + 1e06).log() + (x - 200.0).exp()
 
     @staticmethod
+    def gt2(x: T, y: T) -> T:
+        return (x + 1.2) > y
+
+    @staticmethod
+    def lt2(x: T, y: T) -> T:
+        return (x + 1.2) < y
+
+    @staticmethod
+    def eq2(x: T, y: T) -> T:
+        return x == (y + 5.5)
+
+    @staticmethod
+    def ge2(x: T, y: T) -> T:
+        return (x + 1.2) >= y
+
+    @staticmethod
+    def le2(x: T, y: T) -> T:
+        return (x + 1.2) <= y
+
+    @staticmethod
     def complex(x: T) -> T:
         return (((x * 10 + 7).relu() * 6 + 5).relu() * 10).sigmoid().log() / 50
 
@@ -205,148 +222,10 @@ class MathTestVariable(MathTest[T]):
 MathTestOperators = MathTest[float]
 
 
-class MathTestScalar(MathTestVariable[Scalar]):
-    @staticmethod
-    @abstractmethod
-    def square(x: Scalar) -> Scalar:
-        return x.square()
-
-    @staticmethod
-    def cube(x: Scalar) -> Scalar:
-        return x.cube()
-
-    @staticmethod
-    def sigmoid(x: Scalar) -> Scalar:
-        return x.sigmoid()
-
-    @staticmethod
-    def log(x: Scalar) -> Scalar:
-        return (x + 1e06).log()
-
-    @staticmethod
-    def relu(x: Scalar) -> Scalar:
-        return (x + 5.5).relu()
-
-    @staticmethod
-    def exp(x: Scalar) -> Scalar:
-        return (x - 200.0).exp()
-
-    @staticmethod
-    def explog(x: Scalar) -> Scalar:
-        return (x + 1e06).log() + (x - 200.0).exp()
-
-    @staticmethod
-    def complex(x: Scalar) -> Scalar:
-        return (((x * 10 + 7).relu() * 6 + 5).relu() * 10).sigmoid().log() / 50
+MathTestScalars = MathTestVariable[Scalar]
 
 
 class MathTestTensor(MathTestVariable[Tensor]):
-    ...
-
-
-class MathTestVariable(MathTestOperators):
-    @staticmethod
-    def neg(x: Scalar) -> Scalar:
-        return -x
-
-    @staticmethod
-    def add_constant(x: Scalar) -> Scalar:
-        return x + 5.0
-
-    @staticmethod
-    def subtract_constant(x: Scalar) -> Scalar:
-        return x - 5.0
-
-    @staticmethod
-    def multiply(x: Scalar) -> Scalar:
-        return 5.0 * x
-
-    @staticmethod
-    def divide(x: Scalar) -> Scalar:
-        return x / 5.0
-
-    @staticmethod
-    def square(x: Scalar) -> Scalar:
-        return x.square()
-
-    @staticmethod
-    def cube(x: Scalar) -> Scalar:
-        return x.cube()
-
-    @staticmethod
-    def sigmoid(x: Scalar):
-        return x.sigmoid()
-
-    @staticmethod
-    def inv(x: Scalar):
-        return 1.0 / (x + 3.5)
-
-    @staticmethod
-    def log(x: Scalar):
-        return (x + 1e06).log()
-
-    @staticmethod
-    def relu(x: Scalar):
-        return (x + 5.5).relu()
-
-    @staticmethod
-    def exp(x: Scalar):
-        return (x - 200.0).exp()
-
-    @staticmethod
-    def explog(x: Scalar):
-        return (x + 1e06).log() + (x - 200.0).exp()
-
-    @staticmethod
-    def add2(x: Scalar, y: Scalar) -> Scalar:
-        return x + y
-
-    @staticmethod
-    def multiply2(x: Scalar, y: Scalar) -> Scalar:
-        return x * y
-
-    @staticmethod
-    def divide2(x: Scalar, y: Scalar) -> Scalar:
-        return x / (y + 5.5)
-
-    @staticmethod
-    def gt2(x: Scalar, y: Scalar) -> Scalar:
-        return (x + 1.2) > y
-
-    @staticmethod
-    def lt2(x: Scalar, y: Scalar) -> Scalar:
-        return (x + 1.2) < y
-
-    @staticmethod
-    def eq2(x: Scalar, y: Scalar) -> Scalar:
-        return x == (y + 5.5)
-
-    @staticmethod
-    def ge2(x: Scalar, y: Scalar) -> Scalar:
-        return (x + 1.2) >= y
-
-    @staticmethod
-    def le2(x: Scalar, y: Scalar) -> Scalar:
-        return (x + 1.2) <= y
-
-    @staticmethod
-    def summation_reduction(x: List[Scalar]) -> Scalar:
-        return summation(x)
-
-    @staticmethod
-    def mean_reduction(x: List[Scalar]) -> Scalar:
-        return summation(x) / float(len(x))
-
-    @staticmethod
-    def mean_full_reduction(x: List[Scalar]) -> Scalar:
-        return summation(x) / float(len(x))
-
-    @staticmethod
-    def complex(x: Scalar) -> Scalar:
-        return (((x * 10 + 7).relu() * 6 + 5).relu() * 10).sigmoid().log() / 50
-
-
-class MathTestTensor(MathTestVariable):
     @staticmethod
     def summation_reduction(x: Tensor) -> Tensor:
         return x.sum(dim=0)
