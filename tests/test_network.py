@@ -7,7 +7,7 @@ import pytest
 from hypothesis import given
 
 from minitorch.autodiff import Scalar
-from minitorch.module import Linear, Network
+from minitorch.module import LinearScalar, ScalarNetwork
 from minitorch.operators import relu
 
 from .strategies import medium_ints
@@ -18,7 +18,7 @@ SKIP_REASON = "Tests are slow."
 
 @given(medium_ints, medium_ints, medium_ints)
 def test_network_init(input_dim: int, hidden_dim: int, output_dim: int):
-    network = Network(input_dim, hidden_dim, output_dim)
+    network = ScalarNetwork(input_dim, hidden_dim, output_dim)
 
     # Check dimensions of weight and bias matrices
     # Input layer
@@ -45,7 +45,7 @@ def test_network_init(input_dim: int, hidden_dim: int, output_dim: int):
 def test_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
 
     # Utils functions for running tests
-    def extract_weights_and_biases(layer: Linear):
+    def extract_weights_and_biases(layer: LinearScalar):
         weights = np.array(
             [[param.value.data for param in row] for row in layer._weights]
         )
@@ -71,7 +71,7 @@ def test_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
         return ho_state
 
     # Initialise network
-    network = Network(input_dim, hidden_dim, output_dim)
+    network = ScalarNetwork(input_dim, hidden_dim, output_dim)
 
     # Extract weights and biases
     ih_weights, ih_bias = extract_weights_and_biases(network._input_layer)

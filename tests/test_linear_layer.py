@@ -7,7 +7,7 @@ import pytest
 from hypothesis import given
 
 from minitorch.autodiff import Scalar
-from minitorch.module import Linear
+from minitorch.module import LinearScalar
 
 from .strategies import medium_ints
 
@@ -17,7 +17,7 @@ SKIP_REASON = "Tests are slow."
 
 @given(medium_ints, medium_ints)
 def test_linear_init(input_dim: int, output_dim: int):
-    linear = Linear(input_dim, output_dim)
+    linear = LinearScalar(input_dim, output_dim)
 
     # Check the size and dim of weight matrix
     assert len(linear._weights) == input_dim
@@ -35,7 +35,7 @@ def test_linear_init(input_dim: int, output_dim: int):
 def test_linear_forward(input_dim: int, output_dim: int):
 
     # Initialise a linear layer
-    linear = Linear(input_dim, output_dim)
+    linear = LinearScalar(input_dim, output_dim)
     weights = np.array([[param.value.data for param in row] for row in linear._weights])
     bias = np.array([param.value.data for param in linear._bias])
 

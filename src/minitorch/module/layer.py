@@ -1,15 +1,16 @@
 import random
 from typing import List, Union
 
+import minitorch.autodiff.tensor_functions as tf
 from minitorch.autodiff import Scalar
 from minitorch.module.module import Module
 from minitorch.module.parameter import Parameter
 
 
-class Linear(Module):
+class LinearScalar(Module):
 
     """
-    Builds a linear fully connected layer.
+    Builds a linear fully connected layer using scalar variables.
     """
 
     def __init__(self, input_dim: int, output_dim: int):
@@ -74,3 +75,25 @@ class Linear(Module):
                 outputs[s].append(out_)
 
         return outputs
+
+
+class LinearTensor(Module):
+    """
+    Builds a linear fully connected layer using tensor variables.
+    """
+
+    def __init__(self, input_dim: int, output_dim: int):
+        super().__init__()
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        self._weights = self._initialise_parameter(input_dim, output_dim)
+        self._bias = self._initialise_parameter(output_dim)
+
+    @staticmethod
+    def _initialise_parameter(*shape) -> Parameter:
+        random_tensor = tf.rand(shape=tuple(shape), requires_grad=True)
+        random_tensor = 2 * (random_tensor - 0.5)
+        return Parameter(value=random_tensor)
+
+    def forward():
+        pass
