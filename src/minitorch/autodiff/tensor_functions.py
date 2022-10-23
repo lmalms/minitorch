@@ -362,7 +362,7 @@ def ones(shape: Shape, backend: TensorBackend = SimpleBackend) -> t.Tensor:
 def rand(
     shape: Shape, backend: TensorBackend = SimpleBackend, requires_grad: bool = False
 ):
-    vals = [random.random() for _ in range((f.product(shape)))]
+    vals = [random.random() for _ in range(int(f.product(list(shape))))]
     tensor = t.Tensor.make(vals, shape, backend=backend)
     tensor.requires_grad = requires_grad
     return tensor

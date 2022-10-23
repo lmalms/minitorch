@@ -2,7 +2,7 @@ import random
 from typing import List, Union
 
 import minitorch.autodiff.tensor_functions as tf
-from minitorch.autodiff import Scalar
+from minitorch.autodiff import Scalar, Tensor
 from minitorch.module.module import Module
 from minitorch.module.parameter import Parameter
 
@@ -53,8 +53,6 @@ class LinearScalar(Module):
         Forward function for linear layer.
         """
 
-        # TODO: use type hint here for inputs e.g. ScalarBatch
-
         outputs = []
         for s, sample in enumerate(inputs):
             # First dimension is assumed to be batch size
@@ -95,5 +93,15 @@ class LinearTensor(Module):
         random_tensor = 2 * (random_tensor - 0.5)
         return Parameter(value=random_tensor)
 
-    def forward():
-        pass
+    def forward(self, inputs: Tensor) -> Tensor:
+        """
+        Implements forward function for tensors using broadcasting.
+        """
+        assert inputs.shape[1] == self._weights[0]
+        # Add dimensions such that we can broadcast
+        _inputs = inputs.view(*inputs.shape, 1)
+        _weights = self._weights.view(1, *self._weights)
+
+        # Collapse dimension
+        _out = (inputs * _weights).view(inputs.shape[0], self.output_dim)
+        return _out + self._bias
