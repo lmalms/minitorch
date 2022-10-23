@@ -5,7 +5,7 @@ Implementation of the code Tensor object for autodifferentiation.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Optional, Tuple, Type, Union
+from typing import Iterable, List, Optional, Tuple, Type, Union
 
 import numpy as np
 from typing_extensions import TypeAlias
@@ -16,8 +16,6 @@ import minitorch.functional as f
 from .tensor_data import Index, Shape, Storage, Strides, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
 from .variable import Context, History, Variable, backpropagate
-
-TensorLike: TypeAlias = Union[float, int, "Tensor"]
 
 TENSOR_COUNT = 0
 
@@ -143,46 +141,46 @@ class Tensor(Variable):
     def __hash__(self):
         return hash(self.name)
 
-    def __add__(self, other: TensorLike) -> Tensor:
+    def __add__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.Add.apply(self, self._ensure_tensor(other))
 
-    def __radd__(self, other: TensorLike) -> Tensor:
+    def __radd__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.Add.apply(self, self._ensure_tensor(other))
 
-    def __sub__(self, other: TensorLike) -> Tensor:
+    def __sub__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.Add.apply(self, tf.Neg.apply(self._ensure_tensor(other)))
 
-    def __rsub__(self, other: TensorLike) -> Tensor:
+    def __rsub__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.Add.apply(self._ensure_tensor(other), tf.Neg.apply(self))
 
-    def __mul__(self, other: TensorLike) -> Tensor:
+    def __mul__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.Mul.apply(self, self._ensure_tensor(other))
 
-    def __rmul__(self, other: TensorLike) -> Tensor:
+    def __rmul__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.Mul.apply(self, self._ensure_tensor(other))
 
-    def __truediv__(self, other: TensorLike) -> Tensor:
+    def __truediv__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.Mul.apply(self, tf.Inv.apply(self._ensure_tensor(other)))
 
-    def __rtruediv__(self, other: TensorLike) -> Tensor:
+    def __rtruediv__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.Mul.apply(self._ensure_tensor(other), tf.Inv.apply(self))
 
-    def __matmul__(self, other: TensorLike) -> Tensor:
+    def __matmul__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.MatMul.apply(self, other)
 
-    def __lt__(self, other: TensorLike) -> Tensor:
+    def __lt__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.LT.apply(self, self._ensure_tensor(other))
 
-    def __gt__(self, other: TensorLike) -> Tensor:
+    def __gt__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.GT.apply(self, self._ensure_tensor(other))
 
-    def __eq__(self, other: TensorLike) -> Tensor:
+    def __eq__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.EQ.apply(self, self._ensure_tensor(other))
 
-    def __ge__(self, other: TensorLike) -> Tensor:
+    def __ge__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.GE.apply(self, self._ensure_tensor(other))
 
-    def __le__(self, other: TensorLike) -> Tensor:
+    def __le__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.LE.apply(self, self._ensure_tensor(other))
 
     def __neg__(self) -> Tensor:
@@ -209,7 +207,7 @@ class Tensor(Variable):
     def _new(self, td: TensorData) -> Tensor:
         return Tensor(data=td, backend=self.backend)
 
-    def _ensure_tensor(self, t: TensorLike) -> Tensor:
+    def _ensure_tensor(self, t: Union[float, int, Tensor]) -> Tensor:
         """
         Turns a python float into a tensor with the same backend
         """
@@ -357,21 +355,6 @@ class Tensor(Variable):
     def detach(self) -> Tensor:
         return Tensor(data=self.data, history=None, backend=self.backend)
 
-    # def chain_rule(self, d_out: Any) -> Iterable[Tuple[Variable, Any]]:
-    #     h = self.history
-    #     assert h is not None
-    #     assert h.last_fn is not None
-    #     assert h.ctx is not None
-
-    #     x = h.last_fn.backward(h.ctx, d_out)
-    #     assert len(x) == len(
-    #         h.inputs
-    #     ), f"Bug in TensorFunction {h.last_fn}. Need a derivative for each input."
-    #     return [
-    #         (in_, in_.expand(self._ensure_tensor(d_in)))
-    #         for in_, d_in in zip(h.inputs, x)
-    #     ]
-
     def backward(self, grad_out: Optional[Tensor] = None) -> None:
         if grad_out is None:
             if self.shape != (1,):
@@ -379,7 +362,7 @@ class Tensor(Variable):
             grad_out = Tensor.make([1.0], shape=(1,), backend=self.backend)
         backpropagate(self, grad_out)
 
-    def accumulate_derivative(self, value: TensorLike) -> None:
+    def accumulate_derivative(self, value: Union[float, int, Tensor]) -> None:
         """
         Add value to the accumulated derivative for this variable
         Should only be called on leaf variables during autodifferentiation.

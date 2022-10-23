@@ -28,7 +28,7 @@ class Context:
         self._saved_values = None
 
     @property
-    def saved_values(self):
+    def saved_values(self) -> Union[Tuple[Any, ...], Any]:
 
         if not self.requires_grad_:
             raise ValueError("Context does not require gradients - no values saved.")
@@ -39,7 +39,7 @@ class Context:
         return unwrap_tuple(self._saved_values)
 
     @property
-    def saved_tensors(self):
+    def saved_tensors(self) -> Union[Tuple[Any, ...], Any]:
         return self.saved_values
 
     def save_for_backward(self, *values) -> None:
@@ -68,7 +68,7 @@ class History:
         self,
         last_fn: Optional[Type[BaseFunction]] = None,
         ctx: Optional[Context] = None,
-        inputs: Optional[Iterable[Union[Variable, float]]] = None,
+        inputs: Optional[Iterable[Union[int, float, Variable]]] = None,
     ):
         self.last_fn = last_fn
         self.ctx = ctx
@@ -168,7 +168,7 @@ class Variable:
         """True if this variable has no history."""
         return self.history is None
 
-    def backward(self, d_out: float = 1.0) -> None:
+    def backward(self, d_out: Union[int, float, Variable] = 1.0) -> None:
         """
         Calls auto-diff to fill in the derivatives for the history of this object.
 
@@ -178,7 +178,7 @@ class Variable:
         """
         backpropagate(self, d_out)
 
-    def accumulate_derivative(self, value: float):
+    def accumulate_derivative(self, value: Union[int, float, Variable]):
         """
         Add val to the derivative accumulated on this variable.
         Should only be called during auto-differentiation on leaf variables.
@@ -303,14 +303,14 @@ class BaseFunction:
         return cls.variable(c, back)
 
 
-def is_constant(value: Union[Variable, float]) -> bool:
+def is_constant(value: Any) -> bool:
     return (not isinstance(value, Variable)) or (value.history is None)
 
 
-def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
+def topological_sort(variable: Variable) -> List[Variable]:
     diff_chain = []
 
-    def visit_variable_and_add(variable: Union[Variable, float]) -> None:
+    def visit_variable_and_add(variable: Variable) -> None:
         if not isinstance(variable, Variable):
             return
 
@@ -326,7 +326,7 @@ def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
         # Mark variable as visited
         setattr(variable, "seen", True)
 
-    def dfs_visit(variable: Union[Variable, float]) -> None:
+    def dfs_visit(variable: Variable) -> None:
         if not isinstance(variable, Variable):
             return
 
@@ -340,7 +340,7 @@ def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
             for v in variable.history.inputs:
                 dfs_visit(v)
 
-    def bfs_visit(variable: Union[Variable, float]) -> None:
+    def bfs_visit(variable: Variable) -> None:
         if not isinstance(variable, Variable):
             return diff_chain
 
@@ -368,8 +368,7 @@ def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
     return diff_chain
 
 
-# TODO: need to update the type hints here d_out should also work with tensors / variables!
-def backpropagate(variable: Union[Variable, float], d_out: float = 1.0) -> None:
+def backpropagate(variable: Variable, d_out: Union[int, float, Variable] = 1.0) -> None:
     derivative_chain = topological_sort(variable)
     var_derivative_map = {variable: d_out}
 
