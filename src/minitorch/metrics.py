@@ -1,9 +1,12 @@
-from typing import List
+from typing import List, Tuple
+
+from typing_extensions import TypeAlias
 
 from minitorch.autodiff import Scalar
 from minitorch.functional import summation
-from minitorch.types import RocCurveResult
 from minitorch.utils import check_for_binary_values, check_for_equal_dim
+
+RocCurveResult: TypeAlias = Tuple[List[Scalar], List[Scalar], List[Scalar]]
 
 
 def _check_arrays(y_true: List[Scalar], y_hat: List[Scalar]) -> None:

@@ -8,14 +8,16 @@ from dataclasses import dataclass
 from typing import Any, Iterable, List, Optional, Tuple, Type, Union
 
 import numpy as np
+from typing_extensions import TypeAlias
 
 import minitorch.autodiff.tensor_functions as tf
 import minitorch.functional as f
-from minitorch.types import TensorLike
 
 from .tensor_data import Index, Shape, Storage, Strides, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
 from .variable import Context, History, Variable, backpropagate
+
+TensorLike: TypeAlias = Union[float, int, "Tensor"]
 
 TENSOR_COUNT = 0
 

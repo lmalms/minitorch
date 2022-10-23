@@ -1,7 +1,10 @@
-from typing import Callable, List
+from typing import Callable, List, Union
+
+from typing_extensions import TypeAlias
 
 from minitorch.operators import add, mul, neg
-from minitorch.types import ScalarLike
+
+ScalarLike: TypeAlias = Union[float, int, "Scalar"]
 
 
 def reduce(
