@@ -7,20 +7,15 @@ import pytest
 from hypothesis import given
 
 from minitorch.autodiff import Scalar
-from minitorch.module import Linear, LinearScalar
+from minitorch.module import LinearScalar, LinearTensor
 
 from .strategies import medium_ints
 
 SKIP_LINEAR_FORWARD_TESTS = True
-SKIP_LINEAR_INIT_TESTS = True
 SKIP_REASON = "Tests are slow."
 
 
 @given(medium_ints, medium_ints)
-@pytest.mark.skipif(
-    os.environ.get("SKIP_LINEAR_FORWARD_TESTS", SKIP_LINEAR_INIT_TESTS),
-    reason=SKIP_REASON,
-)
 def test_linear_scalar_init(input_dim: int, output_dim: int):
     linear = LinearScalar(input_dim, output_dim)
 
@@ -60,6 +55,10 @@ def test_linear_scalar_forward(input_dim: int, output_dim: int):
     assert np.allclose(minitorch_forward(X_scalars), np_forward(X))
 
 
-def test_linear_tensor_init():
-    input_dim, output_dim
-    linear = Linear
+@given(medium_ints, medium_ints)
+def test_linear_tensor_init(input_dim: int, output_dim: int):
+    linear = LinearTensor(input_dim, output_dim)
+
+    # Check shape of weights and biases
+    assert linear._weights.value.shape == (input_dim, output_dim)
+    assert linear._bias.value.shape == (output_dim,)

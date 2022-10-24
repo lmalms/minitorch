@@ -100,9 +100,9 @@ class LinearTensor(Module):
         assert inputs.shape[1] == self._weights[0]
         # Add dimensions such that we can broadcast
         _inputs = inputs.view(*inputs.shape, 1)
-        _weights = self._weights.value.view(1, *self._weights.shape)
+        _weights = self._weights.value.view(1, *self._weights.value.shape)
 
         # Collapse dimension
         _out = (_inputs * _weights).sum(dim=1)
         _out = _out.view(inputs.shape[0], self.output_dim)
-        return _out + self._bias
+        return _out + self._bias.value
