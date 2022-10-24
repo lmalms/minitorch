@@ -7,16 +7,21 @@ import pytest
 from hypothesis import given
 
 from minitorch.autodiff import Scalar
-from minitorch.module import LinearScalar
+from minitorch.module import Linear, LinearScalar
 
 from .strategies import medium_ints
 
 SKIP_LINEAR_FORWARD_TESTS = True
+SKIP_LINEAR_INIT_TESTS = True
 SKIP_REASON = "Tests are slow."
 
 
 @given(medium_ints, medium_ints)
-def test_linear_init(input_dim: int, output_dim: int):
+@pytest.mark.skipif(
+    os.environ.get("SKIP_LINEAR_FORWARD_TESTS", SKIP_LINEAR_INIT_TESTS),
+    reason=SKIP_REASON,
+)
+def test_linear_scalar_init(input_dim: int, output_dim: int):
     linear = LinearScalar(input_dim, output_dim)
 
     # Check the size and dim of weight matrix
@@ -32,7 +37,7 @@ def test_linear_init(input_dim: int, output_dim: int):
     os.environ.get("SKIP_LINEAR_FORWARD_TESTS", SKIP_LINEAR_FORWARD_TESTS),
     reason=SKIP_REASON,
 )
-def test_linear_forward(input_dim: int, output_dim: int):
+def test_linear_scalar_forward(input_dim: int, output_dim: int):
 
     # Initialise a linear layer
     linear = LinearScalar(input_dim, output_dim)
@@ -53,3 +58,8 @@ def test_linear_forward(input_dim: int, output_dim: int):
 
     X_scalars = [[Scalar(value) for value in row] for row in X]
     assert np.allclose(minitorch_forward(X_scalars), np_forward(X))
+
+
+def test_linear_tensor_init():
+    input_dim, output_dim
+    linear = Linear
