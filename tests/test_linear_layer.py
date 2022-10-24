@@ -62,6 +62,7 @@ def test_linear_tensor_init(input_dim: int, output_dim: int):
 
 
 @given(medium_ints, medium_ints)
+@pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
 def test_linear_tensor_forward(input_dim: int, output_dim: int):
     # Initialise a new linear layer
     linear = LinearTensor(input_dim, output_dim)
