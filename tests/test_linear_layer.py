@@ -7,6 +7,7 @@ import pytest
 from hypothesis import given
 
 from minitorch.autodiff import Scalar
+from minitorch.autodiff import tensor_functions as tf
 from minitorch.module import LinearScalar, LinearTensor
 
 from .strategies import medium_ints
@@ -62,3 +63,24 @@ def test_linear_tensor_init(input_dim: int, output_dim: int):
     # Check shape of weights and biases
     assert linear._weights.value.shape == (input_dim, output_dim)
     assert linear._bias.value.shape == (output_dim,)
+
+
+@given(medium_ints, medium_ints)
+def test_linear_scalar_forward(input_dim: int, output_dim: int):
+    # Initialise a new linear layer
+    linear = LinearTensor(input_dim, output_dim)
+    weights, bias = linear._weights.value, linear._bias.value
+    weights_np = np.array(weights.data.storage).reshape(weights.shape)
+    bias_np = np.array(bias.data.storage).reshape(bias.shape)
+
+    # Generate some input data
+    n_samples = 10
+    inputs = tf.rand((n_samples, input_dim))
+    inputs_np = np.array(inputs.data.storage).reshape((n_samples, input_dim))
+
+    # Forward
+    tensor_out = linear.forward(inputs=inputs)
+    np_out = np.dot(inputs_np, weights_np) + bias_np
+
+    # Check
+    assert np.all(np.isclose(tensor_out.data.storage, np_out.flatten()))

@@ -97,7 +97,7 @@ class LinearTensor(Module):
         """
         Implements forward function for tensors using broadcasting.
         """
-        assert inputs.shape[1] == self._weights[0]
+        assert inputs.shape[1] == self._weights.value.shape[0]
         # Add dimensions such that we can broadcast
         _inputs = inputs.view(*inputs.shape, 1)
         _weights = self._weights.value.view(1, *self._weights.value.shape)
