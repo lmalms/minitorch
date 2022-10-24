@@ -1,4 +1,3 @@
-import os
 import random
 from typing import List, Union
 
@@ -12,7 +11,7 @@ from minitorch.module import LinearScalar, LinearTensor
 
 from .strategies import medium_ints
 
-SKIP_LINEAR_FORWARD_TESTS = True
+SKIP_LINEAR_FORWARD_TESTS = False
 SKIP_REASON = "Tests are slow."
 
 
@@ -29,10 +28,7 @@ def test_linear_scalar_init(input_dim: int, output_dim: int):
 
 
 @given(medium_ints, medium_ints)
-@pytest.mark.skipif(
-    os.environ.get("SKIP_LINEAR_FORWARD_TESTS", SKIP_LINEAR_FORWARD_TESTS),
-    reason=SKIP_REASON,
-)
+@pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
 def test_linear_scalar_forward(input_dim: int, output_dim: int):
 
     # Initialise a linear layer
@@ -48,7 +44,7 @@ def test_linear_scalar_forward(input_dim: int, output_dim: int):
         return np.dot(np.array(X), weights) + bias
 
     # Make up some data and compare to np implementation
-    n_samples = 100
+    n_samples = 10
     X = [[i * random.random() for i in range(input_dim)] for _ in range(n_samples)]
     assert np.allclose(minitorch_forward(X), np_forward(X))
 
@@ -66,7 +62,7 @@ def test_linear_tensor_init(input_dim: int, output_dim: int):
 
 
 @given(medium_ints, medium_ints)
-def test_linear_scalar_forward(input_dim: int, output_dim: int):
+def test_linear_tensor_forward(input_dim: int, output_dim: int):
     # Initialise a new linear layer
     linear = LinearTensor(input_dim, output_dim)
     weights, bias = linear._weights.value, linear._bias.value
