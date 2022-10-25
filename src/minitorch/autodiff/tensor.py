@@ -238,7 +238,7 @@ class Tensor(Variable):
         return tf.Exp.apply(self)
 
     def square(self) -> Tensor:
-        raise NotImplementedError
+        return tf.Square.apply(self)
 
     def cube(self) -> Tensor:
         raise NotImplementedError

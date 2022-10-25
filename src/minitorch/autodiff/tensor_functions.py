@@ -188,6 +188,18 @@ class Exp(TensorFunction):
         return grad_out.func.mul_zip(a.func.exp_map(a), grad_out)
 
 
+class Square(TensorFunction):
+    @classmethod
+    def _forward(cls, ctx: Context, a: t.Tensor) -> t.Tensor:
+        ctx.save_for_backward(a)
+        return a.func.mul_zip(a, a)
+
+    @classmethod
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
+        a = ctx.saved_tensors
+        return grad_out.func.mul_zip(grad_out, a.func.mul_zip(a, a._ensure_tensor(2)))
+
+
 class Sum(TensorFunction):
     @classmethod
     def _forward(cls, ctx: Context, a: t.Tensor, dim: t.Tensor) -> t.Tensor:

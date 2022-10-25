@@ -278,7 +278,7 @@ class TensorData:
                 else:
                     break
             tensor_string += line
-            tensor_string += f"{self.get(index):3.2f}"
+            tensor_string += f"{self.get(index):3.5f}"
             line = ""
             for i in range(len(index) - 1, -1, -1):
                 if index[i] == self.shape[i] - 1:
