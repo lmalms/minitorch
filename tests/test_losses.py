@@ -1,8 +1,8 @@
 import random
 
 from minitorch.autodiff import Scalar
-from minitorch.losses import binary_cross_entropy, mean_squared_error
 from minitorch.operators import is_close, log
+from minitorch.scalar_losses import binary_cross_entropy, mean_squared_error
 
 
 def test_mse_loss():
