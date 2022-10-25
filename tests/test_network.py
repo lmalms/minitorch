@@ -12,12 +12,12 @@ from minitorch.operators import relu
 
 from .strategies import medium_ints
 
-SKIP_NETWORK_FORWARD_TESTS = True
+SKIP_NETWORK_FORWARD_TESTS = False
 SKIP_REASON = "Tests are slow."
 
 
 @given(medium_ints, medium_ints, medium_ints)
-def test_network_init(input_dim: int, hidden_dim: int, output_dim: int):
+def test_scalar_network_init(input_dim: int, hidden_dim: int, output_dim: int):
     network = ScalarNetwork(input_dim, hidden_dim, output_dim)
 
     # Check dimensions of weight and bias matrices
@@ -38,11 +38,8 @@ def test_network_init(input_dim: int, hidden_dim: int, output_dim: int):
 
 
 @given(medium_ints, medium_ints, medium_ints)
-@pytest.mark.skipif(
-    os.environ.get("SKIP_NETWORK_FORWARD_TESTS", SKIP_NETWORK_FORWARD_TESTS),
-    reason=SKIP_REASON,
-)
-def test_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
+@pytest.mark.skipif(SKIP_NETWORK_FORWARD_TESTS, reason=SKIP_REASON)
+def test_scalar_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
 
     # Utils functions for running tests
     def extract_weights_and_biases(layer: LinearScalarLayer):
@@ -65,9 +62,16 @@ def test_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
         return np.array(out_)
 
     def np_forward(input_: List[List[float]]) -> np.ndarray:
-        ih_state = np_forward_single(ih_weights, ih_bias, input_)
-        hh_state = np_forward_single(hh_weights, hh_bias, ih_state)
-        ho_state = np_forward_single(ho_weights, ho_bias, hh_state)
+        # Input to hidden
+        ih_state = np.dot(np.array(input_), ih_weights) + ih_bias
+        ih_state = np.array([[relu(x) for x in row] for row in ih_state])
+
+        # Hidden to hidden
+        hh_state = np.dot(np.array(ih_state), hh_weights) + hh_bias
+        hh_state = np.array([[relu(x) for x in row] for row in hh_state])
+
+        # Hidden to out
+        ho_state = np.dot(np.array(hh_state), ho_weights) + ho_bias
         return ho_state
 
     # Initialise network
@@ -78,7 +82,7 @@ def test_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
     hh_weights, hh_bias = extract_weights_and_biases(network._hidden_layer)
     ho_weights, ho_bias = extract_weights_and_biases(network._output_layer)
 
-    n_samples = 100
+    n_samples = 10
     X = [[i * random.random() for i in range(input_dim)] for _ in range(n_samples)]
     assert np.all(np.isclose(minitorch_forward(X), np_forward(X)))
 
