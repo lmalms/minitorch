@@ -7,7 +7,7 @@ from minitorch.module.module import Module
 from minitorch.module.parameter import Parameter
 
 
-class LinearScalar(Module):
+class LinearScalarLayer(Module):
 
     """
     Builds a linear fully connected layer using scalar variables.
@@ -75,7 +75,7 @@ class LinearScalar(Module):
         return outputs
 
 
-class LinearTensor(Module):
+class LinearTensorLayer(Module):
     """
     Builds a linear fully connected layer using tensor variables.
     """

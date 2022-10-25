@@ -7,7 +7,7 @@ import pytest
 from hypothesis import given
 
 from minitorch.autodiff import Scalar
-from minitorch.module import LinearScalar, ScalarNetwork
+from minitorch.module import LinearScalarLayer, ScalarNetwork
 from minitorch.operators import relu
 
 from .strategies import medium_ints
@@ -45,7 +45,7 @@ def test_network_init(input_dim: int, hidden_dim: int, output_dim: int):
 def test_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
 
     # Utils functions for running tests
-    def extract_weights_and_biases(layer: LinearScalar):
+    def extract_weights_and_biases(layer: LinearScalarLayer):
         weights = np.array(
             [[param.value.data for param in row] for row in layer._weights]
         )

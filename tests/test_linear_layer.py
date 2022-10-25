@@ -7,7 +7,7 @@ from hypothesis import given
 
 from minitorch.autodiff import Scalar
 from minitorch.autodiff import tensor_functions as tf
-from minitorch.module import LinearScalar, LinearTensor
+from minitorch.module import LinearScalarLayer, LinearTensorLayer
 
 from .strategies import medium_ints
 
@@ -17,7 +17,7 @@ SKIP_REASON = "Tests are slow."
 
 @given(medium_ints, medium_ints)
 def test_linear_scalar_init(input_dim: int, output_dim: int):
-    linear = LinearScalar(input_dim, output_dim)
+    linear = LinearScalarLayer(input_dim, output_dim)
 
     # Check the size and dim of weight matrix
     assert len(linear._weights) == input_dim
@@ -32,7 +32,7 @@ def test_linear_scalar_init(input_dim: int, output_dim: int):
 def test_linear_scalar_forward(input_dim: int, output_dim: int):
 
     # Initialise a linear layer
-    linear = LinearScalar(input_dim, output_dim)
+    linear = LinearScalarLayer(input_dim, output_dim)
     weights = np.array([[param.value.data for param in row] for row in linear._weights])
     bias = np.array([param.value.data for param in linear._bias])
 
@@ -54,7 +54,7 @@ def test_linear_scalar_forward(input_dim: int, output_dim: int):
 
 @given(medium_ints, medium_ints)
 def test_linear_tensor_init(input_dim: int, output_dim: int):
-    linear = LinearTensor(input_dim, output_dim)
+    linear = LinearTensorLayer(input_dim, output_dim)
 
     # Check shape of weights and biases
     assert linear._weights.value.shape == (input_dim, output_dim)
@@ -65,7 +65,7 @@ def test_linear_tensor_init(input_dim: int, output_dim: int):
 @pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
 def test_linear_tensor_forward(input_dim: int, output_dim: int):
     # Initialise a new linear layer
-    linear = LinearTensor(input_dim, output_dim)
+    linear = LinearTensorLayer(input_dim, output_dim)
     weights, bias = linear._weights.value, linear._bias.value
     weights_np = np.array(weights.data.storage).reshape(weights.shape)
     bias_np = np.array(bias.data.storage).reshape(bias.shape)
