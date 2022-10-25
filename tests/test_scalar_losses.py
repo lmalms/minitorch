@@ -30,7 +30,7 @@ def test_bce_loss():
     n_samples = 10
 
     # Predicting the target exactly should have zero error
-    y_true = [Scalar(random.randint(0, 1)) for _ in range(n_samples)]
+    y_true = [Scalar(1) for _ in range(n_samples)]
     bce = binary_cross_entropy(y_true, y_true)
     assert is_close(0.0, bce.data)
 

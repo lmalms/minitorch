@@ -15,5 +15,5 @@ def mean_squared_error(y_true: Tensor, y_hat: Tensor) -> Tensor:
 def binary_cross_entropy(y_true: Tensor, y_hat: Tensor) -> Tensor:
     _check_dims(y_true, y_hat)
     log_likelihoods = (y_true == 1) * y_hat.log() + (y_true == 0) * (-y_hat + 1).log()
-    cross_entropy = -log_likelihoods.sum() / y_true.shape[0]
+    cross_entropy = -log_likelihoods.sum() / float(y_true.shape[0])
     return cross_entropy
