@@ -1,14 +1,19 @@
 import os
 import random
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 import pytest
 from hypothesis import given
 
-from minitorch.autodiff import Scalar
-from minitorch.module import LinearScalarLayer, ScalarNetwork
-from minitorch.module.network import TensorNetwork
+import minitorch.autodiff.tensor_functions as tf
+from minitorch.autodiff import Scalar, Tensor
+from minitorch.module import (
+    LinearScalarLayer,
+    LinearTensorLayer,
+    ScalarNetwork,
+    TensorNetwork,
+)
 from minitorch.operators import relu
 
 from .strategies import medium_ints
@@ -105,3 +110,44 @@ def test_tensor_network_init(input_dim: int, hidden_dim: int, output_dim: int):
     out_bias = network._output_layer._bias
     assert out_weights.value.shape == (hidden_dim, output_dim)
     assert out_bias.value.shape == (output_dim,)
+
+
+@given(medium_ints, medium_ints, medium_ints)
+def test_tensor_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
+    def extract_weights_and_biases(layer: LinearTensorLayer):
+        weights = layer._weights.value
+        weights = np.array(weights.data.storage).reshape(weights.shape)
+
+        bias = layer._bias.value
+        bias = np.array(bias.data.storage).reshape(bias.shape)
+
+        return weights, bias
+
+    def minitorch_forward(inputs: Tensor) -> np.ndarray:
+        out_ = network.forward(inputs)
+        return np.array(out_.data.storage).reshape(out_.shape)
+
+    def numpy_forward(inputs: Tensor) -> np.ndarray:
+        def apply_relu(inputs: np.ndarray) -> np.ndarray:
+            out = [relu(i) for i in inputs.flatten()]
+            return np.array(out).reshape(inputs.shape)
+
+        # To numpy
+        inputs = np.array(inputs.data.storage).reshape(inputs.shape)
+        ih_state = apply_relu(np.dot(inputs, ih_weights) + ih_bias)
+        hh_state = apply_relu(np.dot(ih_state, hh_weights) + hh_bias)
+        ho_state = np.dot(hh_state, ho_weights) + ho_bias
+        return ho_state
+
+    # Initialise network
+    network = TensorNetwork(input_dim, hidden_dim, output_dim)
+
+    # Extract weights and biases
+    ih_weights, ih_bias = extract_weights_and_biases(network._input_layer)
+    hh_weights, hh_bias = extract_weights_and_biases(network._hidden_layer)
+    ho_weights, ho_bias = extract_weights_and_biases(network._output_layer)
+
+    # Generate some data and run forwards
+    n_samples = 10
+    inputs = tf.rand((n_samples, input_dim))
+    assert np.allclose(minitorch_forward(inputs), numpy_forward(inputs))
