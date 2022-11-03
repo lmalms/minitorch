@@ -1,6 +1,6 @@
 from __future__ import annotations
-from abc import abstractmethod
 
+from abc import abstractmethod
 from typing import Dict, List, Tuple, Union
 
 from minitorch.autodiff import Variable

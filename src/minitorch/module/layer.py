@@ -1,5 +1,5 @@
 import random
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 import minitorch.autodiff.tensor_functions as tf
 from minitorch.autodiff import Scalar, Tensor
