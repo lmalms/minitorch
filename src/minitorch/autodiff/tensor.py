@@ -166,7 +166,7 @@ class Tensor(Variable):
         return tf.Mul.apply(self._ensure_tensor(other), tf.Inv.apply(self))
 
     def __matmul__(self, other: Union[float, int, Tensor]) -> Tensor:
-        return tf.MatMul.apply(self, other)
+        return tf.MatMul.apply(self, self._ensure_tensor(other))
 
     def __lt__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.LT.apply(self, self._ensure_tensor(other))

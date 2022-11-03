@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import abstractmethod
 
 from typing import Dict, List, Tuple, Union
 
@@ -129,5 +130,6 @@ class Module:
         self.__dict__["_parameters"][name] = parameter
         return parameter
 
+    @abstractmethod
     def forward(self, *args, **kwargs):
-        assert False, "Not implemented."
+        ...

@@ -5,7 +5,7 @@ from typing import Any, Iterable, List, Optional, Tuple, Type, Union
 
 from minitorch.autodiff.utils import unwrap_tuple, wrap_tuple
 
-VARIABLE_COUNT = 1
+VARIABLE_COUNT = 0
 
 
 class Context:
@@ -190,7 +190,7 @@ class Variable:
         assert self.is_leaf(), "Only leaf variables can have derivatives."
         if self.derivative is None:
             self.derivative = self.zeros()
-        self.derivative += value
+        self.derivative = self.derivative + value
 
     def zero_derivative_(self) -> None:
         """
@@ -378,7 +378,7 @@ def backpropagate(variable: Variable, d_out: Union[int, float, Variable] = 1.0) 
             d_out = var_derivative_map.get(var, 1.0)
             input_diff_pairs = var.history.backprop_step(d_out)
 
-            # Update scalars with new derivatives
+            # Update variables with new derivatives
             for (input_, diff) in input_diff_pairs:
                 prev_diff = var_derivative_map.get(input_, 0.0)
                 var_derivative_map.update({input_: (prev_diff + diff)})

@@ -435,19 +435,19 @@ def grad_check(f: Callable[..., t.Tensor], *tensors: t.Tensor) -> None:
         tensor.requires_grad = True
         tensor.zero_grad_()
 
-    random.seed(10)
     out_ = f(*tensors)
     out_.sum().backward()
 
     for i, tensor in enumerate(tensors):
-        # Grad a random index within that tensor imput
-        idx = tensor.data.sample()
-        check = grad_central_difference(f, *tensors, arg=i, idx=idx)
-        assert tensor.grad is not None
+        for _ in range(10):
+            # Grad a random index within that tensor imput
+            idx = tensor.data.sample()
+            check = grad_central_difference(f, *tensors, arg=i, idx=idx)
+            assert tensor.grad is not None
 
-        if not operators.is_close(tensor.grad[idx], check):
-            raise ValueError(
-                f"Derivative check failed for function {f.__name__} with arguments {tensors}. "
-                f"Derivative failed at input position {i}, index {idx}. Calculated derivative is {tensor.grad[idx]},"
-                f" should be {check}."
-            )
+            if not operators.is_close(tensor.grad[idx], check):
+                raise ValueError(
+                    f"Derivative check failed for function {f.__name__} with arguments {tensors}. "
+                    f"Derivative failed at input position {i}, index {idx}. "
+                    f"Calculated derivative is {tensor.grad[idx]}, should be {check}."
+                )

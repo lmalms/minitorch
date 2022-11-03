@@ -17,7 +17,7 @@ from minitorch.operators import relu
 
 from .strategies import medium_ints
 
-SKIP_NETWORK_FORWARD_TESTS = True
+SKIP_NETWORK_FORWARD_TESTS = False
 SKIP_REASON = "Tests are slow."
 
 

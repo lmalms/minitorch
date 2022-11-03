@@ -1,5 +1,5 @@
 import random
-from typing import List, Union
+from typing import List, Union, Optional
 
 import minitorch.autodiff.tensor_functions as tf
 from minitorch.autodiff import Scalar, Tensor
@@ -84,14 +84,16 @@ class LinearTensorLayer(Module):
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
-        self._weights = self._initialise_parameter(input_dim, output_dim)
-        self._bias = self._initialise_parameter(output_dim)
+        self._weights = self._initialise_parameter(
+            input_dim, output_dim, name="linear_weight"
+        )
+        self._bias = self._initialise_parameter(output_dim, name="linear_bias")
 
     @staticmethod
-    def _initialise_parameter(*shape) -> Parameter:
+    def _initialise_parameter(*shape: int, name: Optional[str] = None) -> Parameter:
         random_tensor = tf.rand(shape=tuple(shape), requires_grad=True)
         random_tensor = 2 * (random_tensor - 0.5)
-        return Parameter(value=random_tensor)
+        return Parameter(value=random_tensor, name=name)
 
     def forward(self, inputs: Tensor) -> Tensor:
         """

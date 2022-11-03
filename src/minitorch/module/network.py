@@ -22,10 +22,10 @@ class ScalarNetwork(Module):
 
     def forward(self, inputs: List[List[Union[float, Scalar]]]) -> List[List[Scalar]]:
         # Pass through input layer
-        input_to_hidden = self._apply_relu(self._input_layer.forward(inputs))
+        input_to_hidden = self._apply_relu(self._input_layer(inputs))
 
         # Pass through hidden layer
-        hidden_to_hidden = self._apply_relu(self._hidden_layer.forward(input_to_hidden))
+        hidden_to_hidden = self._apply_relu(self._hidden_layer(input_to_hidden))
 
         # Pass through output layer
         return self._output_layer(hidden_to_hidden)
@@ -56,10 +56,10 @@ class TensorNetwork(Module):
 
     def forward(self, inputs: Tensor) -> Tensor:
         # Pass through input layer
-        input_to_hidden = self._apply_relu(self._input_layer.forward(inputs))
+        input_to_hidden = self._apply_relu(self._input_layer(inputs))
 
         # Pass through hidden layer
-        hidden_to_hidden = self._apply_relu(self._hidden_layer.forward(input_to_hidden))
+        hidden_to_hidden = self._apply_relu(self._hidden_layer(input_to_hidden))
 
         # Pass through output layer
         return self._output_layer(hidden_to_hidden)

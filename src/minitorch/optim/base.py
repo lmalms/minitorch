@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Sequence
 
 from minitorch.module import Parameter
 
 
 class BaseOptimizer(ABC):
-    def __init__(self, parameters: List[Parameter]):
+    def __init__(self, parameters: Sequence[Parameter]):
         self.parameters = parameters
 
     def zero_grad(self) -> None:
@@ -13,5 +13,5 @@ class BaseOptimizer(ABC):
             p.zero_grad()
 
     @abstractmethod
-    def step(self):
+    def step(self) -> None:
         ...
