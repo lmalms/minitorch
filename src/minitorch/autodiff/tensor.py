@@ -17,8 +17,6 @@ from .tensor_data import Index, Shape, Storage, Strides, TensorData
 from .tensor_ops import SimpleBackend, TensorBackend
 from .variable import Context, History, Variable, backpropagate
 
-TENSOR_COUNT = 0
-
 
 class TensorHistory(History):
     """
