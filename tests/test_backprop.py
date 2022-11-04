@@ -57,7 +57,7 @@ class TensorFunction2(tf.TensorFunction):
     def _backward(cls, ctx: Context, grad_out: Tensor) -> Tuple[Tensor, ...]:
         """f'_x(x, y) = y + 1 ; f'_y(x, y) = x"""
         x, y = ctx.saved_tensors
-        df_dx = grad_out.func.mul_zip(grad_out, y.func.add_zip(y + y._ensure_tensor(1)))
+        df_dx = grad_out.func.mul_zip(grad_out, y.func.add_zip(y, y._ensure_tensor(1)))
         df_dy = grad_out.func.mul_zip(grad_out, x)
         return df_dx, df_dy
 
@@ -174,6 +174,74 @@ def test_tensor_backprop2():
     assert np.all(np.array(y.derivative.data.storage) == expected_grad)
 
     expected_grad = np.array([25 for _ in range(z.size)])
+    assert z.derivative is not None
+    assert z.derivative.shape == z.shape
+    assert np.all(np.array(z.derivative.data.storage) == expected_grad)
+
+
+def test_tensor_backprop3():
+    # Create tensors
+    x = tf.ones(shape=(3,)) * 0.5
+    x.requires_grad = True
+    y = tf.ones(shape=(5, 1)) * 0.75
+    y.requires_grad = True
+
+    # Forward
+    out = TensorFunction2.apply(x, y)
+
+    # Backward
+    grad_out = Tensor.make(
+        [0.5 for _ in range(out.size)],
+        shape=out.shape,
+        backend=SimpleBackend,
+    )
+    out.backward(grad_out=grad_out)
+
+    # Check derivatives
+    expected_grad = np.array([4.375 for _ in range(x.size)])
+    assert x.derivative is not None
+    assert x.derivative.shape == x.shape
+    assert np.all(np.array(x.derivative.data.storage) == expected_grad)
+
+    expected_grad = np.array([0.75 for _ in range(y.size)])
+    assert y.derivative is not None
+    assert y.derivative.shape == y.shape
+    assert np.all(np.array(y.derivative.data.storage) == expected_grad)
+
+
+def test_tensor_backprop4():
+    # Create tensors
+    x = tf.ones(shape=(3,)) * 0.5
+    x.requires_grad = True
+    y = tf.ones(shape=(5, 1)) * 0.75
+    y.requires_grad = True
+    z = tf.ones(shape=(1, 3)) * 0.5
+    z.requires_grad = True
+
+    # Forward
+    out1 = TensorFunction2.apply(x, y)
+    out2 = TensorFunction2.apply(out1, z)
+
+    # Backward
+    grad_out = Tensor.make(
+        [0.5 for _ in range(out2.size)],
+        shape=out2.shape,
+        backend=SimpleBackend,
+    )
+    out2.backward(grad_out=grad_out)
+
+    # Check derivatives
+    expected_grad = np.array([6.5625 for _ in range(x.size)])
+    assert x.derivative is not None
+    assert x.derivative.shape == x.shape
+    assert np.all(np.array(x.derivative.data.storage) == expected_grad)
+
+    expected_grad = np.array([1.125 for _ in range(y.size)])
+    assert y.derivative is not None
+    assert y.derivative.shape == y.shape
+    assert np.all(np.array(y.derivative.data.storage) == expected_grad)
+
+    expected_grad = np.array([2.1875 for _ in range(z.size)])
     assert z.derivative is not None
     assert z.derivative.shape == z.shape
     assert np.all(np.array(z.derivative.data.storage) == expected_grad)
