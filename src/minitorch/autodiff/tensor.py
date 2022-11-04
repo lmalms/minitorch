@@ -58,6 +58,10 @@ class Tensor(Variable):
         self.backend = backend
         self.func = backend
 
+    def __hash__(self) -> int:
+        # Hash method not inherited if overwriting __eq__
+        return hash(self.id_)
+
     @property
     def data(self) -> TensorData:
         return self._data
@@ -131,15 +135,6 @@ class Tensor(Variable):
     def parents(self) -> Iterable[Variable]:
         assert not self.is_constant()
         return self.history.inputs
-
-    @staticmethod
-    def _format_variable_id() -> str:
-        global TENSOR_COUNT
-        TENSOR_COUNT += 1
-        return "Tensor" + str(TENSOR_COUNT)
-
-    def __hash__(self):
-        return hash(self.name)
 
     def __add__(self, other: Union[float, int, Tensor]) -> Tensor:
         return tf.Add.apply(self, self._ensure_tensor(other))

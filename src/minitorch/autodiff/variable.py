@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+import uuid
 from abc import abstractmethod
 from typing import Any, Iterable, List, Optional, Tuple, Type, Union
 
 from minitorch.autodiff.utils import unwrap_tuple, wrap_tuple
-
-VARIABLE_COUNT = 0
 
 
 class Context:
@@ -96,10 +95,13 @@ class Variable:
 
     def __init__(self, history: Optional[History] = None, name: Optional[str] = None):
         self.history = history
-        self.id = self._format_variable_id()
-        self.name = name if name is not None else self.id
+        self.name = name
+        self._id = uuid.uuid4()
         self._derivative = None
         self.used = 0
+
+    def __hash__(self) -> int:
+        return hash(self.id_)
 
     @property
     @abstractmethod
@@ -154,11 +156,9 @@ class Variable:
         """
         self.history = History() if requires_grad else None
 
-    @staticmethod
-    def _format_variable_id() -> str:
-        global VARIABLE_COUNT
-        VARIABLE_COUNT += 1
-        return "Variable" + str(VARIABLE_COUNT)
+    @property
+    def id_(self) -> str:
+        return str(self._id)
 
     def is_leaf(self):
         """True if this variable has no last_fn"""

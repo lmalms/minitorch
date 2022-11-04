@@ -18,7 +18,6 @@ def test_parameter():
     param1 = MockParam()
     param2 = Parameter(value=param1)
     assert param1.requires_grad
-    print(param2)
 
 
 def test_update():

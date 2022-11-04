@@ -6,8 +6,6 @@ from typing import Any, Callable, Optional, Tuple, Union
 from minitorch import operators
 from minitorch.autodiff.variable import BaseFunction, Context, History, Variable
 
-SCALAR_COUNT = 0
-
 
 class Scalar(Variable):
     """
@@ -26,8 +24,9 @@ class Scalar(Variable):
         super().__init__(history=history, name=name)
         self.data = value
 
-    def __hash__(self):
-        return hash((self.data, self.name))
+    def __hash__(self) -> int:
+        # Hash method is not inherited if overwriting __eq__
+        return hash(self.id_)
 
     @property
     def data(self) -> float:
@@ -43,12 +42,6 @@ class Scalar(Variable):
                 f"Scalar values have to be of type int or float - got {type(value)}."
             )
         self._data = float(value)
-
-    @staticmethod
-    def _format_variable_id() -> str:
-        global SCALAR_COUNT
-        SCALAR_COUNT += 1
-        return "Scalar" + str(SCALAR_COUNT)
 
     def __repr__(self) -> str:
         return f"Scalar({self.data:.3f}, name={self.name})"
