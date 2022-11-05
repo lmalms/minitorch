@@ -1,17 +1,18 @@
 import random
+from functools import partial
 from typing import List, Union
 
 import numpy as np
 import pytest
 from hypothesis import given
 
-from minitorch.autodiff import Scalar
-from minitorch.autodiff import tensor_functions as tf
+import minitorch.autodiff.tensor_functions as tf
+from minitorch.autodiff import Scalar, Tensor
 from minitorch.module import LinearScalarLayer, LinearTensorLayer
 
 from .strategies import medium_ints
 
-SKIP_LINEAR_FORWARD_TESTS = False
+SKIP_LINEAR_FORWARD_TESTS = True
 SKIP_REASON = "Tests are slow."
 
 
@@ -81,3 +82,32 @@ def test_linear_tensor_forward(input_dim: int, output_dim: int):
 
     # Check
     assert np.all(np.isclose(tensor_out.data.storage, np_out.flatten()))
+
+
+@given(medium_ints, medium_ints)
+# @pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
+def test_linear_tensor_backward(input_dim: int, output_dim: int):
+    def forward(inputs: Tensor, weights: Tensor, bias: Tensor) -> Tensor:
+        """
+        Separate out forward to test with grad_check
+        """
+        # Add dimensions such that we can broadcast
+        inputs = inputs.view(*inputs.shape, 1)
+        weights = weights.view(1, *weights.shape)
+
+        # Collapse dimension
+        out = (inputs * weights).sum(dim=1)
+        out = out.view(inputs.shape[0], bias.shape[0])
+        return out + bias
+
+    # Initialise a new linear layer
+    linear = LinearTensorLayer(input_dim, output_dim)
+    weights, bias = linear._weights.value, linear._bias.value
+
+    # Generate some input data
+    n_samples = 10
+    inputs = tf.rand((n_samples, input_dim))
+
+    f = partial(forward, inputs)
+
+    tf.grad_check(f, weights, bias)
