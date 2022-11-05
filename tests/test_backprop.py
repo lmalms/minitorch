@@ -277,7 +277,7 @@ def test_tensor_backprop5():
     assert x.derivative.shape == x.shape
     assert np.allclose(np.array(x.derivative.data.storage), expected_grad)
 
-    expected_grad = np.array([1.4062 for _ in range(y.size)])
+    expected_grad = np.array([1.40625 for _ in range(y.size)])
     assert y.derivative is not None
     assert y.derivative.shape == y.shape
     assert np.allclose(np.array(y.derivative.data.storage), expected_grad)
@@ -287,7 +287,7 @@ def test_tensor_backprop5():
     assert z.derivative.shape == z.shape
     assert np.allclose(np.array(z.derivative.data.storage), expected_grad)
 
-    expected_grad = np.array([0.6562 for _ in range(w.size)])
+    expected_grad = np.array([0.65625 for _ in range(w.size)])
     assert w.derivative is not None
     assert w.derivative.shape == w.shape
     assert np.allclose(np.array(w.derivative.data.storage), expected_grad)

@@ -373,34 +373,16 @@ def backpropagate(variable: Variable, d_out: Union[int, float, Variable] = 1.0) 
     var_derivative_map = {variable: d_out}
 
     for var in derivative_chain:
-        print(f"running back prop for var = {var.name}")
         if not var.is_leaf():
             # Fetch any derivatives from previous backprop steps
             d_out = var_derivative_map.get(var)  # or .get(var, 1.0)
             input_diff_pairs = var.history.backprop_step(d_out)
 
-            print(
-                f"computed diffs wrt. inputs {[in_.name for (in_, _) in input_diff_pairs]}"
-            )
-            if hasattr(d_out, "name"):
-                print(f"pased down upstream diff {d_out.name}")
-
             # Update variables with new derivatives
             for (input_, diff) in input_diff_pairs:
                 # Set a name for derivative
                 prev_diff = var_derivative_map.get(input_, 0.0)
-                if hasattr(prev_diff, "name"):
-                    print(prev_diff.name)
-                else:
-                    print(prev_diff)
-
-                new_diff = prev_diff + diff
-                new_diff.name = f"diff {var.name} wrt. {input_.name}"
-                var_derivative_map.update({input_: (new_diff)})
-        else:
-            print(f"skipping var = {var.name} - its a leaf")
-
-        print("=====")
+                var_derivative_map.update({input_: prev_diff + diff})
 
     # Assign derivatives / accumulate derivatives
     for var, derivative in var_derivative_map.items():
