@@ -1,5 +1,5 @@
 import random
-from functools import partial
+from functools import partial, update_wrapper
 from typing import List, Union
 
 import numpy as np
@@ -7,6 +7,7 @@ import pytest
 from hypothesis import given
 
 import minitorch.autodiff.tensor_functions as tf
+import minitorch.tensor_losses as tl
 from minitorch.autodiff import Scalar, Tensor
 from minitorch.module import LinearScalarLayer, LinearTensorLayer
 
@@ -84,9 +85,9 @@ def test_linear_tensor_forward(input_dim: int, output_dim: int):
     assert np.all(np.isclose(tensor_out.data.storage, np_out.flatten()))
 
 
-@given(medium_ints, medium_ints)
+# @given(medium_ints, medium_ints)
 # @pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
-def test_linear_tensor_backward(input_dim: int, output_dim: int):
+def test_linear_tensor_backward1(input_dim: int = 2, output_dim: int = 1):
     def forward(inputs: Tensor, weights: Tensor, bias: Tensor) -> Tensor:
         """
         Separate out forward to test with grad_check
@@ -108,6 +109,45 @@ def test_linear_tensor_backward(input_dim: int, output_dim: int):
     n_samples = 10
     inputs = tf.rand((n_samples, input_dim))
 
-    f = partial(forward, inputs)
+    f = update_wrapper(partial(forward, inputs), forward)
+
+    tf.grad_check(f, weights, bias)
+
+
+# @pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
+def test_linear_tensor_backward2(input_dim: int = 2, output_dim: int = 1):
+    def forward(
+        inputs: Tensor,
+        targets: Tensor,
+        weights: Tensor,
+        bias: Tensor,
+    ) -> Tensor:
+        """
+        Separate out forward to test with grad_check
+        """
+        # Add dimensions such that we can broadcast
+        inputs = inputs.view(*inputs.shape, 1)
+        weights_ = weights.view(1, *weights.shape)
+
+        # Collapse dimension
+        out = (inputs * weights_).sum(dim=1)
+        predictions = out.view(inputs.shape[0], bias.size) + bias
+        predictions = predictions.sigmoid().view(targets.size)
+
+        # Compute loss
+        probas = (predictions * targets) + (predictions - 1.0) * (targets - 1.0)
+        loss = -probas.log() / targets.size
+        return loss
+
+    # Initialise a new linear layer
+    linear = LinearTensorLayer(input_dim, output_dim)
+    weights, bias = linear._weights.value, linear._bias.value
+
+    # Generate some input data
+    n_samples = 10
+    inputs = tf.rand((n_samples, input_dim))
+    targets = tf.tensor([1, 1, 1, 0, 0, 0, 1, 0, 1, 0])
+
+    f = update_wrapper(partial(forward, inputs, targets), forward)
 
     tf.grad_check(f, weights, bias)
