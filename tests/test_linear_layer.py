@@ -102,8 +102,8 @@ def test_linear_tensor_backward1(input_dim: int = 2, output_dim: int = 1):
         return out + bias
 
     # Initialise a new linear layer
-    linear = LinearTensorLayer(input_dim, output_dim)
-    weights, bias = linear._weights.value, linear._bias.value
+    weights = LinearTensorLayer._initialise_parameter(input_dim, output_dim).value
+    bias = LinearTensorLayer._initialise_parameter(output_dim).value
 
     # Generate some input data
     n_samples = 10
@@ -114,6 +114,7 @@ def test_linear_tensor_backward1(input_dim: int = 2, output_dim: int = 1):
     tf.grad_check(f, weights, bias)
 
 
+# @given(medium_ints, medium_ints)
 # @pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
 def test_linear_tensor_backward2(input_dim: int = 2, output_dim: int = 1):
     def forward(
@@ -134,14 +135,16 @@ def test_linear_tensor_backward2(input_dim: int = 2, output_dim: int = 1):
         predictions = out.view(inputs.shape[0], bias.size) + bias
         predictions = predictions.sigmoid().view(targets.size)
 
+        return predictions
+
         # Compute loss
         probas = (predictions * targets) + (predictions - 1.0) * (targets - 1.0)
         loss = -probas.log() / targets.size
         return loss
 
     # Initialise a new linear layer
-    linear = LinearTensorLayer(input_dim, output_dim)
-    weights, bias = linear._weights.value, linear._bias.value
+    weights = LinearTensorLayer._initialise_parameter(input_dim, output_dim).value
+    bias = LinearTensorLayer._initialise_parameter(output_dim).value
 
     # Generate some input data
     n_samples = 10
