@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from collections import OrderedDict
 from abc import abstractmethod
 from typing import Any, Iterable, List, Optional, Tuple, Type, Union
 
@@ -308,9 +309,12 @@ def is_constant(value: Any) -> bool:
 
 
 def topological_sort(variable: Variable) -> List[Variable]:
-    diff_chain = []
+    diff_chain = OrderedDict()
+    search_queue = [variable]
 
-    def visit_variable_and_add(variable: Variable) -> None:
+    def visit_variable_and_add_to_chain(variable: Variable) -> None:
+        print(variable.name)
+        print([t.name for t in diff_chain])
         if not isinstance(variable, Variable):
             return
 
@@ -318,13 +322,27 @@ def topological_sort(variable: Variable) -> List[Variable]:
             return
 
         if hasattr(variable, "seen") and variable.seen:
-            return
+            print(f"have seen {variable.name} before")
+            print(f"removing {variable.name}")
+            print("ids ....")
+            diff_chain.move_to_end(variable)
 
         # Append variable to list
-        diff_chain.append(variable)
+        diff_chain.update({variable: None})
+        print([t.name for t in diff_chain])
 
         # Mark variable as visited
         setattr(variable, "seen", True)
+
+    def visit_variable_and_add_to_queue(variable: Variable) -> None:
+        if not isinstance(variable, Variable):
+            return
+
+        if variable.is_constant():
+            return
+
+        # Append variable to list
+        search_queue.append(variable)
 
     def dfs_visit(variable: Variable) -> None:
         if not isinstance(variable, Variable):
@@ -333,7 +351,7 @@ def topological_sort(variable: Variable) -> List[Variable]:
         if variable.is_constant():
             return
 
-        visit_variable_and_add(variable)
+        visit_variable_and_add_to_chain(variable)
 
         # Iterate over children
         if variable.history.inputs is not None:
@@ -341,18 +359,21 @@ def topological_sort(variable: Variable) -> List[Variable]:
                 dfs_visit(v)
 
     def bfs_visit(variable: Variable) -> None:
+        print(f"bfs visit {variable.name}")
         if not isinstance(variable, Variable):
             return diff_chain
 
         if variable.is_constant():
             return diff_chain
 
-        visit_variable_and_add(variable)
+        visit_variable_and_add_to_chain(variable)
 
         # Append all of its children to list
         if variable.history.inputs is not None:
+            print(f"inputs are {[v.name for v in variable.history.inputs]}")
             for v in variable.history.inputs:
-                visit_variable_and_add(v)
+                print(f"visting child {v.name} of variable {variable.name}")
+                visit_variable_and_add_to_chain(v)
 
             # Run bfs_visit on children
             for v in variable.history.inputs:
@@ -363,9 +384,19 @@ def topological_sort(variable: Variable) -> List[Variable]:
             if hasattr(variable, "seen"):
                 delattr(variable, "seen")
 
-    bfs_visit(variable)
+    def bfs_fix(variable) -> None:
+        while len(search_queue) != 0:
+            variable = search_queue.pop(0)
+            visit_variable_and_add_to_chain(variable)
+
+            # Visit all children
+            if variable.history.inputs is not None:
+                for v in variable.history.inputs:
+                    visit_variable_and_add_to_queue(v)
+
+    bfs_fix(variable)
     remove_seen(diff_chain)
-    return diff_chain
+    return list(diff_chain.keys())
 
 
 def backpropagate(variable: Variable, d_out: Union[int, float, Variable] = 1.0) -> None:
@@ -375,17 +406,35 @@ def backpropagate(variable: Variable, d_out: Union[int, float, Variable] = 1.0) 
     for var in derivative_chain:
         if not var.is_leaf():
             # Fetch any derivatives from previous backprop steps
-            d_out = var_derivative_map.get(var)  # or .get(var, 1.0)
+            print(f"running backprop on var {var.name}")
+
+            d_out = var_derivative_map.get(var)
+            print(f"getting upward diff {d_out.name}")
+            print(d_out)
+
             input_diff_pairs = var.history.backprop_step(d_out)
 
             # Update variables with new derivatives
             for (input_, diff) in input_diff_pairs:
                 # Set a name for derivative
+                print(f"setting diff for var {input_.name}")
                 prev_diff = var_derivative_map.get(input_, 0.0)
-                var_derivative_map.update({input_: prev_diff + diff})
 
+                new_diff = prev_diff + diff
+                new_diff.name = f"d{var.name} wrt. d{input_.name}"
+
+                print(f"previous diff {prev_diff}")
+                print(f"diff {diff}")
+                print(f"new diff {new_diff}")
+
+                var_derivative_map.update({input_: new_diff})
+
+        print("======")
+
+    print("assigning derivatives")
     # Assign derivatives / accumulate derivatives
     for var, derivative in var_derivative_map.items():
+        print(f"{var.name}: {derivative}")
         if var.is_leaf():
             var.accumulate_derivative(derivative)
         else:
