@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import uuid
-from collections import OrderedDict
 from abc import abstractmethod
+from collections import OrderedDict
 from typing import Any, Iterable, List, Optional, Tuple, Type, Union
 
 from minitorch.autodiff.utils import unwrap_tuple, wrap_tuple
