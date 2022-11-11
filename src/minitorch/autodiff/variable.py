@@ -308,15 +308,21 @@ def is_constant(value: Any) -> bool:
     return (not isinstance(value, Variable)) or (value.history is None)
 
 
-def topological_sort(variable: Variable) -> List[Variable]:
+def topological_sort(variable: Union[float, Variable]) -> List[Variable]:
     diff_chain = OrderedDict()
     search_queue = [variable]
 
-    def visit_variable_and_add_to_chain(variable: Variable) -> None:
+    def check_variable(variable: Union[float, Variable]) -> bool:
         if not isinstance(variable, Variable):
-            return
+            return False
 
         if variable.is_constant():
+            return
+
+        return True
+
+    def visit_variable_and_add_to_chain(variable: Variable) -> None:
+        if not check_variable(variable):
             return
 
         if hasattr(variable, "seen") and variable.seen:
@@ -330,20 +336,14 @@ def topological_sort(variable: Variable) -> List[Variable]:
         setattr(variable, "seen", True)
 
     def visit_variable_and_add_to_queue(variable: Variable) -> None:
-        if not isinstance(variable, Variable):
-            return
-
-        if variable.is_constant():
+        if not check_variable(variable):
             return
 
         # Append variable to list
         search_queue.append(variable)
 
     def dfs_visit(variable: Variable) -> None:
-        if not isinstance(variable, Variable):
-            return
-
-        if variable.is_constant():
+        if not check_variable(variable):
             return
 
         visit_variable_and_add_to_chain(variable)
@@ -353,30 +353,10 @@ def topological_sort(variable: Variable) -> List[Variable]:
             for v in variable.history.inputs:
                 dfs_visit(v)
 
-    def bfs_visit(variable: Variable) -> None:
-        if not isinstance(variable, Variable):
-            return diff_chain
+    def bfs_visit(variable) -> None:
+        if not check_variable(variable):
+            return
 
-        if variable.is_constant():
-            return diff_chain
-
-        visit_variable_and_add_to_chain(variable)
-
-        # Append all of its children to list
-        if variable.history.inputs is not None:
-            for v in variable.history.inputs:
-                visit_variable_and_add_to_chain(v)
-
-            # Run bfs_visit on children
-            for v in variable.history.inputs:
-                bfs_visit(v)
-
-    def remove_seen(variables: List[Variable]) -> None:
-        for variable in variables:
-            if hasattr(variable, "seen"):
-                delattr(variable, "seen")
-
-    def bfs_fix(variable) -> None:
         while len(search_queue) != 0:
             variable = search_queue.pop(0)
             visit_variable_and_add_to_chain(variable)
@@ -386,7 +366,12 @@ def topological_sort(variable: Variable) -> List[Variable]:
                 for v in variable.history.inputs:
                     visit_variable_and_add_to_queue(v)
 
-    bfs_fix(variable)
+    def remove_seen(variables: List[Variable]) -> None:
+        for variable in variables:
+            if hasattr(variable, "seen"):
+                delattr(variable, "seen")
+
+    bfs_visit(variable)
     remove_seen(diff_chain)
     return list(diff_chain.keys())
 

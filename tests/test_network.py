@@ -17,7 +17,7 @@ from minitorch.operators import relu
 
 from .strategies import medium_ints
 
-SKIP_NETWORK_FORWARD_TESTS = False
+SKIP_NETWORK_FORWARD_TESTS = True
 SKIP_REASON = "Tests are slow."
 
 
@@ -112,6 +112,7 @@ def test_tensor_network_init(input_dim: int, hidden_dim: int, output_dim: int):
 
 
 @given(medium_ints, medium_ints, medium_ints)
+@pytest.mark.skipif(SKIP_NETWORK_FORWARD_TESTS, reason=SKIP_REASON)
 def test_tensor_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
     def extract_weights_and_biases(layer: LinearTensorLayer):
         weights = layer._weights.value
