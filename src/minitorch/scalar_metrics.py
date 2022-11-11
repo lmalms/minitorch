@@ -5,7 +5,7 @@ from typing_extensions import TypeAlias
 from minitorch.autodiff import Scalar
 from minitorch.functional import summation
 
-RocCurveResult: TypeAlias = Tuple[List[Scalar], List[Scalar], List[Scalar]]
+RocCurve: TypeAlias = Tuple[List[Scalar], List[Scalar], List[Scalar]]
 
 
 def _check_for_equal_dim(y_true: List[Scalar], y_hat: List[Scalar]):
@@ -66,7 +66,7 @@ def specificity(y_true: List[Scalar], y_hat: List[Scalar]) -> Scalar:
 
 def roc_curve(
     y_true: List[Scalar], y_hat: List[Scalar], bucket_size: float = 1e-03
-) -> RocCurveResult:
+) -> RocCurve:
     """
     Computes ROC curve, that is a plot of true positive and false positive rates as a function of classification
     threshold.
@@ -86,11 +86,14 @@ def roc_curve(
         bucket_size = min(max(bucket_size, 0.001), 1.0)
         thresholds = [0.0]
         for y_h in y_hat:
+            # If y_hat is within bucket_size of max threshold, move on
+            # Otherwise append y_hat to make new max threshold
             if max(thresholds) < (y_h - bucket_size):
                 thresholds.append(y_h)
 
         return thresholds
 
+    # Sort because will be iterting through thresholds in increasing order
     sorted_pairs = sorted(zip(y_true, y_hat), key=lambda pair: pair[1])
     y_true, y_hat = zip(*[(y_t, y_h) for (y_t, y_h) in sorted_pairs])
     thresholds = bucket_thresholds(y_hat, bucket_size)
@@ -106,11 +109,3 @@ def roc_curve(
         fpr.append(fpr_at_threshold)
 
     return tpr, fpr, thresholds
-
-
-def precision_recall_curve():
-    pass
-
-
-def auc():
-    pass
