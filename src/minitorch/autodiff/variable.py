@@ -313,8 +313,6 @@ def topological_sort(variable: Variable) -> List[Variable]:
     search_queue = [variable]
 
     def visit_variable_and_add_to_chain(variable: Variable) -> None:
-        print(variable.name)
-        print([t.name for t in diff_chain])
         if not isinstance(variable, Variable):
             return
 
@@ -322,14 +320,11 @@ def topological_sort(variable: Variable) -> List[Variable]:
             return
 
         if hasattr(variable, "seen") and variable.seen:
-            print(f"have seen {variable.name} before")
-            print(f"removing {variable.name}")
-            print("ids ....")
+            # Have already seen this var so move to end
             diff_chain.move_to_end(variable)
-
-        # Append variable to list
-        diff_chain.update({variable: None})
-        print([t.name for t in diff_chain])
+        else:
+            # Otherwise append to back
+            diff_chain.update({variable: None})
 
         # Mark variable as visited
         setattr(variable, "seen", True)
@@ -359,7 +354,6 @@ def topological_sort(variable: Variable) -> List[Variable]:
                 dfs_visit(v)
 
     def bfs_visit(variable: Variable) -> None:
-        print(f"bfs visit {variable.name}")
         if not isinstance(variable, Variable):
             return diff_chain
 
@@ -370,9 +364,7 @@ def topological_sort(variable: Variable) -> List[Variable]:
 
         # Append all of its children to list
         if variable.history.inputs is not None:
-            print(f"inputs are {[v.name for v in variable.history.inputs]}")
             for v in variable.history.inputs:
-                print(f"visting child {v.name} of variable {variable.name}")
                 visit_variable_and_add_to_chain(v)
 
             # Run bfs_visit on children
@@ -406,36 +398,21 @@ def backpropagate(variable: Variable, d_out: Union[int, float, Variable] = 1.0) 
     for var in derivative_chain:
         if not var.is_leaf():
             # Fetch any derivatives from previous backprop steps
-            print(f"running backprop on var {var.name}")
-
             d_out = var_derivative_map.get(var)
-            print(f"getting upward diff {d_out.name}")
-            print(d_out)
 
+            # Compute derivative wrt. each of variable's inputs using chain rule
             input_diff_pairs = var.history.backprop_step(d_out)
 
-            # Update variables with new derivatives
+            # Update the variable's inputs with new derivatives
             for (input_, diff) in input_diff_pairs:
-                # Set a name for derivative
-                print(f"setting diff for var {input_.name}")
                 prev_diff = var_derivative_map.get(input_, 0.0)
+                var_derivative_map.update({input_: prev_diff + diff})
 
-                new_diff = prev_diff + diff
-                new_diff.name = f"d{var.name} wrt. d{input_.name}"
-
-                print(f"previous diff {prev_diff}")
-                print(f"diff {diff}")
-                print(f"new diff {new_diff}")
-
-                var_derivative_map.update({input_: new_diff})
-
-        print("======")
-
-    print("assigning derivatives")
     # Assign derivatives / accumulate derivatives
     for var, derivative in var_derivative_map.items():
-        print(f"{var.name}: {derivative}")
         if var.is_leaf():
             var.accumulate_derivative(derivative)
         else:
+            # Technically torch does not store grads on
+            # non-leaf variables but will do here for debug
             var.derivative = derivative

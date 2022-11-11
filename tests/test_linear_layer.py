@@ -13,7 +13,7 @@ from minitorch.module import LinearScalarLayer, LinearTensorLayer
 
 from .strategies import medium_ints
 
-SKIP_LINEAR_FORWARD_TESTS = True
+SKIP_LINEAR_FORWARD_TESTS = False
 SKIP_REASON = "Tests are slow."
 
 
@@ -85,9 +85,7 @@ def test_linear_tensor_forward(input_dim: int, output_dim: int):
     assert np.all(np.isclose(tensor_out.data.storage, np_out.flatten()))
 
 
-# @given(medium_ints, medium_ints)
-# @pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
-def test_linear_tensor_backward1(input_dim: int = 2, output_dim: int = 1):
+def test_linear_tensor_backward(input_dim: int = 2, output_dim: int = 1):
     def forward(inputs: Tensor, weights: Tensor, bias: Tensor) -> Tensor:
         """
         Separate out forward to test with grad_check
@@ -114,9 +112,7 @@ def test_linear_tensor_backward1(input_dim: int = 2, output_dim: int = 1):
     tf.grad_check(f, weights, bias)
 
 
-# @given(medium_ints, medium_ints)
-# @pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
-def test_linear_tensor_backward2(input_dim: int = 2, output_dim: int = 1):
+def test_linear_tensor_backward_with_loss(input_dim: int = 2, output_dim: int = 1):
     def forward(
         inputs: Tensor,
         targets: Tensor,
@@ -135,11 +131,11 @@ def test_linear_tensor_backward2(input_dim: int = 2, output_dim: int = 1):
         predictions = out.view(inputs.shape[0], bias.size) + bias
         predictions = predictions.sigmoid().view(targets.size)
 
-        return predictions
-
         # Compute loss
-        probas = (predictions * targets) + (predictions - 1.0) * (targets - 1.0)
-        loss = -probas.log() / targets.size
+        log_likelihoods_p = (targets == 1) * predictions.log()
+        log_likelihoods_f = (targets == 0) * (-predictions + 1).log()
+        loss = (log_likelihoods_p + log_likelihoods_f) / float(predictions.shape[0])
+
         return loss
 
     # Initialise a new linear layer

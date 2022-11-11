@@ -36,8 +36,6 @@ class TensorHistory(History):
         """
         Runs one step of back-propagation by calling the chain rule.
         """
-        print(f"calling {self.last_fn.__name__} backward")
-        print(f"with grad out {grad_out}")
         return self.last_fn.chain_rule(self.ctx, self.inputs, grad_out)
 
 

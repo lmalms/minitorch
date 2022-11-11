@@ -75,7 +75,6 @@ class TensorFunction(BaseFunction):
         cls, ctx: Context, inputs: Iterable[Union[t.Tensor, float]], grad_out: t.Tensor
     ):
         gradients = cls.backward(ctx, grad_out)
-        print(f"in chain_rule {gradients}")
         if len(gradients) != len(inputs):
             raise IndexError("Expecting a gradient for each input.")
         tensor_grad_pairs = list(zip(inputs, gradients))
@@ -138,10 +137,7 @@ class Mul(TensorFunction):
     @classmethod
     def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         (a, b) = ctx.saved_tensors
-        print(f"got these saved tensors {(a, b)}")
-        tup = grad_out.func.mul_zip(grad_out, b), grad_out.func.mul_zip(grad_out, a)
-        print(f"in Mul backward, returning these {tup}")
-        return tup
+        return grad_out.func.mul_zip(grad_out, b), grad_out.func.mul_zip(grad_out, a)
 
 
 class Sigmoid(TensorFunction):
