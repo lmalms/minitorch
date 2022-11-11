@@ -154,10 +154,6 @@ class MathTestVariable(MathTest[T]):
         return x.square()
 
     @staticmethod
-    def cube(x: T) -> T:
-        return x.cube()
-
-    @staticmethod
     def sigmoid(x: T) -> T:
         return x.sigmoid()
 

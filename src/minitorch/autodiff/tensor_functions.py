@@ -137,7 +137,7 @@ class Mul(TensorFunction):
     @classmethod
     def _backward(cls, ctx: Context, grad_out: t.Tensor) -> Tuple[t.Tensor, t.Tensor]:
         (a, b) = ctx.saved_tensors
-        return grad_out.func.mul_zip(b, grad_out), grad_out.func.mul_zip(a, grad_out)
+        return grad_out.func.mul_zip(grad_out, b), grad_out.func.mul_zip(grad_out, a)
 
 
 class Sigmoid(TensorFunction):
@@ -186,6 +186,18 @@ class Exp(TensorFunction):
     def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
         a = ctx.saved_tensors
         return grad_out.func.mul_zip(a.func.exp_map(a), grad_out)
+
+
+class Square(TensorFunction):
+    @classmethod
+    def _forward(cls, ctx: Context, a: t.Tensor) -> t.Tensor:
+        ctx.save_for_backward(a)
+        return a.func.mul_zip(a, a)
+
+    @classmethod
+    def _backward(cls, ctx: Context, grad_out: t.Tensor) -> t.Tensor:
+        a = ctx.saved_tensors
+        return grad_out.func.mul_zip(grad_out, a.func.mul_zip(a, a._ensure_tensor(2)))
 
 
 class Sum(TensorFunction):
@@ -362,7 +374,7 @@ def ones(shape: Shape, backend: TensorBackend = SimpleBackend) -> t.Tensor:
 def rand(
     shape: Shape, backend: TensorBackend = SimpleBackend, requires_grad: bool = False
 ):
-    vals = [random.random() for _ in range((f.product(shape)))]
+    vals = [random.random() for _ in range(int(f.product(list(shape))))]
     tensor = t.Tensor.make(vals, shape, backend=backend)
     tensor.requires_grad = requires_grad
     return tensor
@@ -423,19 +435,19 @@ def grad_check(f: Callable[..., t.Tensor], *tensors: t.Tensor) -> None:
         tensor.requires_grad = True
         tensor.zero_grad_()
 
-    random.seed(10)
     out_ = f(*tensors)
     out_.sum().backward()
 
     for i, tensor in enumerate(tensors):
-        # Grad a random index within that tensor imput
-        idx = tensor.data.sample()
-        check = grad_central_difference(f, *tensors, arg=i, idx=idx)
-        assert tensor.grad is not None
+        for _ in range(10):
+            # Grad a random index within that tensor imput
+            idx = tensor.data.sample()
+            check = grad_central_difference(f, *tensors, arg=i, idx=idx)
+            assert tensor.grad is not None
 
-        if not operators.is_close(tensor.grad[idx], check):
-            raise ValueError(
-                f"Derivative check failed for function {f.__name__} with arguments {tensors}. "
-                f"Derivative failed at input position {i}, index {idx}. Calculated derivative is {tensor.grad[idx]},"
-                f" should be {check}."
-            )
+            if not operators.is_close(tensor.grad[idx], check):
+                raise ValueError(
+                    f"Derivative check failed for function {f.__name__} with arguments {tensors}. "
+                    f"Derivative failed at input position {i}, index {idx}. "
+                    f"Calculated derivative is {tensor.grad[idx]}, should be {check}."
+                )

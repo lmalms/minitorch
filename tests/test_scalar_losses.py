@@ -1,8 +1,8 @@
 import random
 
 from minitorch.autodiff import Scalar
-from minitorch.losses import binary_cross_entropy, mean_squared_error
 from minitorch.operators import is_close, log
+from minitorch.scalar_losses import binary_cross_entropy, mean_squared_error
 
 
 def test_mse_loss():
@@ -30,7 +30,7 @@ def test_bce_loss():
     n_samples = 10
 
     # Predicting the target exactly should have zero error
-    y_true = [Scalar(random.randint(0, 1)) for _ in range(n_samples)]
+    y_true = [Scalar(1) for _ in range(n_samples)]
     bce = binary_cross_entropy(y_true, y_true)
     assert is_close(0.0, bce.data)
 

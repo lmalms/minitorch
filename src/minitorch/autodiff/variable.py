@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import uuid
 from abc import abstractmethod
+from collections import OrderedDict
 from typing import Any, Iterable, List, Optional, Tuple, Type, Union
 
 from minitorch.autodiff.utils import unwrap_tuple, wrap_tuple
-
-VARIABLE_COUNT = 1
 
 
 class Context:
@@ -28,7 +28,7 @@ class Context:
         self._saved_values = None
 
     @property
-    def saved_values(self):
+    def saved_values(self) -> Union[Tuple[Any, ...], Any]:
 
         if not self.requires_grad_:
             raise ValueError("Context does not require gradients - no values saved.")
@@ -39,7 +39,7 @@ class Context:
         return unwrap_tuple(self._saved_values)
 
     @property
-    def saved_tensors(self):
+    def saved_tensors(self) -> Union[Tuple[Any, ...], Any]:
         return self.saved_values
 
     def save_for_backward(self, *values) -> None:
@@ -68,7 +68,7 @@ class History:
         self,
         last_fn: Optional[Type[BaseFunction]] = None,
         ctx: Optional[Context] = None,
-        inputs: Optional[Iterable[Union[Variable, float]]] = None,
+        inputs: Optional[Iterable[Union[int, float, Variable]]] = None,
     ):
         self.last_fn = last_fn
         self.ctx = ctx
@@ -96,10 +96,13 @@ class Variable:
 
     def __init__(self, history: Optional[History] = None, name: Optional[str] = None):
         self.history = history
-        self.id = self._format_variable_id()
-        self.name = name if name is not None else self.id
+        self.name = name
+        self._id = uuid.uuid4()
         self._derivative = None
         self.used = 0
+
+    def __hash__(self) -> int:
+        return hash(self.id_)
 
     @property
     @abstractmethod
@@ -154,11 +157,9 @@ class Variable:
         """
         self.history = History() if requires_grad else None
 
-    @staticmethod
-    def _format_variable_id() -> str:
-        global VARIABLE_COUNT
-        VARIABLE_COUNT += 1
-        return "Variable" + str(VARIABLE_COUNT)
+    @property
+    def id_(self) -> str:
+        return str(self._id)
 
     def is_leaf(self):
         """True if this variable has no last_fn"""
@@ -168,7 +169,7 @@ class Variable:
         """True if this variable has no history."""
         return self.history is None
 
-    def backward(self, d_out: float = 1.0) -> None:
+    def backward(self, d_out: Union[int, float, Variable] = 1.0) -> None:
         """
         Calls auto-diff to fill in the derivatives for the history of this object.
 
@@ -178,7 +179,7 @@ class Variable:
         """
         backpropagate(self, d_out)
 
-    def accumulate_derivative(self, value: float):
+    def accumulate_derivative(self, value: Union[int, float, Variable]):
         """
         Add val to the derivative accumulated on this variable.
         Should only be called during auto-differentiation on leaf variables.
@@ -190,7 +191,7 @@ class Variable:
         assert self.is_leaf(), "Only leaf variables can have derivatives."
         if self.derivative is None:
             self.derivative = self.zeros()
-        self.derivative += value
+        self.derivative = self.derivative + value
 
     def zero_derivative_(self) -> None:
         """
@@ -303,60 +304,67 @@ class BaseFunction:
         return cls.variable(c, back)
 
 
-def is_constant(value: Union[Variable, float]) -> bool:
+def is_constant(value: Any) -> bool:
     return (not isinstance(value, Variable)) or (value.history is None)
 
 
-def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
-    diff_chain = []
+def topological_sort(variable: Union[float, Variable]) -> List[Variable]:
+    diff_chain = OrderedDict()
+    search_queue = [variable]
 
-    def visit_variable_and_add(variable: Union[Variable, float]) -> None:
+    def check_variable(variable: Union[float, Variable]) -> bool:
         if not isinstance(variable, Variable):
-            return
+            return False
 
         if variable.is_constant():
             return
 
-        if hasattr(variable, "seen") and variable.seen:
+        return True
+
+    def visit_variable_and_add_to_chain(variable: Variable) -> None:
+        if not check_variable(variable):
             return
 
-        # Append variable to list
-        diff_chain.append(variable)
+        if hasattr(variable, "seen") and variable.seen:
+            # Have already seen this var so move to end
+            diff_chain.move_to_end(variable)
+        else:
+            # Otherwise append to back
+            diff_chain.update({variable: None})
 
         # Mark variable as visited
         setattr(variable, "seen", True)
 
-    def dfs_visit(variable: Union[Variable, float]) -> None:
-        if not isinstance(variable, Variable):
+    def visit_variable_and_add_to_queue(variable: Variable) -> None:
+        if not check_variable(variable):
             return
 
-        if variable.is_constant():
+        # Append variable to list
+        search_queue.append(variable)
+
+    def dfs_visit(variable: Variable) -> None:
+        if not check_variable(variable):
             return
 
-        visit_variable_and_add(variable)
+        visit_variable_and_add_to_chain(variable)
 
         # Iterate over children
         if variable.history.inputs is not None:
             for v in variable.history.inputs:
                 dfs_visit(v)
 
-    def bfs_visit(variable: Union[Variable, float]) -> None:
-        if not isinstance(variable, Variable):
-            return diff_chain
+    def bfs_visit(variable) -> None:
+        if not check_variable(variable):
+            return
 
-        if variable.is_constant():
-            return diff_chain
+        while len(search_queue) != 0:
+            variable = search_queue.pop(0)
+            visit_variable_and_add_to_chain(variable)
 
-        visit_variable_and_add(variable)
-
-        # Append all of its children to list
-        if variable.history.inputs is not None:
-            for v in variable.history.inputs:
-                visit_variable_and_add(v)
-
-            # Run bfs_visit on children
-            for v in variable.history.inputs:
-                bfs_visit(v)
+            # Visit all children
+            if variable.history.inputs is not None:
+                for v in variable.history.inputs:
+                    visit_variable_and_add_to_queue(v)
 
     def remove_seen(variables: List[Variable]) -> None:
         for variable in variables:
@@ -365,28 +373,31 @@ def topological_sort(variable: Union[Variable, float]) -> List[Variable]:
 
     bfs_visit(variable)
     remove_seen(diff_chain)
-    return diff_chain
+    return list(diff_chain.keys())
 
 
-# TODO: need to update the type hints here d_out should also work with tensors / variables!
-def backpropagate(variable: Union[Variable, float], d_out: float = 1.0) -> None:
+def backpropagate(variable: Variable, d_out: Union[int, float, Variable] = 1.0) -> None:
     derivative_chain = topological_sort(variable)
     var_derivative_map = {variable: d_out}
 
     for var in derivative_chain:
         if not var.is_leaf():
             # Fetch any derivatives from previous backprop steps
-            d_out = var_derivative_map.get(var, 1.0)
+            d_out = var_derivative_map.get(var)
+
+            # Compute derivative wrt. each of variable's inputs using chain rule
             input_diff_pairs = var.history.backprop_step(d_out)
 
-            # Update scalars with new derivatives
+            # Update the variable's inputs with new derivatives
             for (input_, diff) in input_diff_pairs:
                 prev_diff = var_derivative_map.get(input_, 0.0)
-                var_derivative_map.update({input_: (prev_diff + diff)})
+                var_derivative_map.update({input_: prev_diff + diff})
 
     # Assign derivatives / accumulate derivatives
     for var, derivative in var_derivative_map.items():
         if var.is_leaf():
             var.accumulate_derivative(derivative)
         else:
+            # Technically torch does not store grads on
+            # non-leaf variables but will do here for debug
             var.derivative = derivative

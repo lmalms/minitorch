@@ -12,14 +12,20 @@ class Parameter:
         self.update(value=value)
 
     @property
-    def derivative(self) -> float:
+    def derivative(self) -> Union[float, Variable]:
         """
         Returns the parameter's value's derivative
         """
-        # TODO: add grad alias here.
         if hasattr(self.value, "derivative"):
             return self.value.derivative
         return 0.0
+
+    @property
+    def grad(self) -> Union[float, Variable]:
+        """
+        Alias to derivative
+        """
+        return self.derivative
 
     def update(self, value: Optional[Union[float, Variable]] = None) -> None:
         """
@@ -32,7 +38,7 @@ class Parameter:
                 self.value.name = self.name
 
     def zero_grad(self) -> None:
-        if hasattr(self.name, "zero_grad_"):
+        if hasattr(self.value, "zero_grad_"):
             self.value.zero_grad_()
 
     def __repr__(self):
