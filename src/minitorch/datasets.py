@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import List, Tuple
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Rectangle, Polygon
 
 # Type hints
 Features = List[Tuple[float, float]]
@@ -123,6 +123,44 @@ class DiagonalDataset(Dataset):
 
     def _generate_ys(self) -> Labels:
         return [1 if (x1 + x2 < 1.0) else 0.0 for (x1, x2) in self.xs]
+
+    def plot(self):
+        # Split dataset
+        positive_features, negative_features, _, _ = self.split_by_class()
+        positive_x1, positive_x2 = zip(*positive_features)
+        negative_x1, negative_x2 = zip(*negative_features)
+
+        # Plot dataset
+        fig, ax = plt.subplots(1, 1, dpi=110)
+        ax.scatter(
+            list(positive_x1),
+            list(positive_x2),
+            marker="x",
+            c="tab:blue",
+            label="class = 1",
+        )
+        ax.scatter(
+            list(negative_x1),
+            list(negative_x2),
+            marker="o",
+            c="tab:red",
+            label="class = 0",
+        )
+        ax.legend(loc=1)
+
+        # Add patches to highlight positive and negative class regiongs
+        left = Polygon([[0, 1], [1, 0], [0, 0]], color="tab:blue", alpha=0.2, lw=0)
+        ax.add_patch(left)
+
+        right = Polygon([[0, 1], [1, 1], [1, 0]], color="tab:red", alpha=0.2, lw=0)
+        ax.add_patch(right)
+
+        ax.set_title("Diagonal Dataset")
+        ax.set_xlabel("x1")
+        ax.set_ylabel("x2")
+        fig.tight_layout()
+
+        return fig
 
 
 class SplitDataset(Dataset):
