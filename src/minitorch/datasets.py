@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import random
+import numpy as np
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import List, Tuple
@@ -14,12 +14,10 @@ Labels = List[float]
 DatasetSplit = Tuple[Features, Features, Labels, Labels]
 
 
-random.seed(0)
-
-
 class Dataset:
     def __init__(self, n: int):
         self.n = n
+        self._rng = np.random.default_rng(seed=42)
         self._xs = self._generate_xs()
         self._ys = self._generate_ys()
 
@@ -37,7 +35,7 @@ class Dataset:
         ...
 
     def _generate_xs(self) -> Features:
-        return [(random.random(), random.random()) for _ in range(self.n)]
+        return [(self._rng.uniform(), self._rng.uniform()) for _ in range(self.n)]
 
     @abstractmethod
     def _generate_ys(self) -> Labels:
