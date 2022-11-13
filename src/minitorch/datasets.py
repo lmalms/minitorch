@@ -229,6 +229,52 @@ class XORDataset(Dataset):
             for (x1, x2) in self.xs
         ]
 
+    def plot(self):
+        # Split dataset
+        positive_features, negative_features, _, _ = self.split_by_class()
+        positive_x1, positive_x2 = zip(*positive_features)
+        negative_x1, negative_x2 = zip(*negative_features)
+
+        # Plot dataset
+        fig, ax = plt.subplots(1, 1, dpi=110)
+        ax.scatter(
+            list(positive_x1),
+            list(positive_x2),
+            marker="x",
+            c="tab:blue",
+            label="class = 1",
+        )
+        ax.scatter(
+            list(negative_x1),
+            list(negative_x2),
+            marker="o",
+            c="tab:red",
+            label="class = 0",
+        )
+        ax.legend(loc=1)
+
+        # Add patches to highlight positive and negative class regiongs
+        bottom_left = Rectangle((0, 0), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
+        ax.add_patch(bottom_left)
+
+        top_right = Rectangle((0.5, 0.5), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
+        ax.add_patch(top_right)
+
+        top_left = Rectangle((0.0, 0.5), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
+        ax.add_patch(top_left)
+
+        bottom_right = Rectangle(
+            (0.5, 0.0), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0
+        )
+        ax.add_patch(bottom_right)
+
+        ax.set_title("XOR Dataset")
+        ax.set_xlabel("x1")
+        ax.set_ylabel("x2")
+        fig.tight_layout()
+
+        return fig
+
 
 @dataclass
 class Datasets:
