@@ -62,18 +62,6 @@ class Dataset:
             negative_labels,
         )
 
-
-class SimpleDataset(Dataset):
-    def __init__(self, n: int):
-        super().__init__(n)
-
-    @property
-    def type(self) -> str:
-        return "simple"
-
-    def _generate_ys(self) -> Labels:
-        return [1 if x1 < 0.5 else 0.0 for (x1, _) in self.xs]
-
     def plot(self):
         # Split dataset
         positive_features, negative_features, _, _ = self.split_by_class()
@@ -97,6 +85,27 @@ class SimpleDataset(Dataset):
             label="class = 0",
         )
         ax.legend(loc=1)
+        ax.set_xlabel("x1")
+        ax.set_ylabel("x2")
+        fig.tight_layout()
+
+        return fig
+
+
+class SimpleDataset(Dataset):
+    def __init__(self, n: int):
+        super().__init__(n)
+
+    @property
+    def type(self) -> str:
+        return "simple"
+
+    def _generate_ys(self) -> Labels:
+        return [1 if x1 < 0.5 else 0.0 for (x1, _) in self.xs]
+
+    def plot(self):
+        fig = super().plot()
+        ax = plt.gca()
 
         # Add patches to highlight positive and negative class regiongs
         left = Rectangle((0, 0), 0.5, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
@@ -106,8 +115,6 @@ class SimpleDataset(Dataset):
         ax.add_patch(right)
 
         ax.set_title("Simple Dataset")
-        ax.set_xlabel("x1")
-        ax.set_ylabel("x2")
         fig.tight_layout()
 
         return fig
@@ -125,28 +132,8 @@ class DiagonalDataset(Dataset):
         return [1 if (x1 + x2 < 1.0) else 0.0 for (x1, x2) in self.xs]
 
     def plot(self):
-        # Split dataset
-        positive_features, negative_features, _, _ = self.split_by_class()
-        positive_x1, positive_x2 = zip(*positive_features)
-        negative_x1, negative_x2 = zip(*negative_features)
-
-        # Plot dataset
-        fig, ax = plt.subplots(1, 1, dpi=110)
-        ax.scatter(
-            list(positive_x1),
-            list(positive_x2),
-            marker="x",
-            c="tab:blue",
-            label="class = 1",
-        )
-        ax.scatter(
-            list(negative_x1),
-            list(negative_x2),
-            marker="o",
-            c="tab:red",
-            label="class = 0",
-        )
-        ax.legend(loc=1)
+        fig = super().plot()
+        ax = plt.gca()
 
         # Add patches to highlight positive and negative class regiongs
         left = Polygon([[0, 1], [1, 0], [0, 0]], color="tab:blue", alpha=0.2, lw=0)
@@ -156,8 +143,6 @@ class DiagonalDataset(Dataset):
         ax.add_patch(right)
 
         ax.set_title("Diagonal Dataset")
-        ax.set_xlabel("x1")
-        ax.set_ylabel("x2")
         fig.tight_layout()
 
         return fig
@@ -175,28 +160,8 @@ class SplitDataset(Dataset):
         return [1 if (x1 < 0.2) or (x1 > 0.8) else 0.0 for (x1, _) in self.xs]
 
     def plot(self):
-        # Split dataset
-        positive_features, negative_features, _, _ = self.split_by_class()
-        positive_x1, positive_x2 = zip(*positive_features)
-        negative_x1, negative_x2 = zip(*negative_features)
-
-        # Plot dataset
-        fig, ax = plt.subplots(1, 1, dpi=110)
-        ax.scatter(
-            list(positive_x1),
-            list(positive_x2),
-            marker="x",
-            c="tab:blue",
-            label="class = 1",
-        )
-        ax.scatter(
-            list(negative_x1),
-            list(negative_x2),
-            marker="o",
-            c="tab:red",
-            label="class = 0",
-        )
-        ax.legend(loc=1)
+        fig = super().plot()
+        ax = plt.gca()
 
         # Add patches to highlight positive and negative class regiongs
         left = Rectangle((0.0, 0.0), 0.2, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
@@ -208,8 +173,6 @@ class SplitDataset(Dataset):
         ax.add_patch(right)
 
         ax.set_title("Split Dataset")
-        ax.set_xlabel("x1")
-        ax.set_ylabel("x2")
         fig.tight_layout()
 
         return fig
@@ -230,47 +193,23 @@ class XORDataset(Dataset):
         ]
 
     def plot(self):
-        # Split dataset
-        positive_features, negative_features, _, _ = self.split_by_class()
-        positive_x1, positive_x2 = zip(*positive_features)
-        negative_x1, negative_x2 = zip(*negative_features)
-
-        # Plot dataset
-        fig, ax = plt.subplots(1, 1, dpi=110)
-        ax.scatter(
-            list(positive_x1),
-            list(positive_x2),
-            marker="x",
-            c="tab:blue",
-            label="class = 1",
-        )
-        ax.scatter(
-            list(negative_x1),
-            list(negative_x2),
-            marker="o",
-            c="tab:red",
-            label="class = 0",
-        )
-        ax.legend(loc=1)
+        fig = super().plot()
+        ax = plt.gca()
 
         # Add patches to highlight positive and negative class regiongs
-        bottom_left = Rectangle((0, 0), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
-        ax.add_patch(bottom_left)
+        bl = Rectangle((0, 0), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
+        ax.add_patch(bl)
 
-        top_right = Rectangle((0.5, 0.5), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
-        ax.add_patch(top_right)
+        tr = Rectangle((0.5, 0.5), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
+        ax.add_patch(tr)
 
-        top_left = Rectangle((0.0, 0.5), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
-        ax.add_patch(top_left)
+        tr = Rectangle((0.0, 0.5), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
+        ax.add_patch(tr)
 
-        bottom_right = Rectangle(
-            (0.5, 0.0), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0
-        )
-        ax.add_patch(bottom_right)
+        bl = Rectangle((0.5, 0.0), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
+        ax.add_patch(bl)
 
         ax.set_title("XOR Dataset")
-        ax.set_xlabel("x1")
-        ax.set_ylabel("x2")
         fig.tight_layout()
 
         return fig
