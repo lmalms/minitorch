@@ -14,10 +14,10 @@ Labels = List[float]
 DatasetSplit = Tuple[Features, Features, Labels, Labels]
 
 
+random.seed(0)
+
+
 class Dataset:
-
-    random.seed(0)
-
     def __init__(self, n: int):
         self.n = n
         self._xs = self._generate_xs()
@@ -135,6 +135,46 @@ class SplitDataset(Dataset):
 
     def _generate_ys(self) -> Labels:
         return [1 if (x1 < 0.2) or (x1 > 0.8) else 0.0 for (x1, _) in self.xs]
+
+    def plot(self):
+        # Split dataset
+        positive_features, negative_features, _, _ = self.split_by_class()
+        positive_x1, positive_x2 = zip(*positive_features)
+        negative_x1, negative_x2 = zip(*negative_features)
+
+        # Plot dataset
+        fig, ax = plt.subplots(1, 1, dpi=110)
+        ax.scatter(
+            list(positive_x1),
+            list(positive_x2),
+            marker="x",
+            c="tab:blue",
+            label="class = 1",
+        )
+        ax.scatter(
+            list(negative_x1),
+            list(negative_x2),
+            marker="o",
+            c="tab:red",
+            label="class = 0",
+        )
+        ax.legend(loc=1)
+
+        # Add patches to highlight positive and negative class regiongs
+        left = Rectangle((0.0, 0.0), 0.2, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
+        center = Rectangle((0.2, 0.0), 0.6, 1.0, color="tab:red", alpha=0.2, lw=0.0)
+        right = Rectangle((0.8, 0.0), 0.2, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
+
+        ax.add_patch(left)
+        ax.add_patch(center)
+        ax.add_patch(right)
+
+        ax.set_title("Split Dataset")
+        ax.set_xlabel("x1")
+        ax.set_ylabel("x2")
+        fig.tight_layout()
+
+        return fig
 
 
 class XORDataset(Dataset):
