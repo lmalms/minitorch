@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import numpy as np
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import List, Tuple
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle, Polygon
+import numpy as np
+from matplotlib.patches import Polygon, Rectangle
 
 # Type hints
 Features = List[Tuple[float, float]]
@@ -101,16 +101,16 @@ class SimpleDataset(Dataset):
     def _generate_ys(self) -> Labels:
         return [1 if x1 < 0.5 else 0.0 for (x1, _) in self.xs]
 
-    def plot(self):
+    def plot(self, add_shading: bool = True):
         fig = super().plot()
-        ax = plt.gca()
 
-        # Add patches to highlight positive and negative class regiongs
-        left = Rectangle((0, 0), 0.5, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
-        ax.add_patch(left)
-
-        right = Rectangle((0.5, 0), 0.5, 1.0, color="tab:red", alpha=0.2, lw=0.0)
-        ax.add_patch(right)
+        if add_shading:
+            # Add patches to highlight positive and negative class regiongs
+            ax = plt.gca()
+            left = Rectangle((0, 0), 0.5, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
+            right = Rectangle((0.5, 0), 0.5, 1.0, color="tab:red", alpha=0.2, lw=0.0)
+            ax.add_patch(left)
+            ax.add_patch(right)
 
         ax.set_title("Simple Dataset")
         fig.tight_layout()
@@ -129,16 +129,16 @@ class DiagonalDataset(Dataset):
     def _generate_ys(self) -> Labels:
         return [1 if (x1 + x2 < 1.0) else 0.0 for (x1, x2) in self.xs]
 
-    def plot(self):
+    def plot(self, add_shading: bool = True):
         fig = super().plot()
-        ax = plt.gca()
 
-        # Add patches to highlight positive and negative class regiongs
-        left = Polygon([[0, 1], [1, 0], [0, 0]], color="tab:blue", alpha=0.2, lw=0)
-        ax.add_patch(left)
-
-        right = Polygon([[0, 1], [1, 1], [1, 0]], color="tab:red", alpha=0.2, lw=0)
-        ax.add_patch(right)
+        if add_shading:
+            # Add patches to highlight positive and negative class regiongs
+            ax = plt.gca()
+            left = Polygon([[0, 1], [1, 0], [0, 0]], color="tab:blue", alpha=0.2, lw=0)
+            right = Polygon([[0, 1], [1, 1], [1, 0]], color="tab:red", alpha=0.2, lw=0)
+            ax.add_patch(left)
+            ax.add_patch(right)
 
         ax.set_title("Diagonal Dataset")
         fig.tight_layout()
@@ -157,18 +157,20 @@ class SplitDataset(Dataset):
     def _generate_ys(self) -> Labels:
         return [1 if (x1 < 0.2) or (x1 > 0.8) else 0.0 for (x1, _) in self.xs]
 
-    def plot(self):
+    def plot(self, add_shading: bool = True):
         fig = super().plot()
-        ax = plt.gca()
 
-        # Add patches to highlight positive and negative class regiongs
-        left = Rectangle((0.0, 0.0), 0.2, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
-        center = Rectangle((0.2, 0.0), 0.6, 1.0, color="tab:red", alpha=0.2, lw=0.0)
-        right = Rectangle((0.8, 0.0), 0.2, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
+        if add_shading:
+            # Add patches to highlight positive and negative class regiongs
+            ax = plt.gca()
 
-        ax.add_patch(left)
-        ax.add_patch(center)
-        ax.add_patch(right)
+            left = Rectangle((0.0, 0.0), 0.2, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
+            center = Rectangle((0.2, 0.0), 0.6, 1.0, color="tab:red", alpha=0.2, lw=0.0)
+            right = Rectangle((0.8, 0.0), 0.2, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
+
+            ax.add_patch(left)
+            ax.add_patch(center)
+            ax.add_patch(right)
 
         ax.set_title("Split Dataset")
         fig.tight_layout()
@@ -190,22 +192,22 @@ class XORDataset(Dataset):
             for (x1, x2) in self.xs
         ]
 
-    def plot(self):
+    def plot(self, add_shading: bool = True):
         fig = super().plot()
-        ax = plt.gca()
 
-        # Add patches to highlight positive and negative class regiongs
-        bl = Rectangle((0, 0), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
-        ax.add_patch(bl)
+        if add_shading:
+            # Add patches to highlight positive and negative class regiongs
+            ax = plt.gca()
 
-        tr = Rectangle((0.5, 0.5), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
-        ax.add_patch(tr)
+            bl = Rectangle((0, 0), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
+            tr = Rectangle((0.5, 0.5), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
+            tl = Rectangle((0.0, 0.5), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
+            bl = Rectangle((0.5, 0.0), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
 
-        tr = Rectangle((0.0, 0.5), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
-        ax.add_patch(tr)
-
-        bl = Rectangle((0.5, 0.0), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
-        ax.add_patch(bl)
+            ax.add_patch(bl)
+            ax.add_patch(tr)
+            ax.add_patch(tl)
+            ax.add_patch(bl)
 
         ax.set_title("XOR Dataset")
         fig.tight_layout()
