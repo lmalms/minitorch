@@ -1,3 +1,4 @@
+import itertools
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
@@ -15,32 +16,34 @@ def plot_scalar_predictions(
     ax = plt.gca()
 
     if dataset.type == "simple":
-        x1_positions = list(np.linspace(0, 1, 101))
+
+        x1_res, x2_res = 100, 10
+        x1_positions = list(np.linspace(0, 1, (x1_res + 1)))
+
         for x1_lower, x1_upper in zip(x1_positions, x1_positions[1:]):
 
             # Create corresponding x2 values for lower
-            X_lower = [list((x1_lower, i / 10)) for i in range(11)]
+            X_lower = [list((x1_lower, i / x2_res)) for i in range(x2_res + 1)]
             y_lower = model.forward(X_lower)
-            y_mean_lower = sigmoid(
-                sum(scalar[0].data for scalar in y_lower) / len(y_lower)
-            )
+            y_lower = list(itertools.chain.from_iterable(y_lower))
+            y_mean_lower = sigmoid(sum(s.data for s in y_lower) / len(y_lower))
 
             # Create corresponding x2 values for upper
-            X_upper = [list((x1_upper, i / 10)) for i in range(11)]
+            X_upper = [list((x1_upper, i / x2_res)) for i in range(x2_res + 1)]
             y_upper = model.forward(X_upper)
-            y_mean_upper = sigmoid(
-                sum(scalar[0].data for scalar in y_upper) / len(y_upper)
-            )
+            y_upper = list(itertools.chain.from_iterable(y_upper))
+            y_mean_upper = sigmoid(sum(s.data for s in y_upper) / len(y_upper))
+
+            # Average
+            y_mean = (y_mean_upper + y_mean_lower) / 2
 
             # Plot and fill
             ax.fill_betweenx(
-                [i / 10 for i in range(11)],
-                [x1_upper for _ in range(11)],
-                x1_lower,
-                alpha=(y_mean_lower - 0.5)
-                if y_mean_lower >= 0.5
-                else (0.5 - y_mean_lower),
-                color="tab:blue" if y_mean_lower >= 0.5 else "tab:red",
+                [i / x2_res for i in range(x2_res + 1)],
+                [x1_upper for _ in range(x2_res + 1)],
+                [x1_lower for _ in range(x2_res + 1)],
+                alpha=(y_mean - 0.5) if y_mean >= 0.5 else (0.5 - y_mean),
+                color="tab:blue" if y_mean >= 0.5 else "tab:red",
                 lw=0.01,
             )
 

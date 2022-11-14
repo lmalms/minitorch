@@ -103,10 +103,10 @@ class SimpleDataset(Dataset):
 
     def plot(self, add_shading: bool = True):
         fig = super().plot()
+        ax = plt.gca()
 
         if add_shading:
             # Add patches to highlight positive and negative class regiongs
-            ax = plt.gca()
             left = Rectangle((0, 0), 0.5, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
             right = Rectangle((0.5, 0), 0.5, 1.0, color="tab:red", alpha=0.2, lw=0.0)
             ax.add_patch(left)
@@ -131,10 +131,10 @@ class DiagonalDataset(Dataset):
 
     def plot(self, add_shading: bool = True):
         fig = super().plot()
+        ax = plt.gca()
 
         if add_shading:
             # Add patches to highlight positive and negative class regiongs
-            ax = plt.gca()
             left = Polygon([[0, 1], [1, 0], [0, 0]], color="tab:blue", alpha=0.2, lw=0)
             right = Polygon([[0, 1], [1, 1], [1, 0]], color="tab:red", alpha=0.2, lw=0)
             ax.add_patch(left)
@@ -159,15 +159,13 @@ class SplitDataset(Dataset):
 
     def plot(self, add_shading: bool = True):
         fig = super().plot()
+        ax = plt.gca()
 
         if add_shading:
             # Add patches to highlight positive and negative class regiongs
-            ax = plt.gca()
-
             left = Rectangle((0.0, 0.0), 0.2, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
             center = Rectangle((0.2, 0.0), 0.6, 1.0, color="tab:red", alpha=0.2, lw=0.0)
             right = Rectangle((0.8, 0.0), 0.2, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
-
             ax.add_patch(left)
             ax.add_patch(center)
             ax.add_patch(right)
@@ -194,20 +192,19 @@ class XORDataset(Dataset):
 
     def plot(self, add_shading: bool = True):
         fig = super().plot()
+        ax = plt.gca()
 
         if add_shading:
             # Add patches to highlight positive and negative class regiongs
-            ax = plt.gca()
-
             bl = Rectangle((0, 0), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
             tr = Rectangle((0.5, 0.5), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
             tl = Rectangle((0.0, 0.5), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
-            bl = Rectangle((0.5, 0.0), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
+            br = Rectangle((0.5, 0.0), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
 
             ax.add_patch(bl)
             ax.add_patch(tr)
             ax.add_patch(tl)
-            ax.add_patch(bl)
+            ax.add_patch(br)
 
         ax.set_title("XOR Dataset")
         fig.tight_layout()
