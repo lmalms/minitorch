@@ -87,10 +87,9 @@ def plot_scalar_predictions(
             )
 
     elif dataset.type == "split":
-        # Visualise decision boundaries
-
-        x1_positions = list(np.linspace(0, 1, 101))
-        x2_positions = list(np.linspace(0, 1, 101))
+        x1_res, x2_res = 100, 10
+        x1_positions = list(np.linspace(0, 1, x1_res + 1))
+        x2_positions = list(np.linspace(0, 1, x2_res + 1))
 
         for x1_lower, x1_upper in zip(x1_positions, x1_positions[1:]):
 
@@ -100,25 +99,24 @@ def plot_scalar_predictions(
 
             # Get predictions
             y_lower = model.forward(X_lower)
-            y_mean_lower = sigmoid(
-                sum(scalar[0].data for scalar in y_lower) / len(y_lower)
-            )
+            y_lower = list(itertools.chain.from_iterable(y_lower))
+            y_mean_lower = sigmoid(sum(s.data for s in y_lower) / len(y_lower))
 
             y_upper = model.forward(X_upper)
-            y_mean_upper = sigmoid(
-                sum(scalar[0].data for scalar in y_upper) / len(y_upper)
-            )
+            y_upper = list(itertools.chain.from_iterable(y_upper))
+            y_mean_upper = sigmoid(sum(s.data for s in y_upper) / len(y_upper))
+
+            # Avergage
+            y_mean = (y_mean_upper + y_mean_lower) / 2
 
             # Plot and fill
             ax.fill_betweenx(
                 x2_positions,
                 [x1_upper for _ in x2_positions],
-                x1_lower,
-                alpha=(y_mean_lower - 0.5)
-                if y_mean_lower >= 0.5
-                else (0.5 - y_mean_lower),
-                color="tab:blue" if y_mean_lower >= 0.5 else "tab:red",
-                lw=0.01,
+                [x1_lower for _ in x2_positions],
+                alpha=(y_mean - 0.5) if y_mean >= 0.5 else (0.5 - y_mean),
+                color="tab:blue" if y_mean >= 0.5 else "tab:red",
+                lw=0.001,
             )
 
     elif dataset.type == "xor":
