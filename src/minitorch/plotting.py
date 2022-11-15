@@ -120,13 +120,13 @@ def plot_scalar_predictions(
             )
 
     elif dataset.type == "xor":
-        # Generate mesh for predictions
-        n_steps = 101
-        x1_positions = list(np.linspace(0, 1.0, n_steps))
-        x2_positions = list(np.linspace(0, 1.0, n_steps))
+
+        x1_res, x2_res = 100, 100
+        x1_positions = list(np.linspace(0, 1.0, x1_res))
+        x2_positions = list(np.linspace(0, 1.0, x2_res))
 
         # Generate predictions for each point on mesh
-        y_hat = np.zeros(shape=(n_steps, n_steps))
+        y_hat = np.zeros(shape=(x1_res, x2_res))
         for i, x1 in enumerate(x1_positions):
             X = [[x1, x2] for x2 in x2_positions]
             y_hat_ = model.forward(X)
