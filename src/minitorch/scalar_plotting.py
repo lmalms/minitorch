@@ -10,7 +10,7 @@ from minitorch.module import Module
 from minitorch.operators import sigmoid
 
 
-def _add_simple_scalar_predictions(ax: Axes, model: Module):
+def _add_simple_scalar_predictions(ax: Axes, model: Module) -> Axes:
     x1_res, x2_res = 100, 10
     x1_positions = list(np.linspace(0, 1, (x1_res + 1)))
 
@@ -44,7 +44,7 @@ def _add_simple_scalar_predictions(ax: Axes, model: Module):
     return ax
 
 
-def _add_diagonal_scalar_predictions(ax: Axes, model: Module):
+def _add_diagonal_scalar_predictions(ax: Axes, model: Module) -> Axes:
     x1_res, bias_res = 100, 100
     x_positions = list(np.linspace(0, 1, x1_res + 1))
     bias_positions = list(np.linspace(0, 2, bias_res + 1))
@@ -85,7 +85,7 @@ def _add_diagonal_scalar_predictions(ax: Axes, model: Module):
     return ax
 
 
-def _add_split_scalar_predictions(ax: Axes, model: Module):
+def _add_split_scalar_predictions(ax: Axes, model: Module) -> Axes:
     x1_res, x2_res = 100, 10
     x1_positions = list(np.linspace(0, 1, x1_res + 1))
     x2_positions = list(np.linspace(0, 1, x2_res + 1))
@@ -121,7 +121,7 @@ def _add_split_scalar_predictions(ax: Axes, model: Module):
     return ax
 
 
-def _add_xor_scalar_predictions(ax: Axes, model: Module):
+def _add_xor_scalar_predictions(ax: Axes, model: Module) -> Axes:
     x1_res, x2_res = 100, 100
     x1_positions = list(np.linspace(0, 1.0, x1_res))
     x2_positions = list(np.linspace(0, 1.0, x2_res))
