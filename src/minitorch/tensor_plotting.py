@@ -59,7 +59,7 @@ def _add_diagonal_tensor_predictions(ax: Axes, model: Module) -> Axes:
         X_upper = [list((x1, bias_upper - x1)) for x1 in x_positions]
         X_upper = [[x1, max(min(x2, 1.0), 0.0)] for (x1, x2) in X_upper]
         y_upper = model.forward(tensor(X_upper))
-        y_mean_upper = y_lower.view(y_lower.size).mean().sigmoid()
+        y_mean_upper = y_upper.view(y_upper.size).mean().sigmoid()
 
         # Average
         y_mean = ((y_mean_upper + y_mean_lower) / 2).item()
