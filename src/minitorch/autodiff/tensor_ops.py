@@ -113,7 +113,7 @@ def tensor_zip(fn: Callable[[float, float], float]):
     return _zip
 
 
-def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
+def tensor_reduce(fn: Callable[[float, float], float]):
     """
     Low-level implementation of tensor reduce.
     """
