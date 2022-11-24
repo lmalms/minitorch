@@ -63,8 +63,6 @@ def tensor_map(fn: Callable[[float], float]):
             # Apply func at positions
             out_storage[out_position] = fn(in_storage[in_position])
 
-            # break
-
     return _map
 
 
