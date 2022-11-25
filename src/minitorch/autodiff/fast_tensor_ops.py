@@ -8,7 +8,7 @@ from numba import njit, prange
 from minitorch.autodiff import Tensor
 
 from .tensor_data import Shape, Storage, Strides, _Index, _Shape, _Strides
-from .tensor_ops import MapProto, TensorOps, to_numpy
+from .tensor_ops import MapProto, TensorOps
 
 
 # JIT compilable utils functions
