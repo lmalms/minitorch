@@ -175,7 +175,25 @@ class FastTensorOps(TensorOps):
     def reduce(
         fn: Callable[[float, float], float], start: float = 0
     ) -> Callable[[Tensor, int], Tensor]:
-        raise NotImplementedError
+        """
+        Higher order tensor reduce function.
+        """
+
+        reduce_fn = tensor_reduce(njit()(fn()))
+
+        def _reduce(a: Tensor, dim: int) -> Tensor:
+            # Set dimension that will be reduce to 1.
+            out_shape = list(a.shape)
+            out_shape[dim] = 1
+            out = a.make(
+                storage=np.ones(np.prod(out_shape)) * start,
+                shape=tuple(out_shape),
+                backend=a.backend,
+            )
+            reduce_fn(*out.tuple(), *a.tuple(), dim)
+            return out
+
+        return _reduce
 
     @staticmethod
     def matrix_multiply(x: Tensor, y: Tensor) -> Tensor:
