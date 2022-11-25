@@ -18,3 +18,11 @@ out, a, b = tf.zeros((10,)), tf.zeros((10,)), tf.zeros((10,))
 tzip = fast_ops.tensor_zip(njit()(ops.eq))
 tzip(*out.tuple(), *a.tuple(), *b.tuple())
 print(tzip.parallel_diagnostics(level=3))
+
+
+# REDUCE
+print("REDUCE")
+out, a = tf.zeros((1,)), tf.zeros((10,))
+treduce = fast_ops.tensor_reduce(njit()(ops.add))
+treduce(*out.tuple(), *a.tuple(), 0)
+print(treduce.parallel_diagnostics(level=3))
