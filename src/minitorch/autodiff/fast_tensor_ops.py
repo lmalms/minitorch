@@ -1,62 +1,55 @@
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Iterable
+from typing import Callable, Optional
 
 import numpy as np
-from numba import njit, jit, prange
-from minitorch.functional import product, reduce
+from numba import njit, prange
 
 from minitorch.autodiff import Tensor
 
-from .tensor_data import (
-    MAX_DIMS,
-    _Index,
-    _Shape,
-    Storage,
-    _Strides,
-    broadcast_index,
-    shape_broadcast,
-)
+from .tensor_data import Shape, Storage, Strides, _Index, _Shape, _Strides
 from .tensor_ops import MapProto, TensorOps, to_numpy
 
-# JIT compiled functions
-# These are a slight re-write of functions in tensor_data to make
-# them JIT compatible
 
-
+# JIT compilable utils functions
 def index_to_position(index: _Index, strides: _Strides) -> int:
     position = 0
     for i, s in zip(index, strides):
         position += i * s
 
-    return position
+    return int(position)
 
 
 def to_index(ordinal: int, shape: _Shape, out_index: _Index) -> None:
-    remaining_ordinal = ordinal
-    for i, dim in enumerate(shape[::-1]):
-        is_last_dim = i == (len(shape) - 1)
-        if is_last_dim:
-            out_index[i] = remaining_ordinal
+    shape = shape[::-1]
+    for i, dim in enumerate(shape):
+        if i == 0:
+            div = 1
         else:
-            out_index[i] = int(remaining_ordinal // dim)
-            remaining_ordinal = remaining_ordinal % dim
+            div = np.prod(shape[:i])
+        idx = (ordinal // div) % dim
+        out_index[(len(out_index) - 1) - i] = idx
 
 
 def broadcast_index(
-    big_index: _Index, big_shape: _Shape, shape: _Shape, out_index: _Index
+    big_index: _Index,
+    big_shape: Shape,
+    shape: Shape,
+    out_index: _Index,
 ) -> None:
     for i in range(len(shape)):
+        # Get the offset (padding)
+        # These are the number of dimensions we have to skip
+        # to get to the right dimension in the smaller shape
         offset = i + len(big_shape) - len(shape)
+
+        # Get the shape at the offset
         out_index[i] = big_index[offset] if shape[i] != 1 else 0
 
 
-# index_to_position = njit(inline="always")(index_to_position)
-# broadcast_index = njit(inline="always")(broadcast_index)
-# shape_broadcast = njit(inline="always")(shape_broadcast)
-
-# def to_numpy(*inputs: Tuple[float]) -> Iterable[np.ndarray]:
-#     return [np.array(in_) for in_ in inputs]
+index_to_position = njit(inline="always")(index_to_position)
+to_index = njit(inline="always")(to_index)
+broadcast_index = njit(inline="always")(broadcast_index)
 
 
 def tensor_map(fn: Callable[[float], float]):
@@ -74,23 +67,21 @@ def tensor_map(fn: Callable[[float], float]):
         in_strides: Strides,
     ) -> None:
 
-        # Cast as numpy arrays
-        out_shape, out_strides = np.array(out_shape), np.array(out_strides)
-        in_shape, in_strides = np.array(in_shape), np.array(in_strides)
+        # Placeholders to index into
+        in_index, out_index = np.zeros(in_shape), np.zeros(out_shape)
 
-        # Placeholders to use during map
-        out_size = int(np.prod(out_shape))
-        in_index = np.zeros_like(in_shape)
-        out_index = np.zeros_like(out_shape)
+        # Conver to arrays
+        in_shape, out_shape = np.array(in_shape), np.array(out_shape)
 
-        for out_position in prange(out_size):
-            # Get index corresponding to ordinal in out_tensor
+        for out_position in prange(len(out_storage)):
+
+            # Get index corresponding to out_position in out_tensor
             to_index(out_position, out_shape, out_index)
 
             # Get corresponding index in possibly smaller in_tensor
             broadcast_index(out_index, out_shape, in_shape, in_index)
 
-            # Get corrsponding ordinal into smaller in_tensor
+            # Get corrsponding position in in_tensor
             in_position = index_to_position(in_index, in_strides)
 
             # Apply func at positions
