@@ -8,7 +8,7 @@ from numba import njit, prange
 from minitorch.autodiff import Tensor
 
 from .tensor_data import Shape, Storage, Strides, _Index, _Shape, _Strides
-from .tensor_ops import MapProto, TensorOps
+from .tensor_ops import MapProto, TensorOps, shape_broadcast
 
 
 # JIT compilable utils functions
@@ -120,7 +120,21 @@ class FastTensorOps(TensorOps):
 
     @staticmethod
     def zip(fn: Callable[[float, float], float]) -> Callable[[Tensor, Tensor], Tensor]:
-        raise NotImplementedError
+        """
+        Higher order tensor zip function.
+        """
+        zip_fn = tensor_zip(njit()(fn))
+
+        def _zip_fn(a: Tensor, b: Tensor) -> Tensor:
+            if a.shape != b.shape:
+                out_shape = shape_broadcast(a.shape, b.shape)
+            else:
+                out_shape = a.shape
+            out = a.zeros(out_shape)
+            zip_fn(*out.tuple(), *a.tuple(), *b.tuple())
+            return out
+
+        return _zip_fn
 
     @staticmethod
     def reduce(
