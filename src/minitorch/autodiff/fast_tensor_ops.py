@@ -68,10 +68,8 @@ def tensor_map(fn: Callable[[float], float]):
     ) -> None:
 
         # Placeholders to index into
-        in_index, out_index = np.zeros(in_shape), np.zeros(out_shape)
-
-        # Conver to arrays
-        in_shape, out_shape = np.array(in_shape), np.array(out_shape)
+        out_shape, out_index = np.array(out_shape), np.zeros(out_shape)
+        in_shape, in_index = np.array(in_shape), np.zeros(in_shape)
 
         for out_position in prange(len(out_storage)):
 
@@ -91,7 +89,44 @@ def tensor_map(fn: Callable[[float], float]):
 
 
 def tensor_zip(fn: Callable[[float, float], float]):
-    raise NotImplementedError
+    """
+    Low-level implementation of tensor map between
+    tensors with possibly different strides.
+    """
+
+    def _zip(
+        out_storage: Storage,
+        out_shape: Shape,
+        out_strides: Strides,
+        a_storage: Storage,
+        a_shape: Shape,
+        a_strides: Strides,
+        b_storage: Storage,
+        b_shape: Shape,
+        b_strides: Strides,
+    ) -> None:
+        # Placeholders to index into
+        out_shape, out_index = np.array(out_shape), np.zeros(out_shape)
+        a_shape, a_index = np.array(a_shape), np.zeros(a_shape)
+        b_shape, b_index = np.array(b_shape), np.zeros(b_shape)
+
+        for out_position in prange(len(out_storage)):
+
+            # Grab the index in out from position
+            to_index(out_position, out_shape, out_index)
+
+            # Get the corresponding positions in possibly smaller in_tensors
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+
+            # From these indices get positions
+            a_position = index_to_position(a_index, a_strides)
+            b_position = index_to_position(b_index, b_strides)
+
+            # Apply func at position
+            out_storage[out_position] = fn(a_storage[a_position], b_storage[b_position])
+
+    return njit(parallel=True)(_zip)
 
 
 def tensor_reduce(fn: Callable[[float, float], float]):
