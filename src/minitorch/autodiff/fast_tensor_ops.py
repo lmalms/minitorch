@@ -214,7 +214,7 @@ class FastTensorOps(TensorOps):
         Higher order tensor reduce function.
         """
 
-        reduce_fn = tensor_reduce(njit()(fn()))
+        reduce_fn = tensor_reduce(njit()(fn))
 
         def _reduce(a: Tensor, dim: int) -> Tensor:
             # Set dimension that will be reduce to 1.
