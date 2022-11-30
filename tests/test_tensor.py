@@ -1,10 +1,17 @@
 from typing import Callable, Iterable, List, Tuple
 
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.strategies import DataObject, data, lists, permutations
 
-from minitorch.autodiff import Tensor, tensor
+from minitorch.autodiff import (
+    FastTensorOps,
+    SimpleOps,
+    Tensor,
+    TensorBackend,
+    TensorOps,
+    tensor,
+)
 from minitorch.autodiff.tensor_data import Shape
 from minitorch.autodiff.tensor_functions import grad_check
 from minitorch.operators import is_close
@@ -15,13 +22,17 @@ from .tensor_strategies import indices, shaped_tensors, tensors
 
 one_arg, two_arg, red_arg = MathTestTensor._comp_testing()
 
+# Define tensor backends
+BACKENDS = {"simple": TensorBackend(SimpleOps), "fast": TensorBackend(FastTensorOps)}
+
 
 @given(lists(small_floats, min_size=1))
-def test_create_and_index(data: List[float]) -> None:
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_create_and_index(backend: str, data: List[float]) -> None:
     """
     Test 1D tensor creation and indexing
     """
-    t = tensor(data)
+    t = tensor(data, backend=BACKENDS[backend])
     for idx in range(len(data)):
         assert data[idx] == t[idx]
 
@@ -92,29 +103,37 @@ def test_permute_grad(data: DataObject, t: Tensor) -> None:
     grad_check(permute, t)
 
 
-@given(tensors())
+@given(data())
+@settings(max_examples=100)
 @pytest.mark.parametrize("fn", one_arg)
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
 def test_one_arg_forward(
-    fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]], t: Tensor
+    fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]],
+    backend: str,
+    data: DataObject,
 ) -> None:
-    """Test one arg functions and compare to floats."""
+    """Test one arg forward functions and compare to floats."""
+    t = data.draw(tensors(backend=BACKENDS[backend]))
     _, base_fn, tensor_fn = fn
     t_out = tensor_fn(t)
     for idx in t_out.data.indices():
         assert is_close(t_out[idx], base_fn(t[idx]))
 
 
-@given(shaped_tensors(2))
+@given(data())
+@settings(max_examples=100)
 @pytest.mark.parametrize("fn", two_arg)
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
 def test_two_arg_forward(
     fn: Tuple[str, Callable[[float, float], float], Callable[[Tensor, Tensor], Tensor]],
-    ts: Tuple[Tensor, Tensor],
+    backend: str,
+    data: DataObject,
 ) -> None:
     """
     Test two arg forward funcs and compare to float implementations.
     """
+    t1, t2 = data.draw(shaped_tensors(2, backend=BACKENDS[backend]))
     _, base_fn, tensor_fn = fn
-    t1, t2 = ts
     t_out = tensor_fn(t1, t2)
     for idx in t_out.data.indices():
         assert is_close(t_out[idx], base_fn(t1[idx], t2[idx]))
