@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, List, Tuple
+from typing import Callable, List, Tuple
 
 import pytest
 from hypothesis import given, settings
@@ -15,10 +15,10 @@ from minitorch.autodiff import (
 from minitorch.autodiff.tensor_data import Shape
 from minitorch.autodiff.tensor_functions import grad_check
 from minitorch.operators import is_close
-from minitorch.testing import MathTestTensor, MathTestVariable
+from minitorch.testing import MathTestTensor
 
 from .strategies import small_floats
-from .tensor_strategies import indices, shaped_tensors, tensors
+from .tensor_strategies import shaped_tensors, tensors
 
 one_arg, two_arg, red_arg = MathTestTensor._comp_testing()
 
@@ -106,7 +106,7 @@ def test_permute_grad(data: DataObject, t: Tensor) -> None:
 @given(data())
 @settings(max_examples=100)
 @pytest.mark.parametrize("fn", one_arg)
-@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+@pytest.mark.parametrize("backend", (pytest.param("fast"),))
 def test_one_arg_forward(
     fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]],
     backend: str,

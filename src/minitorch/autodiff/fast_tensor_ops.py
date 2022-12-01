@@ -6,7 +6,7 @@ from typing import Callable, Optional
 import numpy as np
 from numba import njit, prange
 
-from minitorch.autodiff import Tensor
+import minitorch.autodiff.tensor as t
 
 from .tensor_data import Shape, Storage, Strides, _Index, _Shape, _Strides
 from .tensor_ops import MapProto, TensorOps, shape_broadcast
@@ -45,7 +45,7 @@ def broadcast_index(
         offset = i + len(big_shape) - len(shape)
 
         # Get the shape at the offset
-        out_index[i] = big_index[offset] if shape[i] != 1 else 0
+        out_index[i] = big_index[offset].view(np.int_) if shape[i] > 1 else 0
 
 
 index_to_position = njit(inline="always")(index_to_position)
@@ -180,7 +180,7 @@ class FastTensorOps(TensorOps):
         """
         map_fn = tensor_map(njit()(fn))
 
-        def _map_fn(a: Tensor, out: Optional[Tensor] = None) -> Tensor:
+        def _map_fn(a: t.Tensor, out: Optional[t.Tensor] = None) -> t.Tensor:
             if out is None:
                 out = a.zeros(a.shape)
             map_fn(*out.tuple(), *a.tuple())
@@ -189,13 +189,15 @@ class FastTensorOps(TensorOps):
         return _map_fn
 
     @staticmethod
-    def zip(fn: Callable[[float, float], float]) -> Callable[[Tensor, Tensor], Tensor]:
+    def zip(
+        fn: Callable[[float, float], float]
+    ) -> Callable[[t.Tensor, t.Tensor], t.Tensor]:
         """
         Higher order tensor zip function.
         """
         zip_fn = tensor_zip(njit()(fn))
 
-        def _zip_fn(a: Tensor, b: Tensor) -> Tensor:
+        def _zip_fn(a: t.Tensor, b: t.Tensor) -> t.Tensor:
             if a.shape != b.shape:
                 out_shape = shape_broadcast(a.shape, b.shape)
             else:
@@ -209,14 +211,14 @@ class FastTensorOps(TensorOps):
     @staticmethod
     def reduce(
         fn: Callable[[float, float], float], start: float = 0
-    ) -> Callable[[Tensor, int], Tensor]:
+    ) -> Callable[[t.Tensor, int], t.Tensor]:
         """
         Higher order tensor reduce function.
         """
 
         reduce_fn = tensor_reduce(njit()(fn))
 
-        def _reduce(a: Tensor, dim: int) -> Tensor:
+        def _reduce(a: t.Tensor, dim: int) -> t.Tensor:
             # Set dimension that will be reduce to 1.
             out_shape = list(a.shape)
             out_shape[dim] = 1
@@ -231,5 +233,5 @@ class FastTensorOps(TensorOps):
         return _reduce
 
     @staticmethod
-    def matrix_multiply(x: Tensor, y: Tensor) -> Tensor:
+    def matrix_multiply(x: t.Tensor, y: t.Tensor) -> t.Tensor:
         raise NotImplementedError
