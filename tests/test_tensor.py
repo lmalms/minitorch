@@ -5,7 +5,7 @@ from hypothesis import given, settings
 from hypothesis.strategies import DataObject, data, lists, permutations
 
 from minitorch.autodiff import (
-    FastTensorOps,
+    FastOps,
     SimpleOps,
     Tensor,
     TensorBackend,
@@ -23,7 +23,7 @@ from .tensor_strategies import shaped_tensors, tensors
 one_arg, two_arg, red_arg = MathTestTensor._comp_testing()
 
 # Define tensor backends
-BACKENDS = {"simple": TensorBackend(SimpleOps), "fast": TensorBackend(FastTensorOps)}
+BACKENDS = {"simple": TensorBackend(SimpleOps), "fast": TensorBackend(FastOps)}
 
 
 @given(lists(small_floats, min_size=1))
@@ -162,15 +162,18 @@ def test_reduce_sum(
     assert t_summed.is_close(out_tensor).all().item() == 1.0
 
 
-@given(tensors())
+@given(data())
 @pytest.mark.parametrize("fn", one_arg)
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
 def test_one_arg_grad(
     fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]],
-    t: Tensor,
+    backend: str,
+    data: DataObject,
 ) -> None:
     """
     Test autograd on one-arg funcs and compare using central difference.
     """
+    t = data.draw(tensors(backend=BACKENDS[backend]))
     _, _, tensor_fn = fn
     grad_check(tensor_fn, t)
 

@@ -1,4 +1,4 @@
-from minitorch.autodiff.fast_tensor_ops import FastTensorOps
+from minitorch.autodiff.fast_tensor_ops import FastOps
 from minitorch.autodiff.scalar import (
     Scalar,
     ScalarFunction,

@@ -174,7 +174,7 @@ def tensor_matrix_multiply():
     raise NotImplementedError
 
 
-class FastTensorOps(TensorOps):
+class FastOps(TensorOps):
     @staticmethod
     def map(fn: Callable[[float], float]) -> MapProto:
         """
