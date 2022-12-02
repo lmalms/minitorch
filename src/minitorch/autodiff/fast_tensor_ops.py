@@ -14,8 +14,7 @@ from .tensor_ops import MapProto, TensorOps, shape_broadcast
 
 # JIT compilable utils functions
 def index_to_position(index: _Index, strides: _Strides) -> int:
-    prod = np.multiply(index, strides)
-    return int(np.sum(prod))
+    return int(np.sum(index * strides))
 
 
 def to_index(ordinal: int, shape: _Shape, out_index: _Index) -> None:
@@ -66,14 +65,8 @@ def tensor_map(fn: Callable[[float], float]):
     ) -> None:
 
         # Placeholders to index into
-        out_shape, out_index = np.array(out_shape), np.zeros_like(
-            out_shape, dtype=np.int64
-        )
-        in_shape, in_index = np.array(in_shape), np.zeros_like(in_shape, dtype=np.int64)
-        in_strides = np.array(in_strides)
-
-        print(out_index)
-        print(in_index)
+        out_shape, in_shape = np.array(out_shape), np.array(in_shape)
+        out_index, in_index = np.zeros_like(out_shape), np.zeros_like(in_shape)
 
         for out_position in prange(len(out_storage)):
 
@@ -84,7 +77,7 @@ def tensor_map(fn: Callable[[float], float]):
             broadcast_index(out_index, out_shape, in_shape, in_index)
 
             # Get corrsponding position in in_tensor
-            in_position = index_to_position(in_index, in_strides)
+            in_position = index_to_position(in_index, np.array(in_strides))
 
             # Apply func at positions
             out_storage[out_position] = fn(in_storage[in_position])
@@ -110,10 +103,13 @@ def tensor_zip(fn: Callable[[float, float], float]):
         b_strides: Strides,
     ) -> None:
         # Placeholders to index into
-        out_shape, out_index = np.array(out_shape), np.zeros_like(out_shape)
-        a_shape, a_index = np.array(a_shape), np.zeros_like(a_shape)
-        b_shape, b_index = np.array(b_shape), np.zeros_like(b_shape)
-        a_strides, b_strides = np.array(a_strides), np.array(b_strides)
+        out_shape = np.array(out_shape)
+        a_shape = np.array(a_shape)
+        b_shape = np.array(b_shape)
+
+        out_index = np.zeros_like(out_shape)
+        a_index = np.zeros_like(a_shape)
+        b_index = np.zeros_like(b_shape)
 
         for out_position in prange(len(out_storage)):
 
@@ -125,8 +121,8 @@ def tensor_zip(fn: Callable[[float, float], float]):
             broadcast_index(out_index, out_shape, b_shape, b_index)
 
             # From these indices get positions
-            a_position = index_to_position(a_index, a_strides)
-            b_position = index_to_position(b_index, b_strides)
+            a_position = index_to_position(a_index, np.array(a_strides))
+            b_position = index_to_position(b_index, np.array(b_strides))
 
             # Apply func at position
             out_storage[out_position] = fn(a_storage[a_position], b_storage[b_position])

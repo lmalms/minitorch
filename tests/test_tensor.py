@@ -105,7 +105,7 @@ def test_permute_grad(data: DataObject, t: Tensor) -> None:
 
 @given(data())
 @settings(max_examples=100)
-@pytest.mark.parametrize("fn", one_arg[:1])
+@pytest.mark.parametrize("fn", one_arg)
 @pytest.mark.parametrize("backend", (pytest.param("fast"),))
 def test_one_arg_forward(
     fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]],
