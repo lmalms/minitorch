@@ -102,11 +102,13 @@ def tensor_zip(fn: Callable[[float, float], float]):
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        # Placeholders to index into
-        out_shape = np.array(out_shape)
-        a_shape = np.array(a_shape)
-        b_shape = np.array(b_shape)
 
+        # To numpy
+        out_shape, out_strides = np.array(out_shape), np.array(out_strides)
+        a_shape, a_strides = np.array(a_shape), np.array(a_strides)
+        b_shape, b_strides = np.array(b_shape), np.array(b_strides)
+
+        # Placeholders to index into
         out_index = np.zeros_like(out_shape)
         a_index = np.zeros_like(a_shape)
         b_index = np.zeros_like(b_shape)
@@ -121,8 +123,8 @@ def tensor_zip(fn: Callable[[float, float], float]):
             broadcast_index(out_index, out_shape, b_shape, b_index)
 
             # From these indices get positions
-            a_position = index_to_position(a_index, np.array(a_strides))
-            b_position = index_to_position(b_index, np.array(b_strides))
+            a_position = index_to_position(a_index, a_strides)
+            b_position = index_to_position(b_index, b_strides)
 
             # Apply func at position
             out_storage[out_position] = fn(a_storage[a_position], b_storage[b_position])
