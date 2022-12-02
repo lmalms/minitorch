@@ -146,9 +146,8 @@ def tensor_reduce(fn: Callable[[float, float], float]):
         reduce_dim: int,
     ):
         # Cast to numpy arrays
-        out_shape, out_index = np.array(out_shape), np.zeros(out_shape, dtype=np.int64)
-        in_shape, in_index = np.array(in_shape), np.zeros(in_shape, dtype=np.int64)
-        in_strides = np.array(in_strides)
+        out_shape, in_shape = np.array(out_shape), np.array(in_shape)
+        out_index, in_index = np.zeros_like(out_shape), np.zeros_like(in_shape)
 
         for out_position in prange(len(out_storage)):
             # Grab the corresponding out_index
@@ -159,7 +158,7 @@ def tensor_reduce(fn: Callable[[float, float], float]):
             in_index = out_index[:]
             for j in prange(in_shape[reduce_dim]):
                 in_index[reduce_dim] = j
-                in_position = index_to_position(in_index, in_strides)
+                in_position = index_to_position(in_index, np.array(in_strides))
                 in_values.append(in_storage[in_position])
 
             # Get all of the corresponding values
