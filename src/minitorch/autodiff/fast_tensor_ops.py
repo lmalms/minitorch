@@ -14,11 +14,8 @@ from .tensor_ops import MapProto, TensorOps, shape_broadcast
 
 # JIT compilable utils functions
 def index_to_position(index: _Index, strides: _Strides) -> int:
-    position = 0
-    for i, s in zip(index, strides):
-        position += i * s
-
-    return int(position)
+    prod = np.multiply(index, strides)
+    return int(np.sum(prod))
 
 
 def to_index(ordinal: int, shape: _Shape, out_index: _Index) -> None:
@@ -34,8 +31,8 @@ def to_index(ordinal: int, shape: _Shape, out_index: _Index) -> None:
 
 def broadcast_index(
     big_index: _Index,
-    big_shape: Shape,
-    shape: Shape,
+    big_shape: _Shape,
+    shape: _Shape,
     out_index: _Index,
 ) -> None:
     for i in range(len(shape)):
@@ -45,7 +42,7 @@ def broadcast_index(
         offset = i + len(big_shape) - len(shape)
 
         # Get the shape at the offset
-        out_index[i] = big_index[offset].view(np.int_) if shape[i] > 1 else 0
+        out_index[i] = big_index[offset] if shape[i] > 1 else 0
 
 
 index_to_position = njit(inline="always")(index_to_position)
@@ -69,8 +66,14 @@ def tensor_map(fn: Callable[[float], float]):
     ) -> None:
 
         # Placeholders to index into
-        out_shape, out_index = np.array(out_shape), np.zeros(out_shape)
-        in_shape, in_index = np.array(in_shape), np.zeros(in_shape)
+        out_shape, out_index = np.array(out_shape), np.zeros_like(
+            out_shape, dtype=np.int64
+        )
+        in_shape, in_index = np.array(in_shape), np.zeros_like(in_shape, dtype=np.int64)
+        in_strides = np.array(in_strides)
+
+        print(out_index)
+        print(in_index)
 
         for out_position in prange(len(out_storage)):
 
@@ -107,9 +110,10 @@ def tensor_zip(fn: Callable[[float, float], float]):
         b_strides: Strides,
     ) -> None:
         # Placeholders to index into
-        out_shape, out_index = np.array(out_shape), np.zeros(out_shape)
-        a_shape, a_index = np.array(a_shape), np.zeros(a_shape)
-        b_shape, b_index = np.array(b_shape), np.zeros(b_shape)
+        out_shape, out_index = np.array(out_shape), np.zeros_like(out_shape)
+        a_shape, a_index = np.array(a_shape), np.zeros_like(a_shape)
+        b_shape, b_index = np.array(b_shape), np.zeros_like(b_shape)
+        a_strides, b_strides = np.array(a_strides), np.array(b_strides)
 
         for out_position in prange(len(out_storage)):
 
@@ -146,8 +150,9 @@ def tensor_reduce(fn: Callable[[float, float], float]):
         reduce_dim: int,
     ):
         # Cast to numpy arrays
-        out_shape, out_index = np.array(out_shape), np.zeros(out_shape)
-        in_shape, in_index = np.array(in_shape), np.zeros(in_shape)
+        out_shape, out_index = np.array(out_shape), np.zeros(out_shape, dtype=np.int64)
+        in_shape, in_index = np.array(in_shape), np.zeros(in_shape, dtype=np.int64)
+        in_strides = np.array(in_strides)
 
         for out_position in prange(len(out_storage)):
             # Grab the corresponding out_index
