@@ -5,14 +5,14 @@ from hypothesis import given, settings
 from hypothesis.strategies import DataObject, data, lists, permutations
 
 from minitorch.autodiff import (
+    FastOps,
     SimpleOps,
     Tensor,
     TensorBackend,
     tensor,
+    grad_check,
 )
 from minitorch.autodiff.tensor_data import Shape
-from minitorch.autodiff.tensor_functions import grad_check
-from minitorch.autodiff.fast_tensor_ops import FastOps
 from minitorch.operators import is_close
 from minitorch.testing import MathTestTensor
 

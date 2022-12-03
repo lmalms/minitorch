@@ -3,9 +3,21 @@ from typing import Tuple
 import numpy as np
 
 import minitorch.autodiff.tensor_functions as tf
+from minitorch.autodiff import TensorFunction
 from minitorch import operators
-from minitorch.autodiff import Context, Scalar, ScalarFunction, Tensor
-from minitorch.autodiff.tensor_ops import SimpleBackend
+from minitorch.autodiff import (
+    Context,
+    Scalar,
+    ScalarFunction,
+    Tensor,
+    SimpleOps,
+    TensorBackend,
+    FastOps,
+)
+import pytest
+
+# Define tensor backends
+BACKENDS = {"simple": TensorBackend(SimpleOps), "fast": TensorBackend(FastOps)}
 
 
 class ScalarFunction1(ScalarFunction):
@@ -34,7 +46,7 @@ class ScalarFunction2(ScalarFunction):
         return operators.mul(d_out, operators.add(y, 1)), operators.mul(d_out, x)
 
 
-class TensorFunction1(tf.TensorFunction):
+class TensorFunction1(TensorFunction):
     @classmethod
     def _forward(cls, ctx: Context, x: Tensor, y: Tensor) -> Tensor:
         """f(x, y) = x + y + 10"""
@@ -46,7 +58,7 @@ class TensorFunction1(tf.TensorFunction):
         return grad_out, grad_out
 
 
-class TensorFunction2(tf.TensorFunction):
+class TensorFunction2(TensorFunction):
     @classmethod
     def _forward(cls, ctx: Context, x: Tensor, y: Tensor) -> Tensor:
         """f(x, y) = x * y + x"""
@@ -108,6 +120,7 @@ def test_scalar_backprop4():
     assert var0.derivative == 10.0
 
 
+@pyt
 def test_tensor_backprop1():
     # Create tensors
     shape = (5, 3)

@@ -5,7 +5,7 @@ from abc import abstractmethod
 from collections import OrderedDict
 from typing import Any, Iterable, List, Optional, Tuple, Type, Union
 
-from minitorch.autodiff.utils import unwrap_tuple, wrap_tuple
+from .utils import unwrap_tuple, wrap_tuple
 
 
 class Context:

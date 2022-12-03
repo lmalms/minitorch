@@ -3,8 +3,7 @@ import random
 import numpy as np
 
 import minitorch.autodiff.tensor_functions as tf
-from minitorch.autodiff import Tensor
-from minitorch.operators import is_close, log
+from minitorch.operators import log
 from minitorch.tensor_losses import binary_cross_entropy, mean_squared_error
 
 

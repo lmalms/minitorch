@@ -1,4 +1,4 @@
-from minitorch.module.parameter import Parameter
+from minitorch.module import Parameter
 
 
 class MockParam:

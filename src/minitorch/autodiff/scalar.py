@@ -4,7 +4,7 @@ from abc import abstractmethod
 from typing import Any, Callable, Optional, Tuple, Union
 
 from minitorch import operators
-from minitorch.autodiff.variable import BaseFunction, Context, History, Variable
+from .variable import BaseFunction, Context, History, Variable
 
 
 class Scalar(Variable):
