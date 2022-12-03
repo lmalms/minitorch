@@ -12,7 +12,7 @@ from hypothesis.strategies import (
     permutations,
 )
 
-from minitorch.autodiff import Tensor, TensorData, TensorBackend, tensor, SimpleOps
+from minitorch.autodiff import SimpleOps, Tensor, TensorBackend, TensorData, tensor
 from minitorch.autodiff.tensor_data import Index, Shape
 from minitorch.functional import product
 

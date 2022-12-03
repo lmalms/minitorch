@@ -11,10 +11,10 @@ import numpy as np
 import minitorch.autodiff.tensor_functions as tf
 import minitorch.functional as f
 
-from .tensor_data import Index, Shape, Storage, Strides, TensorData
 from .base_tensor_ops import TensorBackend
-from .simple_tensor_ops import SimpleOps
 from .fast_tensor_ops import FastOps
+from .simple_tensor_ops import SimpleOps
+from .tensor_data import Index, Shape, Storage, Strides, TensorData
 from .variable import Context, History, Variable, backpropagate
 
 

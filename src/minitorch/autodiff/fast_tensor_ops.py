@@ -7,8 +7,8 @@ import numpy as np
 from numba import njit, prange
 
 import minitorch.autodiff.tensor as t
-from .base_tensor_ops import TensorOps, MapProto
 
+from .base_tensor_ops import MapProto, TensorOps
 from .tensor_data import (
     Shape,
     Storage,

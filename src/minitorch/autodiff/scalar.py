@@ -4,6 +4,7 @@ from abc import abstractmethod
 from typing import Any, Callable, Optional, Tuple, Union
 
 from minitorch import operators
+
 from .variable import BaseFunction, Context, History, Variable
 
 

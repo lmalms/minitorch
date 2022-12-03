@@ -1,20 +1,20 @@
 from typing import Tuple
 
 import numpy as np
+import pytest
 
 import minitorch.autodiff.tensor_functions as tf
-from minitorch.autodiff import TensorFunction
 from minitorch import operators
 from minitorch.autodiff import (
     Context,
+    FastOps,
     Scalar,
     ScalarFunction,
-    Tensor,
     SimpleOps,
+    Tensor,
     TensorBackend,
-    FastOps,
+    TensorFunction,
 )
-import pytest
 
 # Define tensor backends
 BACKENDS = {"simple": TensorBackend(SimpleOps), "fast": TensorBackend(FastOps)}
@@ -120,8 +120,8 @@ def test_scalar_backprop4():
     assert var0.derivative == 10.0
 
 
-@pyt
-def test_tensor_backprop1():
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_tensor_backprop1(backend: str):
     # Create tensors
     shape = (5, 3)
     x = tf.ones(shape=shape)
@@ -136,7 +136,7 @@ def test_tensor_backprop1():
     grad_out = Tensor.make(
         [5 for _ in range(out.size)],
         shape=out.shape,
-        backend=SimpleBackend,
+        backend=BACKENDS[backend],
     )
     out.backward(grad_out=grad_out)
 
@@ -154,7 +154,8 @@ def test_tensor_backprop1():
     )
 
 
-def test_tensor_backprop2():
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_tensor_backprop2(backend: str):
     # Create tensors
     x = tf.ones(shape=(3,))
     x.requires_grad = True
@@ -171,7 +172,7 @@ def test_tensor_backprop2():
     grad_out = Tensor.make(
         [5 for _ in range(out2.size)],
         shape=out2.shape,
-        backend=SimpleBackend,
+        backend=BACKENDS[backend],
     )
     out2.backward(grad_out=grad_out)
 
@@ -192,7 +193,8 @@ def test_tensor_backprop2():
     assert np.all(np.array(z.derivative.data.storage) == expected_grad)
 
 
-def test_tensor_backprop3():
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_tensor_backprop3(backend: str):
     # Create tensors
     x = tf.ones(shape=(3,)) * 0.5
     x.requires_grad = True
@@ -206,7 +208,7 @@ def test_tensor_backprop3():
     grad_out = Tensor.make(
         [0.5 for _ in range(out.size)],
         shape=out.shape,
-        backend=SimpleBackend,
+        backend=BACKENDS[backend],
     )
     out.backward(grad_out=grad_out)
 
@@ -222,7 +224,8 @@ def test_tensor_backprop3():
     assert np.all(np.array(y.derivative.data.storage) == expected_grad)
 
 
-def test_tensor_backprop4():
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_tensor_backprop4(backend: str):
     # Create tensors
     x = tf.ones(shape=(3,)) * 0.5
     x.requires_grad = True
@@ -239,7 +242,7 @@ def test_tensor_backprop4():
     grad_out = Tensor.make(
         [0.5 for _ in range(out2.size)],
         shape=out2.shape,
-        backend=SimpleBackend,
+        backend=BACKENDS[backend],
     )
     out2.backward(grad_out=grad_out)
 
@@ -260,7 +263,8 @@ def test_tensor_backprop4():
     assert np.all(np.array(z.derivative.data.storage) == expected_grad)
 
 
-def test_tensor_backprop5():
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_tensor_backprop5(backend: str):
     # Create tensors
     x = tf.ones(shape=(3,)) * 0.5
     x.requires_grad = True
@@ -280,7 +284,7 @@ def test_tensor_backprop5():
     grad_out = Tensor.make(
         [0.5 for _ in range(out3.size)],
         shape=out3.shape,
-        backend=SimpleBackend,
+        backend=BACKENDS[backend],
     )
     out3.backward(grad_out=grad_out)
 

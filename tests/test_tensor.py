@@ -1,4 +1,4 @@
-from typing import Callable, List, Tuple, Any
+from typing import Any, Callable, List, Tuple
 
 import pytest
 from hypothesis import given, settings
@@ -9,8 +9,8 @@ from minitorch.autodiff import (
     SimpleOps,
     Tensor,
     TensorBackend,
-    tensor,
     grad_check,
+    tensor,
 )
 from minitorch.autodiff.tensor_data import Shape
 from minitorch.operators import is_close

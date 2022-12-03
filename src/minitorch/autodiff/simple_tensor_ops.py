@@ -9,7 +9,7 @@ import numpy as np
 import minitorch.autodiff.tensor as t
 from minitorch.functional import product, reduce
 
-from .base_tensor_ops import TensorOps, MapProto
+from .base_tensor_ops import MapProto, TensorOps
 from .tensor_data import (
     Shape,
     Storage,

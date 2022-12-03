@@ -12,10 +12,10 @@ import minitorch.autodiff.tensor as t
 import minitorch.functional as f
 from minitorch import operators
 
-from .tensor_data import Index, Shape, Storage, TensorData
 from .base_tensor_ops import TensorBackend
-from .simple_tensor_ops import SimpleOps
 from .fast_tensor_ops import FastOps
+from .simple_tensor_ops import SimpleOps
+from .tensor_data import Index, Shape, Storage, TensorData
 from .utils import wrap_tuple
 from .variable import BaseFunction, Context, is_constant
 
