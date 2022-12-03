@@ -4,16 +4,16 @@ from typing import List, Union
 
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 
 import minitorch.autodiff.tensor_functions as tf
-from minitorch.autodiff import Scalar, Tensor
+from minitorch.autodiff import Scalar, Tensor, TensorBackend, SimpleOps, FastOps
 from minitorch.module import LinearScalarLayer, LinearTensorLayer
 
 from .strategies import medium_ints
 
-SKIP_LINEAR_FORWARD_TESTS = True
-SKIP_REASON = "Tests are slow."
+# Define backends
+BACKENDS = {"simple": TensorBackend(SimpleOps), "fast": TensorBackend(FastOps)}
 
 
 @given(medium_ints, medium_ints)
@@ -29,7 +29,7 @@ def test_linear_scalar_init(input_dim: int, output_dim: int):
 
 
 @given(medium_ints, medium_ints)
-@pytest.mark.skipif(SKIP_LINEAR_FORWARD_TESTS, reason=SKIP_REASON)
+@settings(max_examples=100)
 def test_linear_scalar_forward(input_dim: int, output_dim: int):
 
     # Initialise a linear layer
@@ -54,17 +54,20 @@ def test_linear_scalar_forward(input_dim: int, output_dim: int):
 
 
 @given(medium_ints, medium_ints)
-def test_linear_tensor_init(input_dim: int, output_dim: int):
-    linear = LinearTensorLayer(input_dim, output_dim)
+@settings(max_examples=100)
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_linear_tensor_init(backend: str, input_dim: int, output_dim: int):
+    linear = LinearTensorLayer(input_dim, output_dim, BACKENDS[backend])
 
     # Check shape of weights and biases
     assert linear._weights.value.shape == (input_dim, output_dim)
     assert linear._bias.value.shape == (output_dim,)
 
 
-def test_linear_tensor_forward(input_dim: int = 2, output_dim: int = 1):
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_linear_tensor_forward(backend: str, input_dim: int = 2, output_dim: int = 1):
     # Initialise a new linear layer
-    linear = LinearTensorLayer(input_dim, output_dim)
+    linear = LinearTensorLayer(input_dim, output_dim, backend=BACKENDS[backend])
     weights, bias = linear._weights.value, linear._bias.value
     weights_np = np.array(weights.data.storage).reshape(weights.shape)
     bias_np = np.array(bias.data.storage).reshape(bias.shape)
@@ -82,7 +85,8 @@ def test_linear_tensor_forward(input_dim: int = 2, output_dim: int = 1):
     assert np.all(np.isclose(tensor_out.data.storage, np_out.flatten()))
 
 
-def test_linear_tensor_backward(input_dim: int = 2, output_dim: int = 1):
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_linear_tensor_backward(backend: str, input_dim: int = 2, output_dim: int = 1):
     def forward(inputs: Tensor, weights: Tensor, bias: Tensor) -> Tensor:
         """
         Separate out forward to test with grad_check
@@ -97,19 +101,30 @@ def test_linear_tensor_backward(input_dim: int = 2, output_dim: int = 1):
         return out + bias
 
     # Initialise a new linear layer
-    weights = LinearTensorLayer._initialise_parameter(input_dim, output_dim).value
-    bias = LinearTensorLayer._initialise_parameter(output_dim).value
+    weights_parameter = LinearTensorLayer._initialise_parameter(
+        input_dim,
+        output_dim,
+        backend=BACKENDS[backend],
+    )
+    bias_parameter = LinearTensorLayer._initialise_parameter(
+        output_dim,
+        backend=BACKENDS[backend],
+    )
+    weights = weights_parameter.value
+    bias = bias_parameter.value
 
     # Generate some input data
     n_samples = 10
     inputs = tf.rand((n_samples, input_dim))
 
     f = update_wrapper(partial(forward, inputs), forward)
-
     tf.grad_check(f, weights, bias)
 
 
-def test_linear_tensor_backward_with_loss(input_dim: int = 2, output_dim: int = 1):
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_linear_tensor_backward_with_loss(
+    backend: str, input_dim: int = 2, output_dim: int = 1
+):
     def forward(
         inputs: Tensor,
         targets: Tensor,
@@ -136,8 +151,17 @@ def test_linear_tensor_backward_with_loss(input_dim: int = 2, output_dim: int = 
         return loss
 
     # Initialise a new linear layer
-    weights = LinearTensorLayer._initialise_parameter(input_dim, output_dim).value
-    bias = LinearTensorLayer._initialise_parameter(output_dim).value
+    weights_parameter = LinearTensorLayer._initialise_parameter(
+        input_dim,
+        output_dim,
+        backend=BACKENDS[backend],
+    )
+    bias_parameter = LinearTensorLayer._initialise_parameter(
+        output_dim,
+        backend=BACKENDS[backend],
+    )
+    weights = weights_parameter.value
+    bias = bias_parameter.value
 
     # Generate some input data
     n_samples = 10
@@ -145,5 +169,4 @@ def test_linear_tensor_backward_with_loss(input_dim: int = 2, output_dim: int = 
     targets = tf.tensor([1, 1, 1, 0, 0, 0, 1, 0, 1, 0])
 
     f = update_wrapper(partial(forward, inputs, targets), forward)
-
     tf.grad_check(f, weights, bias)
