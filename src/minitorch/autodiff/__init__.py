@@ -1,4 +1,3 @@
-from minitorch.autodiff.base_tensor_ops import TensorBackend, TensorOps
 from minitorch.autodiff.scalar import (
     Scalar,
     ScalarFunction,
@@ -10,6 +9,7 @@ from minitorch.autodiff.tensor_data import TensorData, shape_broadcast
 from minitorch.autodiff.tensor_functions import (
     FastOps,
     SimpleOps,
+    TensorBackend,
     TensorFunction,
     grad_check,
     ones,

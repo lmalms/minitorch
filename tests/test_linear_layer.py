@@ -7,7 +7,6 @@ import pytest
 from hypothesis import given
 
 import minitorch.autodiff.tensor_functions as tf
-import minitorch.tensor_losses as tl
 from minitorch.autodiff import Scalar, Tensor
 from minitorch.module import LinearScalarLayer, LinearTensorLayer
 

@@ -4,7 +4,6 @@ import pytest
 
 import minitorch.autodiff.tensor_functions as tf
 from minitorch.autodiff import Tensor
-from minitorch.operators import is_close
 from minitorch.tensor_metrics import accuracy, false_positive_rate, true_positive_rate
 
 
