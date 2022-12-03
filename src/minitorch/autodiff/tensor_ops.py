@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Any, Callable, Iterable, Optional, Tuple, Type
+from typing import Callable, Iterable, Optional, Tuple, Type
 
 import numpy as np
 from typing_extensions import Protocol

@@ -7,9 +7,17 @@ import numpy as np
 from numba import njit, prange
 
 import minitorch.autodiff.tensor as t
+from .tensor_ops import TensorOps, MapProto
 
-from .tensor_data import Shape, Storage, Strides, _Index, _Shape, _Strides
-from .tensor_ops import MapProto, TensorOps, shape_broadcast
+from .tensor_data import (
+    Shape,
+    Storage,
+    Strides,
+    _Index,
+    _Shape,
+    _Strides,
+    shape_broadcast,
+)
 
 
 # JIT compilable utils functions

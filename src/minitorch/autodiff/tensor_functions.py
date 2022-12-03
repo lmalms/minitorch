@@ -13,7 +13,8 @@ import minitorch.functional as f
 from minitorch import operators
 
 from .tensor_data import Index, Shape, Storage, TensorData
-from .tensor_ops import SimpleBackend, TensorBackend
+from .tensor_ops import TensorBackend
+from .fast_tensor_ops import FastOps
 from .utils import wrap_tuple
 from .variable import BaseFunction, Context, is_constant
 
@@ -363,16 +364,18 @@ class MatMul(TensorFunction):
 ### Tensor utils functions ###
 
 
-def zeros(shape: Shape, backend: TensorBackend = SimpleBackend) -> t.Tensor:
+def zeros(shape: Shape, backend: TensorBackend = TensorBackend(FastOps)) -> t.Tensor:
     return t.Tensor.make([0.0] * int(f.product(list(shape))), shape, backend=backend)
 
 
-def ones(shape: Shape, backend: TensorBackend = SimpleBackend) -> t.Tensor:
+def ones(shape: Shape, backend: TensorBackend = TensorBackend(FastOps)) -> t.Tensor:
     return t.Tensor.make([1.0] * int(f.product(list(shape))), shape, backend=backend)
 
 
 def rand(
-    shape: Shape, backend: TensorBackend = SimpleBackend, requires_grad: bool = False
+    shape: Shape,
+    backend: TensorBackend = TensorBackend(FastOps),
+    requires_grad: bool = False,
 ):
     vals = [random.random() for _ in range(int(f.product(list(shape))))]
     tensor = t.Tensor.make(vals, shape, backend=backend)
@@ -383,7 +386,7 @@ def rand(
 def _tensor(
     data: Storage,
     shape: Shape,
-    backend: TensorBackend = SimpleBackend,
+    backend: TensorBackend = TensorBackend(FastOps),
     requires_grad: bool = False,
 ):
     tensor = t.Tensor.make(data, shape, backend=backend)
@@ -392,7 +395,9 @@ def _tensor(
 
 
 def tensor(
-    data: Any, backend: TensorBackend = SimpleBackend, requires_grad: bool = False
+    data: Any,
+    backend: TensorBackend = TensorBackend(FastOps),
+    requires_grad: bool = False,
 ):
     def shape(ls: Any) -> List[int]:
         if isinstance(ls, (list, tuple)):
