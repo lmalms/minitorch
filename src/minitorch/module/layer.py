@@ -2,7 +2,7 @@ import random
 from typing import List, Optional, Union
 
 import minitorch.autodiff.tensor_functions as tf
-from minitorch.autodiff import Scalar, Tensor, TensorBackend, FastOps
+from minitorch.autodiff import FastOps, Scalar, Tensor, TensorBackend
 from minitorch.module.module import Module
 from minitorch.module.parameter import Parameter
 

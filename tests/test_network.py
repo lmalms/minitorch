@@ -6,7 +6,7 @@ import pytest
 from hypothesis import given, settings
 
 import minitorch.autodiff.tensor_functions as tf
-from minitorch.autodiff import Scalar, Tensor, TensorBackend, SimpleOps, FastOps
+from minitorch.autodiff import FastOps, Scalar, SimpleOps, Tensor, TensorBackend
 from minitorch.module import (
     LinearScalarLayer,
     LinearTensorLayer,

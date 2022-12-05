@@ -68,7 +68,10 @@ def sigmoid(x: float) -> float:
     f(x) = 1./(1. + e^(-x))
     Implemented as f(x) = 1./(1.+e^(-x)) if x >= 0 else e^(x)/(1. + e^(x))
     """
-    return 1.0 / (1.0 + math.exp(-x)) if x >= 0.0 else math.exp(x) / (1.0 + math.exp(x))
+    if x >= 0.0:
+        return 1.0 / (1.0 + math.exp(-x))
+    else:
+        return math.exp(x) / (1.0 + math.exp(x))
 
 
 def relu(x: float) -> float:
@@ -111,5 +114,10 @@ def relu_diff(x: float, d: float) -> float:
 
 
 def sigmoid_diff(x: float, d: float) -> float:
-    """d * f'(x) where f(x) = sigmoid(x)"""
-    return d * sigmoid(x) * (1.0 - sigmoid(x))
+    """d * f'(x) where f(x) = sigmoid(x) and f'(x) = sigmoid(x) * (1.0 - sigmoid(x))"""
+    if x >= 0.0:
+        sigmoid_x = 1.0 / (1.0 + math.exp(-x))
+    else:
+        sigmoid_x = math.exp(x) / (1.0 + math.exp(x))
+
+    return d * sigmoid_x * (1.0 - sigmoid_x)

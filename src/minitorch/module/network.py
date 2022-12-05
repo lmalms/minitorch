@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from minitorch.autodiff import Scalar, Tensor, TensorBackend, FastOps
+from minitorch.autodiff import FastOps, Scalar, Tensor, TensorBackend
 from minitorch.module.layer import LinearScalarLayer, LinearTensorLayer
 from minitorch.module.module import Module
 

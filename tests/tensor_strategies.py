@@ -12,7 +12,7 @@ from hypothesis.strategies import (
     permutations,
 )
 
-from minitorch.autodiff import SimpleOps, Tensor, TensorBackend, TensorData, tensor
+from minitorch.autodiff import FastOps, Tensor, TensorBackend, TensorData, tensor
 from minitorch.autodiff.tensor_data import Index, Shape
 from minitorch.functional import product
 
@@ -72,7 +72,7 @@ def tensor_data(
 def tensors(
     draw_fn: DrawFn,
     numbers: SearchStrategy[float] = DEFAULT_FLOAT_SEARCH_STRATEGY,
-    backend: TensorBackend = TensorBackend(SimpleOps),
+    backend: TensorBackend = TensorBackend(FastOps),
     shape: Optional[Shape] = None,
 ) -> Tensor:
     td = draw_fn(tensor_data(numbers, shape=shape))
@@ -84,7 +84,7 @@ def shaped_tensors(
     draw_fn: DrawFn,
     n: int,
     numbers: SearchStrategy[float] = DEFAULT_FLOAT_SEARCH_STRATEGY,
-    backend: TensorBackend = TensorBackend(SimpleOps),
+    backend: TensorBackend = TensorBackend(FastOps),
 ) -> List[Tensor]:
 
     td = draw_fn(tensor_data(numbers))

@@ -24,3 +24,6 @@ from minitorch.autodiff.variable import (
     backpropagate,
     topological_sort,
 )
+
+FastBackend = TensorBackend(FastOps)
+SimpleBackend = TensorBackend(SimpleOps)
