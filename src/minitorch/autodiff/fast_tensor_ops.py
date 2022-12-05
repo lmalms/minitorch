@@ -22,7 +22,10 @@ from .tensor_data import (
 
 # JIT compilable utils functions
 def index_to_position(index: _Index, strides: _Strides) -> int:
-    return int(np.sum(index * strides))
+    position = 0
+    for i, s in zip(index, strides):
+        position += i * s
+    return position
 
 
 def to_index(ordinal: int, shape: _Shape, out_index: _Index) -> None:
@@ -72,12 +75,15 @@ def tensor_map(fn: Callable[[float], float]):
         in_strides: Strides,
     ) -> None:
 
-        # Placeholders to index into
         out_shape, in_shape = np.array(out_shape), np.array(in_shape)
         out_strides, in_strides = np.array(out_strides), np.array(in_strides)
-        out_index, in_index = np.zeros_like(out_shape), np.zeros_like(in_shape)
 
         for out_position in prange(len(out_storage)):
+            # Placeholders to index into
+            # Define these within the loop to avoid writing to
+            # non-local variables across parallel loops
+            out_index = np.zeros(len(out_shape), dtype=np.int32)
+            in_index = np.zeros(len(in_shape), dtype=np.int32)
 
             # Get index corresponding to out_position in out_tensor
             to_index(out_position, out_shape, out_index)
@@ -117,14 +123,15 @@ def tensor_zip(fn: Callable[[float, float], float]):
         a_shape, a_strides = np.array(a_shape), np.array(a_strides)
         b_shape, b_strides = np.array(b_shape), np.array(b_strides)
 
-        # Placeholders to index into
-        out_index = np.zeros_like(out_shape)
-        a_index = np.zeros_like(a_shape)
-        b_index = np.zeros_like(b_shape)
-
         for out_position in prange(len(out_storage)):
+            # Placeholders to index into
+            # Define these within the loop to avoid writing to
+            # non-local variables across parallel loops
+            out_index = np.zeros(len(out_shape), dtype=np.int32)
+            a_index = np.zeros(len(a_shape), dtype=np.int32)
+            b_index = np.zeros(len(b_shape), dtype=np.int32)
 
-            # Grab the index in out from position
+            # Grab the index in out from out position
             to_index(out_position, out_shape, out_index)
 
             # Get the corresponding positions in possibly smaller in_tensors
@@ -158,9 +165,15 @@ def tensor_reduce(fn: Callable[[float, float], float]):
     ):
         # Cast to numpy arrays
         out_shape, in_shape = np.array(out_shape), np.array(in_shape)
-        out_index, in_index = np.zeros_like(out_shape), np.zeros_like(in_shape)
+        out_strides, in_strides = np.array(out_strides), np.array(in_strides)
 
         for out_position in prange(len(out_storage)):
+            # Placeholders to index into
+            # Define these within the loop to avoid writing to
+            # non-local variables across parallel loops
+            out_index = np.zeros(len(out_shape), dtype=np.int32)
+            in_index = np.zeros(len(in_shape), dtype=np.int32)
+
             # Grab the corresponding out_index
             to_index(out_position, out_shape, out_index)
 
@@ -169,7 +182,7 @@ def tensor_reduce(fn: Callable[[float, float], float]):
             in_index = out_index[:]
             for j in range(in_shape[reduce_dim]):
                 in_index[reduce_dim] = j
-                in_position = index_to_position(in_index, np.array(in_strides))
+                in_position = index_to_position(in_index, in_strides)
                 in_values.append(in_storage[in_position])
 
             # Get all of the corresponding values

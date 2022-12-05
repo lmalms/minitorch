@@ -74,7 +74,7 @@ def test_linear_tensor_forward(backend: str, input_dim: int = 2, output_dim: int
 
     # Generate some input data
     n_samples = 10
-    inputs = tf.rand((n_samples, input_dim))
+    inputs = tf.rand((n_samples, input_dim), backend=BACKENDS[backend])
     inputs_np = np.array(inputs.data.storage).reshape((n_samples, input_dim))
 
     # Forward
@@ -115,7 +115,7 @@ def test_linear_tensor_backward(backend: str, input_dim: int = 2, output_dim: in
 
     # Generate some input data
     n_samples = 10
-    inputs = tf.rand((n_samples, input_dim))
+    inputs = tf.rand((n_samples, input_dim), backend=BACKENDS[backend])
 
     f = update_wrapper(partial(forward, inputs), forward)
     tf.grad_check(f, weights, bias)
@@ -165,8 +165,8 @@ def test_linear_tensor_backward_with_loss(
 
     # Generate some input data
     n_samples = 10
-    inputs = tf.rand((n_samples, input_dim))
-    targets = tf.tensor([1, 1, 1, 0, 0, 0, 1, 0, 1, 0])
+    inputs = tf.rand((n_samples, input_dim), backend=BACKENDS[backend])
+    targets = tf.tensor([1, 1, 1, 0, 0, 0, 1, 0, 1, 0], backend=BACKENDS[backend])
 
     f = update_wrapper(partial(forward, inputs, targets), forward)
     tf.grad_check(f, weights, bias)
