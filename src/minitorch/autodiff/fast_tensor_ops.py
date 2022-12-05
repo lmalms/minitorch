@@ -74,6 +74,7 @@ def tensor_map(fn: Callable[[float], float]):
 
         # Placeholders to index into
         out_shape, in_shape = np.array(out_shape), np.array(in_shape)
+        out_strides, in_strides = np.array(out_strides), np.array(in_strides)
         out_index, in_index = np.zeros_like(out_shape), np.zeros_like(in_shape)
 
         for out_position in prange(len(out_storage)):
@@ -85,7 +86,7 @@ def tensor_map(fn: Callable[[float], float]):
             broadcast_index(out_index, out_shape, in_shape, in_index)
 
             # Get corrsponding position in in_tensor
-            in_position = index_to_position(in_index, np.array(in_strides))
+            in_position = index_to_position(in_index, in_strides)
 
             # Apply func at positions
             out_storage[out_position] = fn(in_storage[in_position])
@@ -166,7 +167,7 @@ def tensor_reduce(fn: Callable[[float, float], float]):
             # Get all positions that will be reduced to that out_index
             in_values = []
             in_index = out_index[:]
-            for j in prange(in_shape[reduce_dim]):
+            for j in range(in_shape[reduce_dim]):
                 in_index[reduce_dim] = j
                 in_position = index_to_position(in_index, np.array(in_strides))
                 in_values.append(in_storage[in_position])
