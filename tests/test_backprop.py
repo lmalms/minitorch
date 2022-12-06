@@ -124,9 +124,9 @@ def test_scalar_backprop4():
 def test_tensor_backprop1(backend: str):
     # Create tensors
     shape = (5, 3)
-    x = tf.ones(shape=shape)
+    x = tf.ones(shape=shape, backend=BACKENDS[backend])
     x.requires_grad = True
-    y = tf.zeros(shape=shape)
+    y = tf.zeros(shape=shape, backend=BACKENDS[backend])
     y.requires_grad = True
 
     # Forward
@@ -157,11 +157,11 @@ def test_tensor_backprop1(backend: str):
 @pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
 def test_tensor_backprop2(backend: str):
     # Create tensors
-    x = tf.ones(shape=(3,))
+    x = tf.ones(shape=(3,), backend=BACKENDS[backend])
     x.requires_grad = True
-    y = tf.zeros(shape=(5, 1))
+    y = tf.zeros(shape=(5, 1), backend=BACKENDS[backend])
     y.requires_grad = True
-    z = tf.ones(shape=(1, 3))
+    z = tf.ones(shape=(1, 3), backend=BACKENDS[backend])
     z.requires_grad = True
 
     # Forward
@@ -196,9 +196,9 @@ def test_tensor_backprop2(backend: str):
 @pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
 def test_tensor_backprop3(backend: str):
     # Create tensors
-    x = tf.ones(shape=(3,)) * 0.5
+    x = tf.ones(shape=(3,), backend=BACKENDS[backend]) * 0.5
     x.requires_grad = True
-    y = tf.ones(shape=(5, 1)) * 0.75
+    y = tf.ones(shape=(5, 1), backend=BACKENDS[backend]) * 0.75
     y.requires_grad = True
 
     # Forward
@@ -227,11 +227,11 @@ def test_tensor_backprop3(backend: str):
 @pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
 def test_tensor_backprop4(backend: str):
     # Create tensors
-    x = tf.ones(shape=(3,)) * 0.5
+    x = tf.ones(shape=(3,), backend=BACKENDS[backend]) * 0.5
     x.requires_grad = True
-    y = tf.ones(shape=(5, 1)) * 0.75
+    y = tf.ones(shape=(5, 1), backend=BACKENDS[backend]) * 0.75
     y.requires_grad = True
-    z = tf.ones(shape=(1, 3)) * 0.5
+    z = tf.ones(shape=(1, 3), backend=BACKENDS[backend]) * 0.5
     z.requires_grad = True
 
     # Forward
@@ -266,13 +266,13 @@ def test_tensor_backprop4(backend: str):
 @pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
 def test_tensor_backprop5(backend: str):
     # Create tensors
-    x = tf.ones(shape=(3,)) * 0.5
+    x = tf.ones(shape=(3,), backend=BACKENDS[backend]) * 0.5
     x.requires_grad = True
-    y = tf.ones(shape=(5, 1)) * 0.75
+    y = tf.ones(shape=(5, 1), backend=BACKENDS[backend]) * 0.75
     y.requires_grad = True
-    z = tf.ones(shape=(1, 3)) * 0.5
+    z = tf.ones(shape=(1, 3), backend=BACKENDS[backend]) * 0.5
     z.requires_grad = True
-    w = tf.ones(shape=(5, 3)) * 0.25
+    w = tf.ones(shape=(5, 3), backend=BACKENDS[backend]) * 0.25
     w.requires_grad = True
 
     # Forward
