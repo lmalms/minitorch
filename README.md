@@ -1,9 +1,7 @@
 # minitorch
 
 ToDo:
-- consolidate notebooks (e.g. consolidate training loops - scalars + tensors)
-- matmul
-- Baseclass for LinearLayers and LinearTensors
+- consolidate notebooks (e.g. move training loops into repo)
 - add losses and roc curves to README.md
 - update app
-- what tools can I use to check tests coverage? -> coverage.py
+- what tools can I use to check tests coverage?
