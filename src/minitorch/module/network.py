@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from minitorch.autodiff import Scalar, Tensor
+from minitorch.autodiff import FastOps, Scalar, Tensor, TensorBackend
 from minitorch.module.layer import LinearScalarLayer, LinearTensorLayer
 from minitorch.module.module import Module
 
@@ -45,14 +45,21 @@ class TensorNetwork(Module):
     each one followed by a relu activation.
     """
 
-    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int):
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dim: int,
+        output_dim: int,
+        backend: TensorBackend = TensorBackend(FastOps),
+    ):
         super().__init__()
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
-        self._input_layer = LinearTensorLayer(input_dim, hidden_dim)
-        self._hidden_layer = LinearTensorLayer(hidden_dim, hidden_dim)
-        self._output_layer = LinearTensorLayer(hidden_dim, output_dim)
+        self.backend = backend
+        self._input_layer = LinearTensorLayer(input_dim, hidden_dim, backend=backend)
+        self._hidden_layer = LinearTensorLayer(hidden_dim, hidden_dim, backend=backend)
+        self._output_layer = LinearTensorLayer(hidden_dim, output_dim, backend=backend)
 
     def forward(self, inputs: Tensor) -> Tensor:
         # Pass through input layer

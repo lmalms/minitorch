@@ -5,8 +5,18 @@ from minitorch.autodiff.scalar import (
     derivative_check,
 )
 from minitorch.autodiff.tensor import Tensor
-from minitorch.autodiff.tensor_data import Index, Shape, TensorData, shape_broadcast
-from minitorch.autodiff.tensor_functions import TensorFunction, tensor
+from minitorch.autodiff.tensor_data import TensorData, shape_broadcast
+from minitorch.autodiff.tensor_functions import (
+    FastOps,
+    SimpleOps,
+    TensorBackend,
+    TensorFunction,
+    grad_check,
+    ones,
+    rand,
+    tensor,
+    zeros,
+)
 from minitorch.autodiff.variable import (
     Context,
     History,
@@ -14,3 +24,6 @@ from minitorch.autodiff.variable import (
     backpropagate,
     topological_sort,
 )
+
+FastBackend = TensorBackend(FastOps)
+SimpleBackend = TensorBackend(SimpleOps)

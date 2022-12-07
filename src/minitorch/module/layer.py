@@ -2,7 +2,7 @@ import random
 from typing import List, Optional, Union
 
 import minitorch.autodiff.tensor_functions as tf
-from minitorch.autodiff import Scalar, Tensor
+from minitorch.autodiff import FastOps, Scalar, Tensor, TensorBackend
 from minitorch.module.module import Module
 from minitorch.module.parameter import Parameter
 
@@ -80,18 +80,39 @@ class LinearTensorLayer(Module):
     Builds a linear fully connected layer using tensor variables.
     """
 
-    def __init__(self, input_dim: int, output_dim: int):
+    def __init__(
+        self,
+        input_dim: int,
+        output_dim: int,
+        backend: TensorBackend = TensorBackend(FastOps),
+    ):
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
+        self.backend = backend
         self._weights = self._initialise_parameter(
-            input_dim, output_dim, name="linear_weight"
+            input_dim,
+            output_dim,
+            backend=backend,
+            name="linear_weight",
         )
-        self._bias = self._initialise_parameter(output_dim, name="linear_bias")
+        self._bias = self._initialise_parameter(
+            output_dim,
+            backend=backend,
+            name="linear_bias",
+        )
 
     @staticmethod
-    def _initialise_parameter(*shape: int, name: Optional[str] = None) -> Parameter:
-        random_tensor = tf.rand(shape=tuple(shape), requires_grad=True)
+    def _initialise_parameter(
+        *shape: int,
+        backend: TensorBackend,
+        name: Optional[str] = None,
+    ) -> Parameter:
+        random_tensor = tf.rand(
+            shape=tuple(shape),
+            requires_grad=True,
+            backend=backend,
+        )
         random_tensor = 2 * (random_tensor - 0.5)
         return Parameter(value=random_tensor, name=name)
 
@@ -99,7 +120,10 @@ class LinearTensorLayer(Module):
         """
         Implements forward function for tensors using broadcasting.
         """
+        # Check inputs and set same backend
         assert inputs.shape[1] == self._weights.value.shape[0]
+        inputs._type_(backend=self.backend)
+
         # Add dimensions such that we can broadcast
         _inputs = inputs.view(*inputs.shape, 1)
         _weights = self._weights.value.view(1, *self._weights.value.shape)

@@ -3,7 +3,8 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import DataObject, data
 
-from minitorch.autodiff import Shape, TensorData, shape_broadcast
+from minitorch.autodiff import TensorData, shape_broadcast
+from minitorch.autodiff.tensor_data import Shape
 from minitorch.functional import product
 
 from .tensor_strategies import indices, tensor_data

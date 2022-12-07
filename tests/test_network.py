@@ -3,10 +3,10 @@ from typing import List, Union
 
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 
 import minitorch.autodiff.tensor_functions as tf
-from minitorch.autodiff import Scalar, Tensor
+from minitorch.autodiff import FastOps, Scalar, SimpleOps, Tensor, TensorBackend
 from minitorch.module import (
     LinearScalarLayer,
     LinearTensorLayer,
@@ -17,8 +17,8 @@ from minitorch.operators import relu
 
 from .strategies import medium_ints
 
-SKIP_NETWORK_FORWARD_TESTS = True
-SKIP_REASON = "Tests are slow."
+# Define backends
+BACKENDS = {"simple": TensorBackend(SimpleOps), "fast": TensorBackend(FastOps)}
 
 
 @given(medium_ints, medium_ints, medium_ints)
@@ -43,7 +43,7 @@ def test_scalar_network_init(input_dim: int, hidden_dim: int, output_dim: int):
 
 
 @given(medium_ints, medium_ints, medium_ints)
-@pytest.mark.skipif(SKIP_NETWORK_FORWARD_TESTS, reason=SKIP_REASON)
+@settings(max_examples=100)
 def test_scalar_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
 
     # Utils functions for running tests
@@ -88,8 +88,12 @@ def test_scalar_network_forward(input_dim: int, hidden_dim: int, output_dim: int
 
 
 @given(medium_ints, medium_ints, medium_ints)
-def test_tensor_network_init(input_dim: int, hidden_dim: int, output_dim: int):
-    network = TensorNetwork(input_dim, hidden_dim, output_dim)
+@settings(max_examples=100)
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_tensor_network_init(
+    backend: str, input_dim: int, hidden_dim: int, output_dim: int
+):
+    network = TensorNetwork(input_dim, hidden_dim, output_dim, BACKENDS[backend])
 
     # Check dimensions of weight and bias matrices
     # Input layer
@@ -112,8 +116,11 @@ def test_tensor_network_init(input_dim: int, hidden_dim: int, output_dim: int):
 
 
 @given(medium_ints, medium_ints, medium_ints)
-@pytest.mark.skipif(SKIP_NETWORK_FORWARD_TESTS, reason=SKIP_REASON)
-def test_tensor_network_forward(input_dim: int, hidden_dim: int, output_dim: int):
+@settings(max_examples=100)
+@pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
+def test_tensor_network_forward(
+    backend: str, input_dim: int, hidden_dim: int, output_dim: int
+):
     def extract_weights_and_biases(layer: LinearTensorLayer):
         weights = layer._weights.value
         weights = np.array(weights.data.storage).reshape(weights.shape)
@@ -140,7 +147,7 @@ def test_tensor_network_forward(input_dim: int, hidden_dim: int, output_dim: int
         return ho_state
 
     # Initialise network
-    network = TensorNetwork(input_dim, hidden_dim, output_dim)
+    network = TensorNetwork(input_dim, hidden_dim, output_dim, BACKENDS[backend])
 
     # Extract weights and biases
     ih_weights, ih_bias = extract_weights_and_biases(network._input_layer)
