@@ -1,6 +1,6 @@
 from typing import List
 
-from minitorch.module import Parameter
+from minitorch.module.parameter import Parameter
 from minitorch.optim.base import BaseOptimizer
 
 

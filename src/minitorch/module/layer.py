@@ -8,7 +8,7 @@ import minitorch.tensor_losses as tl
 from minitorch.autodiff import FastOps, Scalar, Tensor, TensorBackend
 from minitorch.module.module import Module
 from minitorch.module.parameter import Parameter
-from minitorch.optim import BaseOptimizer
+from minitorch.optim.base import BaseOptimizer
 
 
 class LinearScalarLayer(Module):
@@ -220,3 +220,5 @@ class LinearTensorLayer(Module):
 
             if epoch == (n_epochs - 1):
                 print(f"epoch {epoch + 1}: loss = {loss_per_epoch.item()}")
+
+        return losses
