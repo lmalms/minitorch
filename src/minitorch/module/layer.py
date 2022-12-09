@@ -1,5 +1,6 @@
 import itertools
 import random
+import time
 from typing import List, Optional, Union
 
 import minitorch.autodiff.tensor_functions as tf
@@ -9,6 +10,10 @@ from minitorch.autodiff import FastOps, Scalar, Tensor, TensorBackend
 from minitorch.module.module import Module
 from minitorch.module.parameter import Parameter
 from minitorch.optim.base import BaseOptimizer
+
+from .logging import default_message, logging
+
+logger = logging.getLogger(__name__)
 
 
 class LinearScalarLayer(Module):
@@ -96,7 +101,9 @@ class LinearScalarLayer(Module):
 
         # Training loop
         losses = []
-        for epoch in range(n_epochs):
+        for epoch in range(1, n_epochs + 1):
+            start_time = time.time()
+
             # Zero all grads
             optimizer.zero_grad()
 
@@ -111,20 +118,26 @@ class LinearScalarLayer(Module):
             loss_per_epoch = sl.binary_cross_entropy(labels, y_hat)
             loss_per_epoch.backward()
 
+            # Update parameters
             optimizer.step()
 
             # Record
+            time_per_epoch = (time.time() - start_time) * 1e03
             losses.append(loss_per_epoch.data)
             if epoch % logging_freq == 0:
-                print(f"epoch {epoch}: loss = {loss_per_epoch.data}")
-
-            if epoch + 1 == n_epochs:
-                print(f"epoch {epoch + 1}: loss = {loss_per_epoch.data}")
+                logger.info(
+                    default_message(
+                        epoch,
+                        loss_per_epoch.data,
+                        time_per_epoch,
+                    )
+                )
 
         return losses
 
 
 class LinearTensorLayer(Module):
+
     """
     Builds a linear fully connected layer using tensor variables.
     """
@@ -199,8 +212,8 @@ class LinearTensorLayer(Module):
 
         # Training loop
         losses = []
-        for epoch in range(n_epochs):
-
+        for epoch in range(1, n_epochs + 1):
+            start_time = time.time()
             # Zero all grads
             optimizer.zero_grad()
 
@@ -211,14 +224,20 @@ class LinearTensorLayer(Module):
             loss_per_epoch = tl.binary_cross_entropy(labels, y_hat)
             loss_per_epoch.backward()
 
+            # Update parameters
             optimizer.step()
 
             # Record
+            # Record
+            time_per_epoch = (time.time() - start_time) * 1e03
             losses.append(loss_per_epoch.item())
             if epoch % logging_freq == 0:
-                print(f"epoch {epoch}: loss = {loss_per_epoch.item()}")
-
-            if epoch == (n_epochs - 1):
-                print(f"epoch {epoch + 1}: loss = {loss_per_epoch.item()}")
+                logger.info(
+                    default_message(
+                        epoch,
+                        loss_per_epoch.item(),
+                        time_per_epoch,
+                    )
+                )
 
         return losses
