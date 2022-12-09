@@ -1,9 +1,9 @@
 # minitorch
 
 ToDo:
-- plot predictions for tensor training
-- consolidate notebooks (e.g. plotting functionality)
+- consolidate notebooks (e.g. consolidate training loops - scalars + tensors)
+- matmul
+- Baseclass for LinearLayers and LinearTensors
 - add losses and roc curves to README.md
 - update app
-- function signatures for jit functions
-- what tools can I use to check tests coverage?
+- what tools can I use to check tests coverage? -> coverage.py
