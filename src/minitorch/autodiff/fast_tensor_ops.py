@@ -192,7 +192,7 @@ def tensor_reduce(fn: Callable[[float, float], float]):
     return njit(parallel=True)(_reduce)
 
 
-# @njit(parallel=True, fastmath=True)
+@njit(parallel=True, fastmath=True)
 def tensor_matrix_multiply(
     out_storage: Storage,
     out_shape: Shape,
