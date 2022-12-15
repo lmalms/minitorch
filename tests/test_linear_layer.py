@@ -78,11 +78,16 @@ def test_linear_tensor_forward(backend: str, input_dim: int = 2, output_dim: int
     inputs_np = np.array(inputs.data.storage).reshape((n_samples, input_dim))
 
     # Forward
-    tensor_out = linear.forward(inputs=inputs)
+    tensor_out = linear.zip_reduce_forward(inputs)
     np_out = np.dot(inputs_np, weights_np) + bias_np
 
-    # Check
+    # Check zip reduce forward
     assert np.all(np.isclose(tensor_out.data.storage, np_out.flatten()))
+
+    if backend == "fast":
+        # Check matmul forward
+        tensor_out = linear.forward(inputs)
+        assert np.all(np.isclose(tensor_out.data.storage, np_out.flatten()))
 
 
 @pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
