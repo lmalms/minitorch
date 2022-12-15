@@ -3,4 +3,4 @@
 ToDo:
 - add losses and roc curves to README.md
 - update app
-- what tools can I use to check tests coverage?
+- what tools can I use to check tests coverage? (e.g. python coverage)
