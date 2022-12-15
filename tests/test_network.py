@@ -130,8 +130,12 @@ def test_tensor_network_forward(
 
         return weights, bias
 
-    def minitorch_forward(inputs: Tensor) -> np.ndarray:
+    def mat_mul_forward(inputs: Tensor) -> np.ndarray:
         out_ = network.forward(inputs)
+        return np.array(out_.data.storage).reshape(out_.shape)
+
+    def zip_reduce_forward(inputs: Tensor) -> np.ndarray:
+        out_ = network.zip_reduce_forward(inputs)
         return np.array(out_.data.storage).reshape(out_.shape)
 
     def numpy_forward(inputs: Tensor) -> np.ndarray:
@@ -157,4 +161,6 @@ def test_tensor_network_forward(
     # Generate some data and run forwards
     n_samples = 10
     inputs = tf.rand((n_samples, input_dim))
-    assert np.allclose(minitorch_forward(inputs), numpy_forward(inputs))
+    assert np.allclose(zip_reduce_forward(inputs), numpy_forward(inputs))
+    if backend == "fast":
+        assert np.allclose(mat_mul_forward(inputs), numpy_forward(inputs))
