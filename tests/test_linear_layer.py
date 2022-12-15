@@ -78,18 +78,23 @@ def test_linear_tensor_forward(backend: str, input_dim: int = 2, output_dim: int
     inputs_np = np.array(inputs.data.storage).reshape((n_samples, input_dim))
 
     # Forward
-    tensor_out = linear.forward(inputs=inputs)
+    tensor_out = linear.zip_reduce_forward(inputs)
     np_out = np.dot(inputs_np, weights_np) + bias_np
 
-    # Check
+    # Check zip reduce forward
     assert np.all(np.isclose(tensor_out.data.storage, np_out.flatten()))
+
+    if backend == "fast":
+        # Check matmul forward
+        tensor_out = linear.forward(inputs)
+        assert np.all(np.isclose(tensor_out.data.storage, np_out.flatten()))
 
 
 @pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
 def test_linear_tensor_backward(backend: str, input_dim: int = 2, output_dim: int = 1):
-    def forward(inputs: Tensor, weights: Tensor, bias: Tensor) -> Tensor:
+    def zip_reduce_forward(inputs: Tensor, weights: Tensor, bias: Tensor) -> Tensor:
         """
-        Separate out forward to test with grad_check
+        Separate out zip reduce forward for grad_check
         """
         # Add dimensions such that we can broadcast
         inputs = inputs.view(*inputs.shape, 1)
@@ -99,6 +104,12 @@ def test_linear_tensor_backward(backend: str, input_dim: int = 2, output_dim: in
         out = (inputs * weights).sum(dim=1)
         out = out.view(inputs.shape[0], bias.shape[0])
         return out + bias
+
+    def mat_mul_forward(inputs: Tensor, weights: Tensor, bias: Tensor) -> Tensor:
+        """
+        Separate out mat mul forward for grad check
+        """
+        return inputs @ weights + bias
 
     # Initialise a new linear layer
     weights_parameter = LinearTensorLayer._initialise_parameter(
@@ -117,22 +128,29 @@ def test_linear_tensor_backward(backend: str, input_dim: int = 2, output_dim: in
     n_samples = 10
     inputs = tf.rand((n_samples, input_dim), backend=BACKENDS[backend])
 
-    f = update_wrapper(partial(forward, inputs), forward)
-    tf.grad_check(f, weights, bias)
+    zip_red_f = update_wrapper(partial(zip_reduce_forward, inputs), zip_reduce_forward)
+    mat_mul_f = update_wrapper(partial(mat_mul_forward, inputs), mat_mul_forward)
+
+    # Check zip reduce forward
+    tf.grad_check(zip_red_f, weights, bias)
+
+    # Check mat mul forward
+    if backend == "fast":
+        tf.grad_check(mat_mul_f, weights, bias)
 
 
 @pytest.mark.parametrize("backend", (pytest.param("simple"), pytest.param("fast")))
 def test_linear_tensor_backward_with_loss(
     backend: str, input_dim: int = 2, output_dim: int = 1
 ):
-    def forward(
+    def zip_reduce_forward(
         inputs: Tensor,
         targets: Tensor,
         weights: Tensor,
         bias: Tensor,
     ) -> Tensor:
         """
-        Separate out forward to test with grad_check
+        Separate out zip reduce forward for grad check.
         """
         # Add dimensions such that we can broadcast
         inputs = inputs.view(*inputs.shape, 1)
@@ -140,8 +158,27 @@ def test_linear_tensor_backward_with_loss(
 
         # Collapse dimension
         out = (inputs * weights_).sum(dim=1)
-        predictions = out.view(inputs.shape[0], bias.size) + bias
-        predictions = predictions.sigmoid().view(targets.size)
+        logits = out.view(inputs.shape[0], bias.size) + bias
+        predictions = logits.sigmoid().view(targets.size)
+
+        # Compute loss
+        log_likelihoods_p = (targets == 1) * predictions.log()
+        log_likelihoods_f = (targets == 0) * (-predictions + 1).log()
+        loss = (log_likelihoods_p + log_likelihoods_f) / float(predictions.shape[0])
+
+        return loss
+
+    def mat_mul_forward(
+        inputs: Tensor,
+        targets: Tensor,
+        weights: Tensor,
+        bias: Tensor,
+    ) -> Tensor:
+        """
+        Separate out zip reduce forward for grad check.
+        """
+        logits = inputs @ weights + bias
+        predictions = logits.sigmoid().view(targets.size)
 
         # Compute loss
         log_likelihoods_p = (targets == 1) * predictions.log()
@@ -168,5 +205,13 @@ def test_linear_tensor_backward_with_loss(
     inputs = tf.rand((n_samples, input_dim), backend=BACKENDS[backend])
     targets = tf.tensor([1, 1, 1, 0, 0, 0, 1, 0, 1, 0], backend=BACKENDS[backend])
 
-    f = update_wrapper(partial(forward, inputs, targets), forward)
-    tf.grad_check(f, weights, bias)
+    # Check zip reduce forward
+    zip_red_f = partial(zip_reduce_forward, inputs, targets)
+    zip_red_f = update_wrapper(zip_red_f, zip_reduce_forward)
+    tf.grad_check(zip_red_f, weights, bias)
+
+    # Check mat mul forward
+    if backend == "fast":
+        mat_mul_f = partial(mat_mul_forward, inputs, targets)
+        mat_mul_f = update_wrapper(mat_mul_f, mat_mul_forward)
+        tf.grad_check(mat_mul_f, weights, bias)

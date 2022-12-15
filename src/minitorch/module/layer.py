@@ -180,7 +180,20 @@ class LinearTensorLayer(Module):
 
     def forward(self, inputs: Tensor) -> Tensor:
         """
-        Implements forward function for tensors using broadcasting.
+        Implements forward function using matmul.
+        """
+        # Check inputs and set same backend
+        assert inputs.shape[1] == self._weights.value.shape[0]
+        inputs._type_(backend=self.backend)
+
+        # Forward
+        _out = inputs @ self._weights.value + self._bias.value
+        return _out
+
+    def zip_reduce_forward(self, inputs: Tensor) -> Tensor:
+        """
+        Implements forward function for tensors using
+        zip reduce and broadcasting.
         """
         # Check inputs and set same backend
         assert inputs.shape[1] == self._weights.value.shape[0]

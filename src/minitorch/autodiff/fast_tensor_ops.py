@@ -192,8 +192,42 @@ def tensor_reduce(fn: Callable[[float, float], float]):
     return njit(parallel=True)(_reduce)
 
 
-def tensor_matrix_multiply():
-    raise NotImplementedError
+@njit(parallel=True, fastmath=True)
+def tensor_matrix_multiply(
+    out_storage: Storage,
+    out_shape: Shape,
+    out_strides: Strides,
+    a_storage: Storage,
+    a_shape: Shape,
+    a_strides: Strides,
+    b_storage: Storage,
+    b_shape: Shape,
+    b_strides: Strides,
+) -> None:
+
+    # To numpy
+    out_shape, out_strides = np.array(out_shape), np.array(out_strides)
+    a_shape, a_strides = np.array(a_shape), np.array(a_strides)
+    b_shape, b_strides = np.array(b_shape), np.array(b_strides)
+
+    for n in prange(out_shape[0]):
+        for i in range(out_shape[1]):
+            for j in range(out_shape[2]):
+                for k in range(a_shape[-1]):
+
+                    # Construct indices
+                    out_index = np.array([n, i, j])
+                    a_index = np.array([n if a_shape[0] > 1 else 0, i, k])
+                    b_index = np.array([n if b_shape[0] > 1 else 0, k, j])
+
+                    # Get positions
+                    out_position = index_to_position(out_index, out_strides)
+                    a_position = index_to_position(a_index, a_strides)
+                    b_position = index_to_position(b_index, b_strides)
+
+                    # Apply mat mul
+                    out_data = a_storage[a_position] * b_storage[b_position]
+                    out_storage[out_position] += out_data
 
 
 class FastOps(TensorOps):
@@ -257,5 +291,52 @@ class FastOps(TensorOps):
         return _reduce
 
     @staticmethod
-    def matrix_multiply(x: t.Tensor, y: t.Tensor) -> t.Tensor:
-        raise NotImplementedError
+    def matrix_multiply(a: t.Tensor, b: t.Tensor) -> t.Tensor:
+        """
+        Higher order atched tensor matrix multiply.
+
+        for n:
+            for i:
+                for j:
+                    for k:
+                        out[n, i, j] += a[n, i, k] * b[n, k, j]
+
+        Where n indicates the batch dimension.
+
+        Args:
+            x: Tensor
+            y: Tensor
+
+        Returns:
+            Tensor
+
+        """
+        # Check dims match
+        assert 2 <= a.dims <= 3
+        assert 2 <= b.dims <= 3
+        assert a.shape[-1] == b.shape[-2]
+
+        # Reshape into 3D tensors if inputs are 2D
+        both_2d = 0
+        if a.dims == 2:
+            a = a.contiguous().view(1, *a.shape)
+            both_2d += 1
+        if b.dims == 2:
+            b = b.contiguous().view(1, *b.shape)
+            both_2d += 1
+        both_2d = both_2d == 2
+        assert a.shape[-1] == b.shape[-2]
+
+        # Get broadcasted 3D shape
+        out_shape = list(shape_broadcast(a.shape[:-2], b.shape[:-2]))
+        out_shape.append(a.shape[-2])
+        out_shape.append(b.shape[-1])
+        out = a.zeros(tuple(out_shape))
+
+        tensor_matrix_multiply(*out.tuple(), *a.tuple(), *b.tuple())
+
+        # Reshape into 2D if both inputs were 2D
+        if both_2d:
+            out = out.view(out.shape[1], out.shape[2])
+
+        return out

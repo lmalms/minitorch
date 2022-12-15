@@ -354,7 +354,7 @@ class MatMul(TensorFunction):
 
         def transpose(a: t.Tensor) -> t.Tensor:
             order = reversed(list(range(a.dims)))
-            return a._new(data=a.data.permute(*order))
+            return a._new(td=a.data.permute(*order))
 
         return (
             grad_out.func.matrix_multiply(grad_out, transpose(b)),
@@ -418,7 +418,7 @@ def tensor(
 
 
 def grad_central_difference(
-    f: Callable[..., t.Tensor],
+    f: Callable[[*t.Tensor], t.Tensor],
     *inputs: t.Tensor,
     idx: Index,
     arg: int,
@@ -434,7 +434,7 @@ def grad_central_difference(
     return delta.item() / (2 * epsilon)
 
 
-def grad_check(f: Callable[..., t.Tensor], *tensors: t.Tensor) -> None:
+def grad_check(f: Callable[[*t.Tensor], t.Tensor], *tensors: t.Tensor) -> None:
 
     # Compute derivatives with respect to each of the inputs.
     for tensor in tensors:

@@ -1,8 +1,10 @@
+import random
 from typing import Any, Callable, List, Tuple
 
+import numpy as np
 import pytest
 from hypothesis import given, settings
-from hypothesis.strategies import DataObject, data, lists, permutations
+from hypothesis.strategies import DataObject, data, integers, lists, permutations
 
 from minitorch.autodiff import (
     FastOps,
@@ -10,6 +12,7 @@ from minitorch.autodiff import (
     Tensor,
     TensorBackend,
     grad_check,
+    rand,
     tensor,
 )
 from minitorch.autodiff.tensor_data import Shape
@@ -270,3 +273,46 @@ def test_grad_size() -> None:
     assert y.grad is not None
     assert x.shape == x.grad.shape
     assert y.grad.shape == y.grad.shape
+
+
+@given(data())
+def test_mat_mul(data: DataObject) -> None:
+    small_ints = integers(min_value=2, max_value=4)
+    W, X, Y, Z = (
+        data.draw(small_ints),
+        data.draw(small_ints),
+        data.draw(small_ints),
+        data.draw(small_ints),
+    )
+    x = data.draw(tensors(backend=BACKENDS["fast"], shape=(Z, W, X)))
+    y = data.draw(tensors(backend=BACKENDS["fast"], shape=(1, X, Y)))
+    z_mat_mul = x @ y
+    z_zip = x.contiguous().view(Z, W, X, 1) * y.contiguous().view(1, 1, X, Y)
+    z_zip_red = z_zip.sum(dim=2).view(Z, W, Y)
+
+    assert np.allclose(z_mat_mul.data.storage, z_zip_red.data.storage)
+
+
+def test_mat_mul_grad() -> None:
+    min_dim, max_dim = 1, 10
+    for _ in range(10):
+        n_rows_x = random.randint(min_dim, max_dim)
+        n_cols_y = random.randint(min_dim, max_dim)
+        n_reduce = random.randint(min_dim, max_dim)
+
+        x = rand((n_rows_x, n_reduce), backend=BACKENDS["fast"])
+        y = rand((n_reduce, n_cols_y), backend=BACKENDS["fast"])
+        z_mat_mul = x @ y
+
+        # Compare to zip-reduce implementation
+        z_zip = x.view(*x.shape, 1) * y.view(1, *y.shape)
+        z_zip_red = z_zip.sum(dim=1).view(n_rows_x, n_cols_y)
+
+        for idx in z_zip_red.data.indices():
+            assert is_close(z_zip_red[idx], z_mat_mul[idx])
+
+        # Check grad
+        def mat_mul(x: Tensor, y: Tensor):
+            return x @ y
+
+        grad_check(mat_mul, x, y)

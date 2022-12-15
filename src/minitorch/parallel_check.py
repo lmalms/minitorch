@@ -26,3 +26,15 @@ out, a = tf.zeros((1,)), tf.zeros((10,))
 treduce = fast_ops.tensor_reduce(njit()(ops.add))
 treduce(*out.tuple(), *a.tuple(), 0)
 print(treduce.parallel_diagnostics(level=3))
+
+# MATMUL
+print("MATMUL")
+out, a, b = (
+    tf.zeros((1, 10, 10)),
+    tf.zeros((1, 10, 20)),
+    tf.zeros((1, 20, 10)),
+)
+tmatmul = fast_ops.tensor_matrix_multiply
+
+tmatmul(*out.tuple(), *a.tuple(), *b.tuple())
+print(tmatmul.parallel_diagnostics(level=3))
