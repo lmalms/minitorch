@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Sequence
 
-from minitorch.module import Parameter
+from minitorch.module.parameter import Parameter
 
 
 class BaseOptimizer(ABC):
