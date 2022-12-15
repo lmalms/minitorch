@@ -71,6 +71,18 @@ class TensorNetwork(Module):
         # Pass through output layer
         return self._output_layer(hidden_to_hidden)
 
+    def zip_reduce_forward(self, inputs: Tensor) -> Tensor:
+        # Pass through input layer
+        input_to_hidden = self._input_layer.zip_reduce_forward(inputs)
+        input_to_hidden = self._apply_relu(input_to_hidden)
+
+        # Pass through hidden layer
+        hidden_to_hidden = self._hidden_layer.zip_reduce_forward(input_to_hidden)
+        hidden_to_hidden = self._apply_relu(hidden_to_hidden)
+
+        # Pass through output layer
+        return self._output_layer.zip_reduce_forward(hidden_to_hidden)
+
     @staticmethod
     def _apply_relu(inputs: Tensor) -> Tensor:
         return inputs.relu()
