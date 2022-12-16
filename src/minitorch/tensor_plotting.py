@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+
+from typing import Any, Union, Tuple
 import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.patches import Rectangle
@@ -8,7 +10,12 @@ from minitorch.datasets import Dataset
 from minitorch.module import Module
 
 
-def _add_simple_tensor_predictions(ax: Axes, model: Module) -> Axes:
+def _add_simple_tensor_predictions(
+    ax: Axes,
+    model: Module,
+    color_positive_class: Union[Tuple[float], str],
+    color_negative_class: Union[Tuple[float], str],
+) -> Axes:
     x1_res, x2_res = 100, 10
     x1_positions = list(np.linspace(0, 1, (x1_res + 1)))
 
@@ -33,14 +40,19 @@ def _add_simple_tensor_predictions(ax: Axes, model: Module) -> Axes:
             [x1_upper for _ in range(x2_res + 1)],
             [x1_lower for _ in range(x2_res + 1)],
             alpha=(y_mean - 0.5) if y_mean >= 0.5 else (0.5 - y_mean),
-            color="tab:blue" if y_mean >= 0.5 else "tab:red",
+            color=color_positive_class if y_mean >= 0.5 else color_negative_class,
             lw=0.001,
         )
 
     return ax
 
 
-def _add_diagonal_tensor_predictions(ax: Axes, model: Module) -> Axes:
+def _add_diagonal_tensor_predictions(
+    ax: Axes,
+    model: Module,
+    color_positive_class: Union[Tuple[float], str],
+    color_negative_class: Union[Tuple[float], str],
+) -> Axes:
     x1_res, bias_res = 100, 100
     x_positions = list(np.linspace(0, 1, x1_res + 1))
     bias_positions = list(np.linspace(0, 2, bias_res + 1))
@@ -70,14 +82,19 @@ def _add_diagonal_tensor_predictions(ax: Axes, model: Module) -> Axes:
             [x2 for (_, x2) in X_lower],
             [x2 for (_, x2) in X_upper],
             alpha=(y_mean - 0.5) if y_mean >= 0.5 else (0.5 - y_mean),
-            color="tab:blue" if y_mean >= 0.5 else "tab:red",
+            color=color_positive_class if y_mean >= 0.5 else color_negative_class,
             lw=0.001,
         )
 
     return ax
 
 
-def _add_split_tensor_predictions(ax: Axes, model: Module) -> Axes:
+def _add_split_tensor_predictions(
+    ax: Axes,
+    model: Module,
+    color_positive_class: Union[Tuple[float], str],
+    color_negative_class: Union[Tuple[float], str],
+) -> Axes:
     x1_res, x2_res = 100, 10
     x1_positions = list(np.linspace(0, 1, x1_res + 1))
     x2_positions = list(np.linspace(0, 1, x2_res + 1))
@@ -104,14 +121,19 @@ def _add_split_tensor_predictions(ax: Axes, model: Module) -> Axes:
             [x1_upper for _ in x2_positions],
             [x1_lower for _ in x2_positions],
             alpha=(y_mean - 0.5) if y_mean >= 0.5 else (0.5 - y_mean),
-            color="tab:blue" if y_mean >= 0.5 else "tab:red",
+            color=color_positive_class if y_mean >= 0.5 else color_negative_class,
             lw=0.001,
         )
 
     return ax
 
 
-def _add_xor_tensor_predictions(ax: Axes, model: Module) -> Axes:
+def _add_xor_tensor_predictions(
+    ax: Axes,
+    model: Module,
+    color_positive_class: Union[Tuple[float], str],
+    color_negative_class: Union[Tuple[float], str],
+) -> Axes:
     x1_res, x2_res = 100, 100
     x1_positions = list(np.linspace(0, 1.0, x1_res))
     x2_positions = list(np.linspace(0, 1.0, x2_res))
@@ -127,14 +149,14 @@ def _add_xor_tensor_predictions(ax: Axes, model: Module) -> Axes:
     # Plot predictions as rectangles
     for i, (x1_lower, x1_upper) in enumerate(zip(x1_positions, x1_positions[1:])):
         for j, (x2_lower, x2_upper) in enumerate(zip(x2_positions, x2_positions[1:])):
+            color = color_positive_class if y_hat[i, j] >= 0.5 else color_negative_class
+            alpha = (y_hat[i, j] - 0.5) if y_hat[i, j] >= 0.5 else (0.5 - y_hat[i, j])
             rect = Rectangle(
                 (x1_lower, x2_lower),
                 (x1_upper - x1_lower),
                 (x2_upper - x2_lower),
-                color="tab:blue" if y_hat[i, j] >= 0.5 else "tab:red",
-                alpha=(y_hat[i, j] - 0.5)
-                if y_hat[i, j] >= 0.5
-                else (0.5 - y_hat[i, j]),
+                color=color,
+                alpha=alpha,
                 lw=0.0,
             )
             ax.add_patch(rect)
@@ -142,21 +164,46 @@ def _add_xor_tensor_predictions(ax: Axes, model: Module) -> Axes:
     return ax
 
 
-def plot_tensor_predictions(dataset: Dataset, model: Module):
+def plot_tensor_predictions(
+    dataset: Dataset,
+    model: Module,
+    color_positive_class: Union[Tuple[float], str] = "tab:blue",
+    color_negative_class: Union[Tuple[float], str] = "tab:red",
+):
     fig = dataset.plot(add_shading=False)
     ax = plt.gca()
 
     if dataset.type == "simple":
-        ax = _add_simple_tensor_predictions(ax, model)
+        ax = _add_simple_tensor_predictions(
+            ax,
+            model,
+            color_positive_class,
+            color_negative_class,
+        )
 
     elif dataset.type == "diagonal":
-        ax = _add_diagonal_tensor_predictions(ax, model)
+        ax = _add_diagonal_tensor_predictions(
+            ax,
+            model,
+            color_positive_class,
+            color_negative_class,
+        )
 
     elif dataset.type == "split":
-        ax = _add_split_tensor_predictions(ax, model)
+        ax = _add_split_tensor_predictions(
+            ax,
+            model,
+            color_positive_class,
+            color_negative_class,
+        )
 
     elif dataset.type == "xor":
-        ax = _add_xor_tensor_predictions(ax, model)
+        ax = _add_xor_tensor_predictions(
+            ax,
+            model,
+            color_positive_class,
+            color_negative_class,
+        )
 
     fig.tight_layout()
     return fig
