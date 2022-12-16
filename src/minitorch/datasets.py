@@ -17,7 +17,7 @@ DatasetSplit = Tuple[Features, Features, Labels, Labels]
 class Dataset:
     def __init__(self, n: int):
         self.n = n
-        self._rng = np.random.default_rng(seed=42)
+        self._rng = np.random.default_rng()
         self._xs = self._generate_xs()
         self._ys = self._generate_ys()
 
