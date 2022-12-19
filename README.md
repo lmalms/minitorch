@@ -18,5 +18,12 @@ Training Loss      |ROC Curve          |Predictions
 :-----------------:|:-----------------:|:-----------------:
 ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-diagonal.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-diagonal.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/predictions/predictions-diagonal.png)
 
+### Split dataset
+Training Loss      |ROC Curve          |Predictions
+:-----------------:|:-----------------:|:-----------------:
+![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-split.png) 
+|![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-split.png)
+|![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/predictions/predictions-split.png)
+
 ## Training classifiers through the app
 ... Coming soon ...
