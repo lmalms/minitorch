@@ -40,10 +40,10 @@ Training Loss      |ROC Curve          |Predictions
         	    <img src="notebooks/plots/losses/loss-simple.png" width="200"/>
       	    </td>
             <td style="padding:10px">
-            	<img src="img/image2.png" width="300"/>
+            	<img src="notebooks/plots/roc/roc-simple.png" width="300"/>
             </td>
             <td style="padding:10px">
-            	<img src="img/image3.png" width="400"/>
+            	<img src="notebooks/plots/predictions/predictions-simple.png" width="400"/>
             </td>
         </tr>
     </table>
