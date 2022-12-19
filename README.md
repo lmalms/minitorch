@@ -80,3 +80,6 @@ Classifiers can be trained using the notebooks in `/notebooks` or through a Stre
 ... Coming soon ...
 
 
+## TODO:
+- finish app
+- set up a github action to run all test before merging and displays coverage, pct passed etc.

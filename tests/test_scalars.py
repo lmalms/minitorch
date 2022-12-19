@@ -211,6 +211,8 @@ def test_two_arg_derivative(fn, x: Scalar, y: Scalar):
 
 def test_scalar_name():
     x = Scalar(10, name="x")
+    assert x.name == "x"
+
     y = (x + 10.0) * 20
     y.name = "y"
-    return y
+    assert y.name == "y"
