@@ -12,7 +12,7 @@ Classifiers can be trained using the notebooks in `/notebooks` or through a Stre
 ### Simple dataset
 Training Loss      |ROC Curve          |Predictions
 :-----------------:|:-----------------:|:-----------------:
-![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-simple.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-simple.png)
+![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-simple.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-simple.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/predictions/predictions-simple.png)
 
 
 ## Training classifiers through the app
