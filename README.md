@@ -8,43 +8,77 @@
 Classifiers can be trained using the notebooks in `/notebooks` or through a Streamlit app (see below). The repository defines four example training datasets for training the classifiers. Examples outputs of the training process for each dataset can be found below.
 
 ### Simple dataset
-Training Loss      |ROC Curve          |Predictions
-:-----------------:|:-----------------:|:-----------------:
-![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-simple.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-simple.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/predictions/predictions-simple.png)
+<div id="simple-dataset-plot-table">
+    <table>
+	    <tr>
+    	    <td style="padding:10px">
+        	    <img src="notebooks/plots/losses/loss-simple.png" width="350"/>
+      	    </td>
+            <td style="padding:10px">
+            	<img src="notebooks/plots/roc/roc-simple.png" width="350"/>
+            </td>
+            <td style="padding:10px">
+            	<img src="notebooks/plots/predictions/predictions-simple.png" width="350"/>
+            </td>
+        </tr>
+    </table>
+</div>
 
 
 ### Diagonal dataset
-Training Loss      |ROC Curve          |Predictions
-:-----------------:|:-----------------:|:-----------------:
-![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-diagonal.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-diagonal.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/predictions/predictions-diagonal.png)
+<div id="diagonal-dataset-plot-table">
+    <table>
+	    <tr>
+    	    <td style="padding:10px">
+        	    <img src="notebooks/plots/losses/loss-diagonal.png" width="350"/>
+      	    </td>
+            <td style="padding:10px">
+            	<img src="notebooks/plots/roc/roc-diagonal.png" width="350"/>
+            </td>
+            <td style="padding:10px">
+            	<img src="notebooks/plots/predictions/predictions-diagonal.png" width="350"/>
+            </td>
+        </tr>
+    </table>
+</div>
 
 ### Split dataset
-Training Loss      |ROC Curve          |Predictions
-:-----------------:|:-----------------:|:-----------------:
-![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-split.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-split.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/predictions/predictions-split.png)
+<div id="split-dataset-plot-table">
+    <table>
+	    <tr>
+    	    <td style="padding:10px">
+        	    <img src="notebooks/plots/losses/loss-split.png" width="350"/>
+      	    </td>
+            <td style="padding:10px">
+            	<img src="notebooks/plots/roc/roc-split.png" width="350"/>
+            </td>
+            <td style="padding:10px">
+            	<img src="notebooks/plots/predictions/predictions-split.png" width="350"/>
+            </td>
+        </tr>
+    </table>
+</div>
 
 
 ### XOR dataset
-Training Loss      |ROC Curve          |Predictions
-:-----------------:|:-----------------:|:-----------------:
-![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-xor.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-xor.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/predictions/predictions-xor.png)
+<div id="xor-dataset-plot-table">
+    <table>
+	    <tr>
+    	    <td style="padding:10px">
+        	    <img src="notebooks/plots/losses/loss-xor.png" width="350"/>
+      	    </td>
+            <td style="padding:10px">
+            	<img src="notebooks/plots/roc/roc-xor.png" width="350"/>
+            </td>
+            <td style="padding:10px">
+            	<img src="notebooks/plots/predictions/predictions-xor.png" width="350"/>
+            </td>
+        </tr>
+    </table>
+</div>
+
 
 ## Training classifiers through the app
 ... Coming soon ...
 
 
-<div id="image-table">
-    <table>
-	    <tr>
-    	    <td style="padding:10px">
-        	    <img src="notebooks/plots/losses/loss-simple.png" width="200"/>
-      	    </td>
-            <td style="padding:10px">
-            	<img src="notebooks/plots/roc/roc-simple.png" width="300"/>
-            </td>
-            <td style="padding:10px">
-            	<img src="notebooks/plots/predictions/predictions-simple.png" width="400"/>
-            </td>
-        </tr>
-    </table>
-</div>
