@@ -10,7 +10,7 @@ Classifiers can be trained using the notebooks in `/notebooks` or through a Stre
 <br/>
 
 ### Simple dataset
-![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-simple.png) ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-simple.png)
+![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-simple.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-simple.png)
 
 
 ## Training classifiers through the app
