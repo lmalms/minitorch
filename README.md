@@ -10,6 +10,8 @@ Classifiers can be trained using the notebooks in `/notebooks` or through a Stre
 <br/>
 
 ### Simple dataset
+Solarized dark             |  Solarized Ocean
+:-------------------------:|:-------------------------:
 ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-simple.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-simple.png)
 
 
