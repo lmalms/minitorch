@@ -21,9 +21,30 @@ Training Loss      |ROC Curve          |Predictions
 ### Split dataset
 Training Loss      |ROC Curve          |Predictions
 :-----------------:|:-----------------:|:-----------------:
-![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-split.png) 
-|![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-split.png)
-|![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/predictions/predictions-split.png)
+![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-split.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-split.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/predictions/predictions-split.png)
+
+
+### XOR dataset
+Training Loss      |ROC Curve          |Predictions
+:-----------------:|:-----------------:|:-----------------:
+![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/losses/loss-xor.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/roc/roc-xor.png) | ![](https://github.com/lmalms/minitorch/blob/readme/notebooks/plots/predictions/predictions-xor.png)
 
 ## Training classifiers through the app
 ... Coming soon ...
+
+
+<div id="image-table">
+    <table>
+	    <tr>
+    	    <td style="padding:10px">
+        	    <img src="notebooks/plots/losses/loss-simple.png" width="200"/>
+      	    </td>
+            <td style="padding:10px">
+            	<img src="img/image2.png" width="300"/>
+            </td>
+            <td style="padding:10px">
+            	<img src="img/image3.png" width="400"/>
+            </td>
+        </tr>
+    </table>
+</div>
