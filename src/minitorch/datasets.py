@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import List, Tuple
 from enum import Enum
+from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np

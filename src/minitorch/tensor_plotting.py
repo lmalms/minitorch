@@ -1,6 +1,6 @@
-import matplotlib.pyplot as plt
+from typing import Any, Tuple, Union
 
-from typing import Any, Union, Tuple
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.patches import Rectangle

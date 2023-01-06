@@ -1,59 +1,119 @@
-from enum import Enum
+from dataclasses import fields
 
 import streamlit as st
 
-from minitorch.datasets import Dataset, DatasetTypes
-from minitorch.module import Linear, Module, Network
+import minitorch.autodiff.tensor_functions as tf
+import minitorch.datasets as data
+from minitorch.autodiff import FastBackend, Tensor
+from minitorch.module import TensorNetwork
+from minitorch.optim import SGDOptimizer
+from minitorch.tensor_losses import binary_cross_entropy
+
+# Utils for this page
+datasets = {
+    "simple": data.SimpleDataset,
+    "diagonal": data.DiagonalDataset,
+    "split": data.SplitDataset,
+    "xor": data.XORDataset,
+}
 
 
-# Types and other utils needed for this page
-class NetworkType(str, Enum):
-    layer = "layer"
-    network = "network"
+def train_classifier(
+    network: TensorNetwork,
+    features: Tensor,
+    labels: Tensor,
+    optimizer: SGDOptimizer,
+    n_epochs: int,
+) -> None:
+
+    all_losses = []
+    latest_step = st.empty()
+    progress_bar = st.progress(0)
+
+    for epoch in range(1, n_epochs + 1):
+        # Take on step
+        optimizer.zero_grad()
+        y_hat = network.forward(features).sigmoid()
+        loss_per_epoch = binary_cross_entropy(labels, y_hat)
+        loss_per_epoch.backward()
+        optimizer.step()
+
+        # Record
+        all_losses.append(loss_per_epoch.item())
+        latest_step.text(f"Epoch {epoch}: Loss = {loss_per_epoch.item():.3f}")
+        progress_bar.progress(epoch)
+
+
+def plot_predictions():
+    pass
 
 
 # Configure page
 st.set_page_config(page_title="Binary Classifiers", page_icon=":white_check_mark:")
-st.title("Training a binary classifier")
 
 # Configure side bar
 with st.sidebar:
-    st.subheader("1. Configure dataset")
+
+    # Configure dataset
+    st.text("1. Configure dataset")
     dataset_type = st.radio(
         "Dataset type:",
-        [
-            name.capitalize() if value != DatasetTypes.xor else name.upper()
-            for (name, value) in DatasetTypes.__members__.items()
-        ],
+        [field.name.capitalize() for field in fields(data.Datasets)],
     )
-    # TODO: what configs here work well for all systems?
-    #  Should I maybe hard code them?
-    dataset_size = st.slider("Dataset size:", min_value=50, max_value=200, value=100)
-
-    st.subheader("2. Configure network")
-    network = st.radio(
-        "Layer vs. Network",
-        [name.capitalize() for (name, _) in NetworkType.__members__.items()],
+    dataset_size = st.slider(
+        "Dataset size:",
+        min_value=50,
+        max_value=200,
+        value=100,
     )
 
-    st.subheader("3. Configure SGD optimizer")
-    st.caption("Note: Values of xxx work well.")
+    # Configure network
+    st.text("2. Configure network")
+    hidden_dims = st.slider(
+        "Number of hidden dimensions",
+        min_value=2,
+        max_value=20,
+        value=10,
+    )
+
+    # Configure training process
+    st.text("3. Configure optimizer")
     learning_rate = st.slider(
-        "Learning rate", min_value=1e-03, max_value=0.75, value=0.375
+        "Learning rate",
+        min_value=1e-03,
+        max_value=3.0,
+        value=0.3,
     )
-    n_epochs = st.slider("Number of epochs", min_value=10, max_value=200, value=100)
+    n_epochs = st.slider(
+        "Number of epochs",
+        min_value=10,
+        max_value=200,
+        value=100,
+    )
 
 
-st.header("Network visualisation to go here ...")
-
-
-def train(network: Module, dataset: Dataset, learing_rate: float, n_epochs: float):
-    return st.success(f"training with learning rate {learing_rate}")
+# Initialise data, network and optimizer
+dataset = datasets[dataset_type.lower()](dataset_size)
+X = tf.tensor([list(x) for x in dataset.xs], backend=FastBackend)
+y_true = tf.tensor(dataset.ys, backend=FastBackend).view(dataset_size, 1)
+network = TensorNetwork(
+    input_dim=2,
+    hidden_dim=hidden_dims,
+    output_dim=1,
+    backend=FastBackend,
+)
+optimizer = SGDOptimizer(network.parameters(), lr=learning_rate)
 
 
 # Train
 st.button(
-    label="Train", on_click=train, args=(network, dataset_type, learning_rate, n_epochs)
+    label="Train classifier",
+    on_click=train_classifier,
+    args=(network, X, y_true, optimizer, n_epochs),
 )
 
-#
+# Plot predictions
+st.button(
+    label="Plot predictions",
+    on_click=plot_predictions,
+)
