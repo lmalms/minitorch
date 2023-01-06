@@ -1,15 +1,28 @@
-from typing import List
+from typing import List, Tuple
+
+from typing_extensions import TypeAlias
 
 from minitorch.autodiff import Scalar
 from minitorch.functional import summation
-from minitorch.types import RocCurveResult
-from minitorch.utils import check_for_binary_values, check_for_equal_dim
+
+RocCurve: TypeAlias = Tuple[List[Scalar], List[Scalar], List[Scalar]]
+
+
+def _check_for_equal_dim(y_true: List[Scalar], y_hat: List[Scalar]):
+    assert len(y_true) == len(y_hat), "arrays need to have the same length."
+
+
+def _check_for_binary_values(y: List[Scalar]):
+    def is_binary(y: List[Scalar]) -> bool:
+        return all((s.data == 0) or (s.data == 1) for s in y)
+
+    assert is_binary(y), "y can only contain scalars of value 1. or 0."
 
 
 def _check_arrays(y_true: List[Scalar], y_hat: List[Scalar]) -> None:
-    check_for_equal_dim(y_true, y_hat)
-    check_for_binary_values(y_true)
-    check_for_binary_values(y_hat)
+    _check_for_equal_dim(y_true, y_hat)
+    _check_for_binary_values(y_true)
+    _check_for_binary_values(y_hat)
 
 
 def accuracy(y_true: List[Scalar], y_hat: List[Scalar]) -> Scalar:
@@ -53,7 +66,7 @@ def specificity(y_true: List[Scalar], y_hat: List[Scalar]) -> Scalar:
 
 def roc_curve(
     y_true: List[Scalar], y_hat: List[Scalar], bucket_size: float = 1e-03
-) -> RocCurveResult:
+) -> RocCurve:
     """
     Computes ROC curve, that is a plot of true positive and false positive rates as a function of classification
     threshold.
@@ -67,17 +80,20 @@ def roc_curve(
             The threshold interval at which to compute the true positive and false positive rates.
             Note: Has to be between 1e-03 and 1.
     """
-    check_for_equal_dim(y_true, y_hat)
+    _check_for_equal_dim(y_true, y_hat)
 
     def bucket_thresholds(y_hat: List[Scalar], bucket_size: float = 1e-03):
         bucket_size = min(max(bucket_size, 0.001), 1.0)
         thresholds = [0.0]
         for y_h in y_hat:
+            # If y_hat is within bucket_size of max threshold, move on
+            # Otherwise append y_hat to make new max threshold
             if max(thresholds) < (y_h - bucket_size):
                 thresholds.append(y_h)
 
         return thresholds
 
+    # Sort because will be iterting through thresholds in increasing order
     sorted_pairs = sorted(zip(y_true, y_hat), key=lambda pair: pair[1])
     y_true, y_hat = zip(*[(y_t, y_h) for (y_t, y_h) in sorted_pairs])
     thresholds = bucket_thresholds(y_hat, bucket_size)
@@ -93,11 +109,3 @@ def roc_curve(
         fpr.append(fpr_at_threshold)
 
     return tpr, fpr, thresholds
-
-
-def precision_recall_curve():
-    pass
-
-
-def auc():
-    pass

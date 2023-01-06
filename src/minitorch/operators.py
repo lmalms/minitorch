@@ -59,7 +59,7 @@ def maximum(x: float, y: float) -> float:
 
 
 def is_close(x: float, y: float) -> bool:
-    """f(x, y) = |x - y| < 1e-02"""
+    """f(x, y) = |x - y| < 1e-03"""
     return abs(x - y) < 1e-03
 
 
@@ -68,7 +68,10 @@ def sigmoid(x: float) -> float:
     f(x) = 1./(1. + e^(-x))
     Implemented as f(x) = 1./(1.+e^(-x)) if x >= 0 else e^(x)/(1. + e^(x))
     """
-    return 1.0 / (1.0 + math.exp(-x)) if x >= 0.0 else math.exp(x) / (1.0 + math.exp(x))
+    if x >= 0.0:
+        return 1.0 / (1.0 + math.exp(-x))
+    else:
+        return math.exp(x) / (1.0 + math.exp(x))
 
 
 def relu(x: float) -> float:
@@ -80,7 +83,9 @@ def relu(x: float) -> float:
 
 def log(x: float, base: Optional[float] = None) -> float:
     """f(x) = log(x)"""
-    return math.log(x, base) if base is not None else math.log(x)
+    if (base is not None) and (base > 1.0):
+        return math.log(x, base)
+    return math.log(x)
 
 
 def exp(x: float) -> float:
@@ -109,5 +114,10 @@ def relu_diff(x: float, d: float) -> float:
 
 
 def sigmoid_diff(x: float, d: float) -> float:
-    """d * f'(x) where f(x) = sigmoid(x)"""
-    return d * sigmoid(x) * (1.0 - sigmoid(x))
+    """d * f'(x) where f(x) = sigmoid(x) and f'(x) = sigmoid(x) * (1.0 - sigmoid(x))"""
+    if x >= 0.0:
+        sigmoid_x = 1.0 / (1.0 + math.exp(-x))
+    else:
+        sigmoid_x = math.exp(x) / (1.0 + math.exp(x))
+
+    return d * sigmoid_x * (1.0 - sigmoid_x)

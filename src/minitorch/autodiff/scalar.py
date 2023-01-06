@@ -4,7 +4,8 @@ from abc import abstractmethod
 from typing import Any, Callable, Optional, Tuple, Union
 
 from minitorch import operators
-from minitorch.autodiff.variable import BaseFunction, Context, History, Variable
+
+from .variable import BaseFunction, Context, History, Variable
 
 
 class Scalar(Variable):
@@ -24,8 +25,9 @@ class Scalar(Variable):
         super().__init__(history=history, name=name)
         self.data = value
 
-    def __hash__(self):
-        return hash((self.data, self.name))
+    def __hash__(self) -> int:
+        # Hash method is not inherited if overwriting __eq__
+        return hash(self.id_)
 
     @property
     def data(self) -> float:
@@ -141,7 +143,7 @@ class ScalarFunction(BaseFunction):
         ...
 
     @classmethod
-    def backward(cls, ctx: Context, d_out: float) -> Union[Tuple[..., float], float]:
+    def backward(cls, ctx: Context, d_out: float) -> Union[Tuple[float, ...], float]:
         """
         Backward call.
 
@@ -382,7 +384,7 @@ def derivative_check(func: Callable[..., Scalar], *scalars):
     Asserts False if derivative is incorrect.
     """
     for scalar in scalars:
-        scalar.requires_grad_(True)
+        scalar.requires_grad = True
     out_ = func(*scalars)
     out_.backward()
 

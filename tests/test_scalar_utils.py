@@ -3,7 +3,7 @@ from typing import List
 import pytest
 
 from minitorch.autodiff import Scalar
-from minitorch.utils import check_for_binary_values, check_for_equal_dim
+from minitorch.scalar_metrics import _check_for_binary_values, _check_for_equal_dim
 
 
 @pytest.mark.parametrize(
@@ -15,7 +15,7 @@ from minitorch.utils import check_for_binary_values, check_for_equal_dim
     ],
 )
 def test_binary_values_check(y: List[Scalar]) -> None:
-    check_for_binary_values(y)
+    _check_for_binary_values(y)
 
 
 @pytest.mark.xfail
@@ -28,7 +28,7 @@ def test_binary_values_check(y: List[Scalar]) -> None:
     ],
 )
 def test_binary_values_check_fail(y: List[Scalar]) -> None:
-    check_for_binary_values(y)
+    _check_for_binary_values(y)
 
 
 @pytest.mark.parametrize(
@@ -45,7 +45,7 @@ def test_binary_values_check_fail(y: List[Scalar]) -> None:
     ],
 )
 def test_equal_dims_check(x: List[Scalar], y: List[Scalar]) -> None:
-    check_for_equal_dim(x, y)
+    _check_for_equal_dim(x, y)
 
 
 @pytest.mark.xfail
@@ -63,4 +63,4 @@ def test_equal_dims_check(x: List[Scalar], y: List[Scalar]) -> None:
     ],
 )
 def test_equal_dims_check_fail(x: List[Scalar], y: List[Scalar]) -> None:
-    check_for_equal_dim(x, y)
+    _check_for_equal_dim(x, y)

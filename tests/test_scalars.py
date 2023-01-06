@@ -3,7 +3,7 @@ from hypothesis import given
 
 from minitorch.autodiff import Scalar, derivative_check
 from minitorch.operators import add, exp, inv, is_close, log, mul, relu, sigmoid
-from minitorch.testing import MathTestVariable
+from minitorch.testing import MathTestScalars
 from tests.strategies import (
     small_floats,
     small_positive_floats,
@@ -192,25 +192,27 @@ def test_relu(x: float, y: float) -> None:
 
 # One and two argument functions with scalars
 
-one_arg_funcs, two_arg_funcs, _ = MathTestVariable.generate_tests()
+one_arg_funcs, two_arg_funcs, _ = MathTestScalars._comp_testing()
 
 
 @given(small_scalars)
 @pytest.mark.parametrize("fn", one_arg_funcs)
 def test_one_arg_derivative(fn, x: Scalar):
-    name, _, scalar_fn = fn
+    _, _, scalar_fn = fn
     derivative_check(scalar_fn, x)
 
 
 @given(small_scalars, small_scalars)
 @pytest.mark.parametrize("fn", two_arg_funcs)
 def test_two_arg_derivative(fn, x: Scalar, y: Scalar):
-    name, _, scalar_fn = fn
+    _, _, scalar_fn = fn
     derivative_check(scalar_fn, x, y)
 
 
 def test_scalar_name():
     x = Scalar(10, name="x")
+    assert x.name == "x"
+
     y = (x + 10.0) * 20
     y.name = "y"
-    return y
+    assert y.name == "y"

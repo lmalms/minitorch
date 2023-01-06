@@ -1,98 +1,115 @@
-from typing import List, Tuple
+from __future__ import annotations
+
+from typing import Callable, Generic, Iterable, List, Tuple, TypeVar
 
 from minitorch import operators
-from minitorch.autodiff import Scalar
+from minitorch.autodiff import Scalar, Tensor
 from minitorch.constants import EPS
 from minitorch.functional import summation
 
+T = TypeVar("T")
 
-class MathTestOperators:
+
+class MathTest(Generic[T]):
     @staticmethod
-    def neg(x: float) -> float:
+    def neg(x: T) -> T:
         return -x
 
     @staticmethod
-    def add_constant(x: float) -> float:
+    def add_constant(x: T) -> T:
         return x + 5.0
 
     @staticmethod
-    def subtract_constant(x: float) -> float:
+    def subtract_constant(x: T) -> T:
         return x - 5.0
 
     @staticmethod
-    def multiply(x: float) -> float:
+    def multiply(x: T) -> T:
         return 5.0 * x
 
     @staticmethod
-    def divide(x: float) -> float:
+    def divide(x: T) -> T:
         return x / 5.0
 
     @staticmethod
-    def square(x: float):
+    def square(x: T):
         return x * x
 
     @staticmethod
-    def cube(x: float):
+    def cube(x: T):
         return x * x * x
 
     @staticmethod
-    def sigmoid(x: float) -> float:
+    def sigmoid(x: T) -> T:
         return operators.sigmoid(x)
 
     @staticmethod
-    def inv(x: float):
+    def inv(x: T):
         return operators.inv(x + 3.5)
 
     @staticmethod
-    def log(x: float) -> float:
-        return operators.log(abs(x) + EPS)  # To assure values are positive for tests.
+    def log(x: T) -> T:
+        # To assure values are positive for tests.
+        return operators.log(x + 1e06)
 
     @staticmethod
-    def relu(x: float) -> float:
+    def relu(x: T) -> T:
         return operators.relu(x + 5.5)
 
     @staticmethod
-    def exp(x: float) -> float:
+    def exp(x: T) -> T:
         return operators.exp(x - 200)
 
     @staticmethod
-    def explog(x: float) -> float:
-        return operators.log(x + 100000) + operators.exp(x - 200)
+    def explog(x: T) -> T:
+        return operators.log(x + 1e06) + operators.exp(x - 200)
 
     @staticmethod
-    def add2(x: float, y: float) -> float:
+    def add2(x: T, y: T) -> T:
         return x + y
 
     @staticmethod
-    def multiply2(x: float, y: float) -> float:
+    def multiply2(x: T, y: T) -> T:
         return x * y
 
     @staticmethod
-    def divide2(x: float, y: float) -> float:
+    def divide2(x: T, y: T) -> T:
         return x / (y + 5.5)
 
     @staticmethod
-    def gt2(x: float, y: float) -> float:
-        return operators.lt(y, x + 1.2)
+    def gt2(x: T, y: T) -> T:
+        return operators.gt(x + 1.2, y)
 
     @staticmethod
-    def lt2(x: float, y: float) -> float:
+    def lt2(x: T, y: T) -> T:
         return operators.lt(x + 1.2, y)
 
     @staticmethod
-    def eq2(x: float, y: float) -> float:
+    def eq2(x: T, y: T) -> T:
         return operators.eq(x, (y + 5.5))
 
     @staticmethod
-    def summation_reduction(x: List[float]) -> float:
+    def ge2(x: T, y: T) -> T:
+        return operators.ge(x + 1.2, y)
+
+    @staticmethod
+    def le2(x: T, y: T) -> T:
+        return operators.le(x + 1.2, y)
+
+    @staticmethod
+    def summation_reduction(x: List[T]) -> T:
         return summation(x)
 
     @staticmethod
-    def mean_reduction(x: List[float]) -> float:
+    def mean_reduction(x: List[T]) -> T:
         return summation(x) / float(len(x))
 
     @staticmethod
-    def complex(x: float):
+    def mean_full_reduction(x: List[T]) -> T:
+        return summation(x) / float(len(x))
+
+    @staticmethod
+    def complex(x: T) -> T:
         return (
             operators.log(
                 operators.sigmoid(
@@ -103,20 +120,24 @@ class MathTestOperators:
         )
 
     @classmethod
-    def generate_tests(cls) -> Tuple[List, List, List]:
+    def _tests(
+        cls,
+    ) -> Tuple[
+        List[Tuple[str, Callable[[T], T]]],
+        List[Tuple[str, Callable[[T, T], T]]],
+        List[Tuple[str, Callable[[Iterable[T]], T]]],
+    ]:
         """
         Collates all tests.
         """
         one_arg_tests = []
         two_arg_tests = []
         reduction_tests = []
-        for k in dir(MathTestOperators):
-            if callable(getattr(MathTestOperators, k)) and not (
-                k.startswith("generate") or k.startswith("_")
-            ):
-                base_fn = getattr(MathTestOperators, k)
-                scalar_fn = getattr(cls, k)
-                tup = (k, base_fn, scalar_fn)
+
+        for k in dir(cls):
+            if callable(getattr(cls, k)) and not k.startswith("_"):
+                base_fn = getattr(cls, k)
+                tup = (k, base_fn)
                 if k.endswith("2"):
                     two_arg_tests.append(tup)
                 elif k.endswith("reduction"):
@@ -127,79 +148,88 @@ class MathTestOperators:
         return one_arg_tests, two_arg_tests, reduction_tests
 
 
-class MathTestVariable(MathTestOperators):
+class MathTestVariable(MathTest[T]):
     @staticmethod
-    def inv(x: Scalar):
-        return 1.0 / (x + 3.5)
-
-    @staticmethod
-    def square(x: Scalar):
+    def square(x: T) -> T:
         return x.square()
 
     @staticmethod
-    def cube(x: Scalar):
-        return x.cube()
-
-    @staticmethod
-    def sigmoid(x: Scalar):
+    def sigmoid(x: T) -> T:
         return x.sigmoid()
 
     @staticmethod
-    def log(x: Scalar):
+    def log(x: T) -> T:
         return (x + 1e06).log()
 
     @staticmethod
-    def relu(x: Scalar):
+    def relu(x: T) -> T:
         return (x + 5.5).relu()
 
     @staticmethod
-    def exp(x: Scalar):
+    def exp(x: T) -> T:
         return (x - 200.0).exp()
 
     @staticmethod
-    def explog(x: Scalar):
+    def explog(x: T) -> T:
         return (x + 1e06).log() + (x - 200.0).exp()
 
     @staticmethod
-    def add2(x: Scalar, y: Scalar) -> Scalar:
-        return x + y
-
-    @staticmethod
-    def multiply2(x: Scalar, y: Scalar) -> Scalar:
-        return x * y
-
-    @staticmethod
-    def divide2(x: Scalar, y: Scalar) -> Scalar:
-        return x / (y + 5.5)
-
-    @staticmethod
-    def gt2(x: Scalar, y: Scalar) -> Scalar:
+    def gt2(x: T, y: T) -> T:
         return (x + 1.2) > y
 
     @staticmethod
-    def lt2(x: Scalar, y: Scalar) -> Scalar:
+    def lt2(x: T, y: T) -> T:
         return (x + 1.2) < y
 
     @staticmethod
-    def eq2(x: Scalar, y: Scalar) -> Scalar:
+    def eq2(x: T, y: T) -> T:
         return x == (y + 5.5)
 
     @staticmethod
-    def ge2(x: Scalar, y: Scalar) -> Scalar:
+    def ge2(x: T, y: T) -> T:
         return (x + 1.2) >= y
 
     @staticmethod
-    def le2(x: Scalar, y: Scalar) -> Scalar:
+    def le2(x: T, y: T) -> T:
         return (x + 1.2) <= y
 
     @staticmethod
-    def summation_reduction(x: List[Scalar]) -> Scalar:
-        return summation(x)
-
-    @staticmethod
-    def mean_reduction(x: List[Scalar]) -> Scalar:
-        return summation(x) / float(len(x))
-
-    @staticmethod
-    def complex(x: Scalar) -> Scalar:
+    def complex(x: T) -> T:
         return (((x * 10 + 7).relu() * 6 + 5).relu() * 10).sigmoid().log() / 50
+
+    @classmethod
+    def _comp_testing(
+        cls,
+    ) -> Tuple[
+        List[Tuple[str, Callable[[float], float]], Callable[[T], T]],
+        List[Tuple[str, Callable[[float, float], float]], Callable[[T, T], T]],
+        List[
+            Tuple[str, Callable[[Iterable[float]], float], Callable[[Iterable[T]], T]]
+        ],
+    ]:
+        one_arg, two_arg, red = MathTestOperators._tests()
+        one_argv, two_argv, redv = cls._tests()
+        one_arg_comp = [(n1, f1, f2) for (n1, f1), (_, f2) in zip(one_arg, one_argv)]
+        two_arg_comp = [(n1, f1, f2) for (n1, f1), (_, f2) in zip(two_arg, two_argv)]
+        red_comp = [(n1, f1, f2) for (n1, f1), (_, f2) in zip(red, redv)]
+        return one_arg_comp, two_arg_comp, red_comp
+
+
+MathTestOperators = MathTest[float]
+
+
+MathTestScalars = MathTestVariable[Scalar]
+
+
+class MathTestTensor(MathTestVariable[Tensor]):
+    @staticmethod
+    def summation_reduction(x: Tensor) -> Tensor:
+        return x.sum(dim=0)
+
+    @staticmethod
+    def mean_reduction(x: Tensor) -> Tensor:
+        return x.mean(dim=0)
+
+    @staticmethod
+    def mean_full_reduction(x: Tensor) -> Tensor:
+        return x.mean()

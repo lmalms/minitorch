@@ -1,15 +1,25 @@
+import itertools
 import random
-from typing import List, Union
+import time
+from typing import List, Optional, Union
 
-from minitorch.autodiff import Scalar
+import minitorch.autodiff.tensor_functions as tf
+import minitorch.scalar_losses as sl
+import minitorch.tensor_losses as tl
+from minitorch.autodiff import FastOps, Scalar, Tensor, TensorBackend
 from minitorch.module.module import Module
 from minitorch.module.parameter import Parameter
+from minitorch.optim.base import BaseOptimizer
+
+from .logging import default_message, logging
+
+logger = logging.getLogger(__name__)
 
 
-class Linear(Module):
+class LinearScalarLayer(Module):
 
     """
-    Builds a linear fully connected layer.
+    Builds a linear fully connected layer using scalar variables.
     """
 
     def __init__(self, input_dim: int, output_dim: int):
@@ -52,8 +62,6 @@ class Linear(Module):
         Forward function for linear layer.
         """
 
-        # TODO: use type hint here for inputs e.g. ScalarBatch
-
         outputs = []
         for s, sample in enumerate(inputs):
             # First dimension is assumed to be batch size
@@ -74,3 +82,175 @@ class Linear(Module):
                 outputs[s].append(out_)
 
         return outputs
+
+    def fit_binary_classifier(
+        self,
+        features: List[List[Union[float, Scalar]]],
+        labels: List[Union[float, Scalar]],
+        optimizer: BaseOptimizer,
+        n_epochs: int = 200,
+        logging_freq: int = 10,
+    ) -> List[float]:
+        """
+        Trains the parameters of the module using a binary cross entropy objective
+        """
+
+        # Check dims
+        assert len(features) == len(labels)
+        assert all(len(feature) == self.input_dim for feature in features)
+
+        # Training loop
+        losses = []
+        for epoch in range(1, n_epochs + 1):
+            start_time = time.time()
+
+            # Zero all grads
+            optimizer.zero_grad()
+
+            # Forward
+            y_hat = self.forward(features)
+
+            # Convert to binary class probabilties
+            y_hat = [[scalar.sigmoid() for scalar in row] for row in y_hat]
+            y_hat = list(itertools.chain.from_iterable(y_hat))
+
+            # Compute a loss
+            loss_per_epoch = sl.binary_cross_entropy(labels, y_hat)
+            loss_per_epoch.backward()
+
+            # Update parameters
+            optimizer.step()
+
+            # Record
+            time_per_epoch = (time.time() - start_time) * 1e03
+            losses.append(loss_per_epoch.data)
+            if epoch % logging_freq == 0:
+                logger.info(
+                    default_message(
+                        epoch,
+                        loss_per_epoch.data,
+                        time_per_epoch,
+                    )
+                )
+
+        return losses
+
+
+class LinearTensorLayer(Module):
+
+    """
+    Builds a linear fully connected layer using tensor variables.
+    """
+
+    def __init__(
+        self,
+        input_dim: int,
+        output_dim: int,
+        backend: TensorBackend = TensorBackend(FastOps),
+    ):
+        super().__init__()
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        self.backend = backend
+        self._weights = self._initialise_parameter(
+            input_dim,
+            output_dim,
+            backend=backend,
+            name="linear_weight",
+        )
+        self._bias = self._initialise_parameter(
+            output_dim,
+            backend=backend,
+            name="linear_bias",
+        )
+
+    @staticmethod
+    def _initialise_parameter(
+        *shape: int,
+        backend: TensorBackend,
+        name: Optional[str] = None,
+    ) -> Parameter:
+        random_tensor = tf.rand(
+            shape=tuple(shape),
+            requires_grad=True,
+            backend=backend,
+        )
+        random_tensor = 2 * (random_tensor - 0.5)
+        return Parameter(value=random_tensor, name=name)
+
+    def forward(self, inputs: Tensor) -> Tensor:
+        """
+        Implements forward function using matmul.
+        """
+        # Check inputs and set same backend
+        assert inputs.shape[1] == self._weights.value.shape[0]
+        inputs._type_(backend=self.backend)
+
+        # Forward
+        _out = inputs @ self._weights.value + self._bias.value
+        return _out
+
+    def zip_reduce_forward(self, inputs: Tensor) -> Tensor:
+        """
+        Implements forward function for tensors using
+        zip reduce and broadcasting.
+        """
+        # Check inputs and set same backend
+        assert inputs.shape[1] == self._weights.value.shape[0]
+        inputs._type_(backend=self.backend)
+
+        # Add dimensions such that we can broadcast
+        _inputs = inputs.view(*inputs.shape, 1)
+        _weights = self._weights.value.view(1, *self._weights.value.shape)
+
+        # Collapse dimension
+        _out = (_inputs * _weights).sum(dim=1)
+        _out = _out.view(inputs.shape[0], self.output_dim)
+        return _out + self._bias.value
+
+    def fit_binary_classifier(
+        self,
+        features: Tensor,
+        labels: Tensor,
+        optimizer: BaseOptimizer,
+        n_epochs: int = 200,
+        logging_freq: int = 10,
+    ) -> List[float]:
+
+        # Check dims
+        assert features.dims == 2
+        assert labels.dims == 2
+        assert features.shape[1] == self.input_dim
+        assert features.shape[0] == labels.shape[0]
+
+        # Training loop
+        losses = []
+        for epoch in range(1, n_epochs + 1):
+            start_time = time.time()
+            # Zero all grads
+            optimizer.zero_grad()
+
+            # Forward
+            y_hat = self.forward(features).sigmoid()
+
+            # Compute a loss
+            loss_per_epoch = tl.binary_cross_entropy(labels, y_hat)
+            loss_per_epoch.backward()
+
+            # Update parameters
+            optimizer.step()
+
+            # Record
+            # Record
+            time_per_epoch = (time.time() - start_time) * 1e03
+            losses.append(loss_per_epoch.item())
+            if epoch % logging_freq == 0:
+                logger.info(
+                    default_message(
+                        epoch,
+                        loss_per_epoch.item(),
+                        time_per_epoch,
+                    )
+                )
+
+        return losses

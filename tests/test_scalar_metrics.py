@@ -3,8 +3,8 @@ from typing import List
 import pytest
 
 from minitorch.autodiff import Scalar
-from minitorch.metrics import accuracy, false_positive_rate, true_positive_rate
 from minitorch.operators import is_close
+from minitorch.scalar_metrics import accuracy, false_positive_rate, true_positive_rate
 
 
 @pytest.mark.parametrize(
