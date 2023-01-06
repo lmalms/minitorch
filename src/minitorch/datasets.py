@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import List, Tuple
+from enum import Enum
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -85,6 +86,7 @@ class Dataset:
         ax.legend(loc=1)
         ax.set_xlabel("x1")
         ax.set_ylabel("x2")
+        ax.set_ylim(-0.05, 1.05)
         fig.tight_layout()
 
         return fig
