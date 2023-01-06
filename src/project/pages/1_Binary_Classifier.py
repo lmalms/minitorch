@@ -1,5 +1,7 @@
 from dataclasses import fields
 
+import matplotlib
+import numpy as np
 import streamlit as st
 
 import minitorch.autodiff.tensor_functions as tf
@@ -8,6 +10,7 @@ from minitorch.autodiff import FastBackend, Tensor
 from minitorch.module import TensorNetwork
 from minitorch.optim import SGDOptimizer
 from minitorch.tensor_losses import binary_cross_entropy
+from minitorch.tensor_plotting import plot_tensor_predictions
 
 # Utils for this page
 datasets = {
@@ -44,12 +47,19 @@ def train_classifier(
         progress_bar.progress(epoch)
 
 
-def plot_predictions():
-    pass
+def plot_predictions(network: TensorNetwork, dataset: data.Dataset):
+    fig = plot_tensor_predictions(
+        dataset,
+        network,
+        matplotlib.cm.get_cmap("Blues")(0.5),
+        matplotlib.cm.get_cmap("Reds")(0.5),
+    )
+    st.pyplot(fig)
 
 
 # Configure page
 st.set_page_config(page_title="Binary Classifiers", page_icon=":white_check_mark:")
+st.title("Train a binary classifier")
 
 # Configure side bar
 with st.sidebar:
@@ -116,4 +126,5 @@ st.button(
 st.button(
     label="Plot predictions",
     on_click=plot_predictions,
+    args=(network, dataset),
 )
