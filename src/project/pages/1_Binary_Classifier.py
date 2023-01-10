@@ -12,6 +12,12 @@ from minitorch.optim import SGDOptimizer
 from minitorch.tensor_losses import binary_cross_entropy
 from minitorch.tensor_plotting import plot_tensor_predictions
 
+
+###
+# Check out animation demo in $streamlit hello - might be some useful stuff in there
+###
+
+
 # Utils for this page
 datasets = {
     "simple": data.SimpleDataset,
