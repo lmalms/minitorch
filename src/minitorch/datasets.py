@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from enum import Enum
 from typing import List, Tuple
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Polygon, Rectangle
@@ -13,6 +13,10 @@ from matplotlib.patches import Polygon, Rectangle
 Features = List[Tuple[float, float]]
 Labels = List[float]
 DatasetSplit = Tuple[Features, Features, Labels, Labels]
+
+# Colors
+Blue = matplotlib.cm.get_cmap("Blues")(0.75)
+Red = matplotlib.cm.get_cmap("Reds")(0.75)
 
 
 class Dataset:
@@ -73,14 +77,14 @@ class Dataset:
             list(positive_x1),
             list(positive_x2),
             marker="x",
-            c="tab:blue",
+            color=Blue,
             label="class = 1",
         )
         ax.scatter(
             list(negative_x1),
             list(negative_x2),
             marker="o",
-            c="tab:red",
+            color=Red,
             label="class = 0",
         )
         ax.legend(loc=1)
@@ -109,8 +113,8 @@ class SimpleDataset(Dataset):
 
         if add_shading:
             # Add patches to highlight positive and negative class regiongs
-            left = Rectangle((0, 0), 0.5, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
-            right = Rectangle((0.5, 0), 0.5, 1.0, color="tab:red", alpha=0.2, lw=0.0)
+            left = Rectangle((0, 0), 0.5, 1.0, color=Blue, alpha=0.2, lw=0.0)
+            right = Rectangle((0.5, 0), 0.5, 1.0, color=Red, alpha=0.2, lw=0.0)
             ax.add_patch(left)
             ax.add_patch(right)
 
@@ -137,8 +141,8 @@ class DiagonalDataset(Dataset):
 
         if add_shading:
             # Add patches to highlight positive and negative class regiongs
-            left = Polygon([[0, 1], [1, 0], [0, 0]], color="tab:blue", alpha=0.2, lw=0)
-            right = Polygon([[0, 1], [1, 1], [1, 0]], color="tab:red", alpha=0.2, lw=0)
+            left = Polygon([[0, 1], [1, 0], [0, 0]], color=Blue, alpha=0.2, lw=0)
+            right = Polygon([[0, 1], [1, 1], [1, 0]], color=Red, alpha=0.2, lw=0)
             ax.add_patch(left)
             ax.add_patch(right)
 
@@ -165,9 +169,9 @@ class SplitDataset(Dataset):
 
         if add_shading:
             # Add patches to highlight positive and negative class regiongs
-            left = Rectangle((0.0, 0.0), 0.2, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
-            center = Rectangle((0.2, 0.0), 0.6, 1.0, color="tab:red", alpha=0.2, lw=0.0)
-            right = Rectangle((0.8, 0.0), 0.2, 1.0, color="tab:blue", alpha=0.2, lw=0.0)
+            left = Rectangle((0.0, 0.0), 0.2, 1.0, color=Blue, alpha=0.2, lw=0.0)
+            center = Rectangle((0.2, 0.0), 0.6, 1.0, color=Red, alpha=0.2, lw=0.0)
+            right = Rectangle((0.8, 0.0), 0.2, 1.0, color=Blue, alpha=0.2, lw=0.0)
             ax.add_patch(left)
             ax.add_patch(center)
             ax.add_patch(right)
@@ -198,10 +202,10 @@ class XORDataset(Dataset):
 
         if add_shading:
             # Add patches to highlight positive and negative class regiongs
-            bl = Rectangle((0, 0), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
-            tr = Rectangle((0.5, 0.5), 0.5, 0.5, color="tab:red", alpha=0.2, lw=0.0)
-            tl = Rectangle((0.0, 0.5), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
-            br = Rectangle((0.5, 0.0), 0.5, 0.5, color="tab:blue", alpha=0.2, lw=0.0)
+            bl = Rectangle((0, 0), 0.5, 0.5, color=Red, alpha=0.2, lw=0.0)
+            tr = Rectangle((0.5, 0.5), 0.5, 0.5, color=Red, alpha=0.2, lw=0.0)
+            tl = Rectangle((0.0, 0.5), 0.5, 0.5, color=Blue, alpha=0.2, lw=0.0)
+            br = Rectangle((0.5, 0.0), 0.5, 0.5, color=Blue, alpha=0.2, lw=0.0)
 
             ax.add_patch(bl)
             ax.add_patch(tr)
