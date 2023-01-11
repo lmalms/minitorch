@@ -77,9 +77,17 @@ Classifiers can be trained using the notebooks in `/notebooks` or through a Stre
 
 
 ## Training classifiers through the app
-... Coming soon ...
+Classifiers can be trained in an experimental manner through the Streamlit app in `src/project`. To launch the app run
+
+```bash
+$ cd src/project
+$ streamlit run Minitorch.py
+```
+
+An example screenshot of the interface is shown below:
+ 
+
 
 
 ## TODO:
-- finish app
 - set up a github action to run all test before merging and displays coverage, pct passed etc.
