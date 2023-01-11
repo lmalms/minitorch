@@ -5,19 +5,10 @@ import streamlit as st
 from minitorch.datasets import Datasets
 
 # Configure page
-st.set_page_config(
-    page_title="Datasets",
-    page_icon=":chart_with_upwards_trend:",
-    layout="wide",
-)
+st.set_page_config(page_title="Datasets", page_icon=":chart_with_upwards_trend:")
 st.title("Datasets")
 
-# About this page
-with st.expander("About this page"):
-    st.write("....")
-
 # Configure side bar
-# TODO: How can change the settings (font, size) in the sidebar?
 dataset_size = st.sidebar.slider(
     "Dataset size:",
     min_value=50,
