@@ -15,8 +15,16 @@ from minitorch.tensor_metrics import roc_curve
 from minitorch.tensor_plotting import plot_tensor_predictions
 
 # Configure page
-st.set_page_config(page_title="Binary Classifiers", page_icon=":white_check_mark:")
+st.set_page_config(
+    page_title="Binary Classifiers",
+    page_icon=":white_check_mark:",
+    layout="wide",
+)
 st.title("Train a binary classifier")
+
+# About this page
+with st.expander("About this page"):
+    st.write("....")
 
 # Configure sidebar
 dataset_type = st.sidebar.radio(
