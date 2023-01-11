@@ -86,7 +86,7 @@ $ streamlit run Minitorch.py
 
 An example screenshot of the interface is shown below:
 <td style="padding:10px">
-<img src="src/project/app.png" width="750"/>
+<img src="src/project/app.png"/>
 </td>
 
 ## TODO:
