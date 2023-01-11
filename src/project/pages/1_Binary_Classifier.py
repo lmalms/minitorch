@@ -27,6 +27,10 @@ with st.expander("About this page"):
     st.write("....")
 
 # Configure sidebar
+
+##
+#  Can I maybe better solve this using a st.form?
+##
 dataset_type = st.sidebar.radio(
     "Dataset type:",
     [field.name.capitalize() for field in fields(data.Datasets)],
