@@ -84,8 +84,7 @@ $ cd src/project
 $ streamlit run Minitorch.py
 ```
 
-An example screenshot of the interface is shown below:
- 
+An example screenshot of the interface is shown below ![alt text](https://github.com/lmalms/minitorch/blob/app/src/project/app.png)
 
 
 
