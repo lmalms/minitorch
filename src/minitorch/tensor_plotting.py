@@ -1,6 +1,7 @@
-import matplotlib.pyplot as plt
+from typing import Tuple, Union
 
-from typing import Any, Union, Tuple
+import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.patches import Rectangle
@@ -8,6 +9,10 @@ from matplotlib.patches import Rectangle
 from minitorch.autodiff import tensor
 from minitorch.datasets import Dataset
 from minitorch.module import Module
+
+# Colors
+Blue = matplotlib.cm.get_cmap("Blues")(0.75)
+Red = matplotlib.cm.get_cmap("Reds")(0.75)
 
 
 def _add_simple_tensor_predictions(
@@ -167,8 +172,8 @@ def _add_xor_tensor_predictions(
 def plot_tensor_predictions(
     dataset: Dataset,
     model: Module,
-    color_positive_class: Union[Tuple[float], str] = "tab:blue",
-    color_negative_class: Union[Tuple[float], str] = "tab:red",
+    color_positive_class: Union[Tuple[float], str] = Blue,
+    color_negative_class: Union[Tuple[float], str] = Red,
 ):
     fig = dataset.plot(add_shading=False)
     ax = plt.gca()
