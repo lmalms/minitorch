@@ -86,7 +86,5 @@ $ streamlit run Minitorch.py
 
 An example screenshot of the interface is shown below ![alt text](https://github.com/lmalms/minitorch/blob/app/src/project/app.png)
 
-
-
 ## TODO:
 - set up a github action to run all test before merging and displays coverage, pct passed etc.
