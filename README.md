@@ -84,7 +84,8 @@ $ cd src/project
 $ streamlit run Minitorch.py
 ```
 
-An example screenshot of the interface is shown below <img src="notebooks/plots/losses/loss-simple.png" width="350"/>
+An example screenshot of the interface is shown below:
+<img src="src/project/app.png" width="550"/>
 
 ## TODO:
 - set up a github action to run all test before merging and displays coverage, pct passed etc.
