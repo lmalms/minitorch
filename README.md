@@ -88,6 +88,3 @@ An example screenshot of the interface is shown below:
 <td style="padding:10px">
 <img src="src/project/app.png"/>
 </td>
-
-## TODO:
-- set up a github action to run all test before merging and displays coverage, pct passed etc.
